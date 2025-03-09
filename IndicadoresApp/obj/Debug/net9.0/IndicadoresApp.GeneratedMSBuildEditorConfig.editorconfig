@@ -28,8 +28,36 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Frecuencias.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnJlY3VlbmNpYXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Fuentes.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnVlbnRlcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/RepresentanteVisual.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwcmVzZW50YW50ZVZpc3VhbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Roles.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUm9sZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Secciones.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VjY2lvbmVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Sentidos.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VudGlkb3MucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Subsecciones.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU3Vic2VjY2lvbmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/TipoActores.razor]
