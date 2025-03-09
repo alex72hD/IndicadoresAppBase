@@ -1,0 +1,131 @@
+@page "/Subseccion"  
+@using System.Collections.Generic  
+@using System.Text.Json  
+@using Services  
+@inject ServicioEntidad servicioEntidad  
+@inject NavigationManager navegacionManager  
+
+
+<PageTitle>Lista de subsecciones</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+
+<h1>subsecciones</h1>  <!-- Encabezado principal de la página -->
+
+<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
+    <button class="btn btn-primary" >Crear Nuevo</button>  
+</div>
+
+@if (cargando)
+{
+    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+}
+else if (subsecciones == null || subsecciones.Count == 0)
+{
+    <p>No hay Tipos de indicadores.</p>  <!-- Mensaje cuando no hay productos para mostrar -->
+}
+else
+{
+    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
+        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
+            <thead>  <!-- Encabezado de la tabla -->
+                <tr>  <!-- Fila del encabezado -->
+                    <th>Código</th>  <!-- Columna para el código del producto -->
+                    <th>Nombre</th>  <!-- Columna para el nombre del producto -->
+                </tr>
+            </thead>
+            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
+             
+                @foreach (var subseccion in subsecciones)
+                {
+                    <tr>  
+                        <td>@ObtenerValor(subseccion, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
+                      <td>@ObtenerValor(subseccion, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- Mostrar mensaje de error si existe -->
+@if (errorMensaje != null)
+{
+    <div class="alert alert-danger">
+        Error: @errorMensaje
+    </div>
+}
+
+@code {
+    // Lista para almacenar los productos que se obtienen de la API
+    private List<Dictionary<string, object>> subsecciones = new List<Dictionary<string, object>>();
+    
+    // Bandera para indicar si se están cargando los datos
+    private bool cargando = true;
+    
+    // Variable para almacenar mensajes de error
+    private string? errorMensaje = null;
+    
+    // Constantes para los parámetros de la API
+    private const string TABLA = "subseccion";
+
+    // Método que se ejecuta cuando se inicializa el componente
+    protected override async Task OnInitializedAsync()
+    {
+        // Llamar al método para cargar los productos
+        await Cargarsubseccion();
+    }
+
+    // Método asíncrono para cargar los productos desde la API
+    private async Task Cargarsubseccion()
+    {
+        // Establecer la bandera de carga en verdadero
+        cargando = true;
+        // Limpiar cualquier mensaje de error previo
+        errorMensaje = null;
+        
+        try
+        {
+            // Obtener todos los productos usando el servicio de entidades
+            var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            
+            // Si la lista no es null, asignarla a la variable productos
+            if (resultado != null)
+            {
+                subsecciones = resultado;
+            }
+            else
+            {
+                // Si es null, inicializar como lista vacía para evitar errores
+                 subsecciones = new List<Dictionary<string, object>>();
+            }
+        }
+        catch (Exception ex)
+        {
+            // En caso de error, guardar el mensaje y crear lista vacía
+            errorMensaje = $"Error al cargar Tipos de Indicadores: {ex.Message}";
+            subsecciones = new List<Dictionary<string, object>>();
+        }
+        finally
+        {
+            // Establecer la bandera de carga en falso una vez finalizada la operación
+            cargando = false;
+        }
+    }
+
+    // Método para obtener un valor específico de un diccionario de manera segura
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        // Verificar si el diccionario es null
+        if (diccionario == null)
+            return string.Empty;
+            
+        // Verificar si el diccionario contiene la clave
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            // Devolver el valor como cadena, o cadena vacía si es null
+            return valor?.ToString() ?? string.Empty;
+        }
+        
+        // Si la clave no existe, devolver cadena vacía
+        return string.Empty;
+    }
+}
