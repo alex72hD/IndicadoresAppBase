@@ -6,42 +6,43 @@
 @inject NavigationManager navegacionManager  
 
 
-<PageTitle>Lista de indicadores</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+<PageTitle>Lista de indicadores</PageTitle>
 
-<h1>indicadores</h1>  <!-- Encabezado principal de la página -->
+<h1>Indicadores</h1>
 
-<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
-    <button class="btn btn-primary" >Crear Nuevo</button>  
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
 </div>
 
-<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
-<!-- Si no está cargando pero no hay productos o la lista es nula, muestra un mensaje informativo -->
-<!-- Si hay productos para mostrar, muestra la tabla -->
 @if (cargando)
 {
-    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+    <p><em>Cargando...</em></p>
 }
 else if (indicadores == null || indicadores.Count == 0)
 {
-    <p>No hay Tipos de indicadores.</p>  <!-- Mensaje cuando no hay productos para mostrar -->
+    <p>No hay Tipos de indicadores.</p>
 }
 else
 {
-    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
-        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
-            <thead>  <!-- Encabezado de la tabla -->
-                <tr>  <!-- Fila del encabezado -->
-                    <th>Código</th>  <!-- Columna para el código del producto -->
-                    <th>Nombre</th>  <!-- Columna para el nombre del producto -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
-                <!-- Bucle foreach que itera sobre cada producto en la lista -->
+            <tbody>
                 @foreach (var tipoindicador in indicadores)
                 {
-                    <tr>  <!-- Fila para cada producto -->
-                        <td>@ObtenerValor(tipoindicador, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
-                      <td>@ObtenerValor(tipoindicador, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                    <tr>
+                        <td>@ObtenerValor(tipoindicador, "id")</td>
+                        <td>@ObtenerValor(tipoindicador, "nombre")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(tipoindicador)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(tipoindicador)">Eliminar</button>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -49,7 +50,51 @@ else
     </div>
 }
 
-<!-- Mostrar mensaje de error si existe -->
+@if (mostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(modoEdicion ? "Editar" : "Crear") Tipo de Indicador</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" @bind="indicadorActual.nombre" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarIndicador">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (mostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar el indicador: @indicadorEliminar?.nombre?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="EliminarIndicador">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @if (errorMensaje != null)
 {
     <div class="alert alert-danger">
@@ -57,78 +102,204 @@ else
     </div>
 }
 
+@if (exitoMensaje != null)
+{
+    <div class="alert alert-success">
+        @exitoMensaje
+    </div>
+}
+
 @code {
-    // Lista para almacenar los productos que se obtienen de la API
     private List<Dictionary<string, object>> indicadores = new List<Dictionary<string, object>>();
-    
-    // Bandera para indicar si se están cargando los datos
     private bool cargando = true;
-    
-    // Variable para almacenar mensajes de error
     private string? errorMensaje = null;
-    
-    // Constantes para los parámetros de la API
+    private string? exitoMensaje = null;
     private const string TABLA = "tipoindicador";
 
-    // Método que se ejecuta cuando se inicializa el componente
+    // Variables para el formulario
+    private bool mostrarFormulario = false;
+    private bool modoEdicion = false;
+    private IndicadorModel indicadorActual = new IndicadorModel();
+
+    // Variables para confirmación de eliminación
+    private bool mostrarConfirmacion = false;
+    private IndicadorModel indicadorEliminar = new IndicadorModel();
+
     protected override async Task OnInitializedAsync()
     {
-        // Llamar al método para cargar los productos
         await CargarTipodeIndicadores();
     }
 
-    // Método asíncrono para cargar los productos desde la API
     private async Task CargarTipodeIndicadores()
     {
-        // Establecer la bandera de carga en verdadero
         cargando = true;
-        // Limpiar cualquier mensaje de error previo
         errorMensaje = null;
         
         try
         {
-            // Obtener todos los productos usando el servicio de entidades
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
             
-            // Si la lista no es null, asignarla a la variable productos
             if (resultado != null)
             {
                 indicadores = resultado;
             }
             else
             {
-                // Si es null, inicializar como lista vacía para evitar errores
-                 indicadores = new List<Dictionary<string, object>>();
+                indicadores = new List<Dictionary<string, object>>();
             }
         }
         catch (Exception ex)
         {
-            // En caso de error, guardar el mensaje y crear lista vacía
             errorMensaje = $"Error al cargar Tipos de Indicadores: {ex.Message}";
             indicadores = new List<Dictionary<string, object>>();
         }
         finally
         {
-            // Establecer la bandera de carga en falso una vez finalizada la operación
             cargando = false;
         }
     }
 
-    // Método para obtener un valor específico de un diccionario de manera segura
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        // Verificar si el diccionario es null
         if (diccionario == null)
             return string.Empty;
             
-        // Verificar si el diccionario contiene la clave
         if (diccionario.TryGetValue(clave, out var valor))
         {
-            // Devolver el valor como cadena, o cadena vacía si es null
             return valor?.ToString() ?? string.Empty;
         }
         
-        // Si la clave no existe, devolver cadena vacía
         return string.Empty;
+    }
+    private void MostrarFormularioCrear()
+    {
+        indicadorActual = new IndicadorModel();
+        modoEdicion = false;
+        mostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> indicador)
+    {
+        indicadorActual = new IndicadorModel
+        {
+            id = ObtenerValor(indicador, "id"),
+            nombre = ObtenerValor(indicador, "nombre")
+        };
+        modoEdicion = true;
+        mostrarFormulario = true;
+    }
+
+    private void CerrarFormulario()
+    {
+        mostrarFormulario = false;
+    }
+
+    private async Task GuardarIndicador()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var indicadorDict = new Dictionary<string, object>
+            {
+                ["nombre"] = indicadorActual.nombre
+            };
+
+            bool resultado;
+
+            if (modoEdicion)
+            {
+                resultado = await servicioEntidad.ActualizarAsync(
+                    TABLA,
+                    "id",
+                    indicadorActual.id,
+                    indicadorDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "Indicador actualizado correctamente.";
+                }
+            }
+            else
+            {
+                resultado = await servicioEntidad.CrearAsync(
+                    TABLA,
+                    indicadorDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "Indicador creado correctamente.";
+                }
+            }
+
+            if (resultado)
+            {
+                await CargarTipodeIndicadores();
+                mostrarFormulario = false;
+            }
+            else
+            {
+                errorMensaje = "No se pudo guardar el indicador.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al guardar el indicador: {ex.Message}";
+        }
+    }
+
+    // Funciones para eliminar
+    private void ConfirmarEliminar(Dictionary<string, object> indicador)
+    {
+        indicadorEliminar = new IndicadorModel
+        {
+            id = ObtenerValor(indicador, "id"),
+            nombre = ObtenerValor(indicador, "nombre")
+        };
+        mostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        mostrarConfirmacion = false;
+    }
+
+    private async Task EliminarIndicador()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var resultado = await servicioEntidad.EliminarAsync(
+                TABLA,
+                "id",
+                indicadorEliminar.id
+            );
+
+            if (resultado)
+            {
+                exitoMensaje = "Indicador eliminado correctamente.";
+                await CargarTipodeIndicadores();
+            }
+            else
+            {
+                errorMensaje = "No se pudo eliminar el indicador.";
+            }
+
+            mostrarConfirmacion = false;
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al eliminar el indicador: {ex.Message}";
+        }
+    }
+    private class IndicadorModel
+    {
+        public string id { get; set; } = string.Empty;
+        public string nombre { get; set; } = string.Empty;
     }
 }
