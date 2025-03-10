@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\indicadoresApp\\IndicadoresApp.csproj": {}
+    "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\IndicadoresApp.csproj": {}
   },
   "projects": {
-    "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\indicadoresApp\\IndicadoresApp.csproj": {
+    "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\IndicadoresApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\indicadoresApp\\IndicadoresApp.csproj",
+        "projectUniqueName": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\IndicadoresApp.csproj",
         "projectName": "IndicadoresApp",
-        "projectPath": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\indicadoresApp\\IndicadoresApp.csproj",
+        "projectPath": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\IndicadoresApp.csproj",
         "packagesPath": "C:\\Users\\robin\\.nuget\\packages\\",
-        "outputPath": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\indicadoresApp\\obj\\",
+        "outputPath": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

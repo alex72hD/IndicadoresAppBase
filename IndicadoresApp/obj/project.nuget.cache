@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "fzHSlAen078=",
+  "dgSpecHash": "3xxK3gt3upA=",
   "success": true,
-  "projectFilePath": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\indicadoresApp\\IndicadoresApp.csproj",
+  "projectFilePath": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\IndicadoresApp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\robin\\.nuget\\packages\\microsoft.aspnetcore.authorization\\9.0.0\\microsoft.aspnetcore.authorization.9.0.0.nupkg.sha512",
     "C:\\Users\\robin\\.nuget\\packages\\microsoft.aspnetcore.components\\9.0.0\\microsoft.aspnetcore.components.9.0.0.nupkg.sha512",

@@ -37,7 +37,7 @@ else
                 @foreach (var seccion in secciones)
                 {
                     <tr>  
-                        <td>@ObtenerValor(seccion, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
+                      <td>@ObtenerValor(seccion, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
                       <td>@ObtenerValor(seccion, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
                     </tr>
                 }
@@ -99,7 +99,7 @@ else
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al cargar Tipos de Indicadores: {ex.Message}";
+            errorMensaje = $"Error al cargar Tipos de Secciones: {ex.Message}";
             secciones = new List<Dictionary<string, object>>();
         }
         finally

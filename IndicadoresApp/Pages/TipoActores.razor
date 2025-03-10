@@ -32,7 +32,7 @@ else
             <thead>  <!-- Encabezado de la tabla -->
                 <tr>  <!-- Fila del encabezado -->
                     <th>Código</th>  <!-- Columna para el código del actor -->
-                    <th>Nombre</th>  <!-- Columna para el nombre del actor -->
+                    <th>nombre</th>  <!-- Columna para el nombre del actor -->
                 </tr>
             </thead>
             <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
@@ -42,6 +42,10 @@ else
                     <tr>  <!-- Fila para cada actor -->
                         <td>@ObtenerValor(tipoactor, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
                         <td>@ObtenerValor(tipoactor, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                         <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(tipoactor)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(tipoactor)">Eliminar</button>
+                         </td>
                     </tr>
                 }
             </tbody>
@@ -49,7 +53,51 @@ else
     </div>
 }
 
-<!-- Mostrar mensaje de error si existe -->
+@if (mostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(modoEdicion ? "Editar" : "Crear") Actor</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">nombre</label>
+                        <input type="text" class="form-control" id="nombre" @bind="actorActual.nombre" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="Guardaractor">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (mostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar el actor: @actorEliminar?.nombre?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="Eliminaractor">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @if (errorMensaje != null)
 {
     <div class="alert alert-danger">
@@ -57,78 +105,204 @@ else
     </div>
 }
 
+@if (exitoMensaje != null)
+{
+    <div class="alert alert-success">
+        @exitoMensaje
+    </div>
+}
+
 @code {
     // Lista para almacenar los actors que se obtienen de la API
     private List<Dictionary<string, object>> actores = new List<Dictionary<string, object>>();
     
-    // Bandera para indicar si se están cargando los datos
-    private bool cargando = true;
-    
-    // Variable para almacenar mensajes de error
+   private bool cargando = true;
     private string? errorMensaje = null;
-    
-    // Constante para los parámetro de la API
+    private string? exitoMensaje = null;
     private const string TABLA = "tipoactor";
 
-    // Método que se ejecuta cuando se inicializa el componente
+    // Variables para el formulario
+    private bool mostrarFormulario = false;
+    private bool modoEdicion = false;
+    private actorModel actorActual = new actorModel();
+
+    // Variables para confirmación de eliminación
+    private bool mostrarConfirmacion = false;
+    private actorModel actorEliminar = new actorModel();
+
     protected override async Task OnInitializedAsync()
     {
-        // Llamar al método para cargar los actores
-        await CargarActores();
+        await Cargarunidadmedicion();
     }
 
-    // Método asíncrono para cargar los actores desde la API
-    private async Task CargarActores()
+    private async Task Cargarunidadmedicion()
     {
-        // Establecer la bandera de carga en verdadero
         cargando = true;
-        // Limpiar cualquier mensaje de error previo
         errorMensaje = null;
         
         try
         {
-            // Obtener todos los actores usando el servicio de entidades
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
             
-            // Si la lista no es null, asignarla a la variable actores
             if (resultado != null)
             {
                 actores = resultado;
             }
             else
             {
-                // Si es null, inicializar como lista vacía para evitar errores
                 actores = new List<Dictionary<string, object>>();
             }
         }
         catch (Exception ex)
         {
-            // En caso de error, guardar el mensaje y crear lista vacía
-            errorMensaje = $"Error al cargar actors: {ex.Message}";
+            errorMensaje = $"Error al cargar el actor: {ex.Message}";
             actores = new List<Dictionary<string, object>>();
         }
         finally
         {
-            // Establecer la bandera de carga en falso una vez finalizada la operación
             cargando = false;
         }
     }
 
-    // Método para obtener un valor específico de un diccionario de manera segura
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        // Verificar si el diccionario es null
         if (diccionario == null)
             return string.Empty;
             
-        // Verificar si el diccionario contiene la clave
         if (diccionario.TryGetValue(clave, out var valor))
         {
-            // Devolver el valor como cadena, o cadena vacía si es null
             return valor?.ToString() ?? string.Empty;
         }
         
-        // Si la clave no existe, devolver cadena vacía
         return string.Empty;
+    }
+    private void MostrarFormularioCrear()
+    {
+        actorActual = new actorModel();
+        modoEdicion = false;
+        mostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> actor)
+    {
+        actorActual = new actorModel
+        {
+            id = ObtenerValor(actor, "id"),
+            nombre = ObtenerValor(actor, "nombre")
+        };
+        modoEdicion = true;
+        mostrarFormulario = true;
+    }
+
+    private void CerrarFormulario()
+    {
+        mostrarFormulario = false;
+    }
+
+    private async Task Guardaractor()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var actorDict = new Dictionary<string, object>
+            {
+                ["nombre"] = actorActual.nombre
+            };
+
+            bool resultado;
+
+            if (modoEdicion)
+            {
+                resultado = await servicioEntidad.ActualizarAsync(
+                    TABLA,
+                    "id",
+                    actorActual.id,
+                    actorDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "Actor actualizada correctamente.";
+                }
+            }
+            else
+            {
+                resultado = await servicioEntidad.CrearAsync(
+                    TABLA,
+                    actorDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "Actor creado correctamente.";
+                }
+            }
+
+            if (resultado)
+            {
+                await Cargarunidadmedicion();
+                mostrarFormulario = false;
+            }
+            else
+            {
+                errorMensaje = "No se pudo guardar el actor.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al guardar el actor: {ex.Message}";
+        }
+    }
+    private void ConfirmarEliminar(Dictionary<string, object> actor)
+    {
+        actorEliminar = new actorModel
+        {
+            id = ObtenerValor(actor, "id"),
+            nombre = ObtenerValor(actor, "nombre")
+        };
+        mostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        mostrarConfirmacion = false;
+    }
+
+    private async Task Eliminaractor()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var resultado = await servicioEntidad.EliminarAsync(
+                TABLA,
+                "id",
+                actorEliminar.id
+            );
+
+            if (resultado)
+            {
+                exitoMensaje = "actor eliminado correctamente.";
+                await Cargarunidadmedicion();
+            }
+            else
+            {
+                errorMensaje = "No se pudo eliminar wl actor.";
+            }
+
+            mostrarConfirmacion = false;
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al eliminar el actor: {ex.Message}";
+        }
+    }
+    private class actorModel
+    {
+        public string id { get; set; } = string.Empty;
+        public string nombre { get; set; } = string.Empty;
     }
 }
