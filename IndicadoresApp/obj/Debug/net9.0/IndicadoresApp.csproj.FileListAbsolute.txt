@@ -1075,10 +1075,10 @@ C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\IndicadoresApp.pdb
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\ref\IndicadoresApp.dll
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\IndicadoresApp.sourcelink.json
-C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.nfisx0ucfy.pdb
-C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.1op3l9cd37.wasm
-C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.1op3l9cd37.wasm.gz
-C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.nfisx0ucfy.pdb.gz
-C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\uf2t8xckiu-1op3l9cd37.gz
-C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\vwni4iy9um-nfisx0ucfy.gz
-C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\czf4ljc4f7-b2m70jph66.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.lc76hmzhh3.pdb
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.yrunzxzx0m.wasm
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.yrunzxzx0m.wasm.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.lc76hmzhh3.pdb.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\uf2t8xckiu-yrunzxzx0m.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\vwni4iy9um-lc76hmzhh3.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\czf4ljc4f7-o8deaddrz9.gz

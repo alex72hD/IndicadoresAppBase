@@ -2,50 +2,46 @@
 @using System.Collections.Generic  
 @using System.Text.Json  
 @using Services  
-@inject ServicioEntidad servicioEntidad  
-@inject NavigationManager navegacionManager  
+@inject ServicioEntidad ServicioEntidad  
+@inject NavigationManager NavigationManager  
 
+<PageTitle>Tipos de Actores</PageTitle>
 
-<PageTitle>Lista de tipos de actores</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+<h1>Tipos de Actores</h1>
 
-<h1>actores</h1>  
-
-<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
-    <button class="btn btn-primary">Crear Nuevo</button> 
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
 </div>
 
-<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
-<!-- Si no está cargando pero no hay actors o la lista es nula, muestra un mensaje informativo -->
-<!-- Si hay actors para mostrar, muestra la tabla -->
-@if (cargando)
+@if (EstamosCargando)
 {
-    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+    <p><em>Cargando...</em></p>
 }
-else if (actores == null || actores.Count == 0)
+else if (TiposActores == null || TiposActores.Count == 0)
 {
-    <p>No hay tipos de actores disponible</p>  
+    <p>No hay tipos de actores disponibles.</p>
 }
 else
 {
-    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
-        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
-            <thead>  <!-- Encabezado de la tabla -->
-                <tr>  <!-- Fila del encabezado -->
-                    <th>Código</th>  <!-- Columna para el código del actor -->
-                    <th>nombre</th>  <!-- Columna para el nombre del actor -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
-                <!-- Bucle foreach que itera sobre cada actor en la lista -->
-                @foreach (var tipoactor in actores)
+            <tbody>
+                @foreach (var tipoActor in TiposActores)
                 {
-                    <tr>  <!-- Fila para cada actor -->
-                        <td>@ObtenerValor(tipoactor, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
-                        <td>@ObtenerValor(tipoactor, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
-                         <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(tipoactor)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(tipoactor)">Eliminar</button>
-                         </td>
+                    <tr>
+                        <td>@ObtenerValor(tipoActor, "id")</td>
+                        <td>@ObtenerValor(tipoActor, "nombre")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(tipoActor)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(tipoActor)">Eliminar</button>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -53,31 +49,31 @@ else
     </div>
 }
 
-@if (mostrarFormulario)
+@if (MostrarFormulario)
 {
     <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">@(modoEdicion ? "Editar" : "Crear") Actor</h5>
+                    <h5 class="modal-title">@(ModoEdicion ? "Editar" : "Crear") Tipo de Actor</h5>
                     <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="nombre" class="form-label">nombre</label>
-                        <input type="text" class="form-control" id="nombre" @bind="actorActual.nombre" />
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" @bind="TipoActorActual.Nombre" />
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
-                    <button type="button" class="btn btn-primary" @onclick="Guardaractor">Guardar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarTipoActor">Guardar</button>
                 </div>
             </div>
         </div>
     </div>
 }
 
-@if (mostrarConfirmacion)
+@if (MostrarConfirmacion)
 {
     <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
         <div class="modal-dialog">
@@ -87,80 +83,72 @@ else
                     <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
                 </div>
                 <div class="modal-body">
-                    <p>¿Está seguro que desea eliminar el actor: @actorEliminar?.nombre?</p>
+                    <p>¿Está seguro que desea eliminar el tipo de actor: @TipoActorAEliminar.Nombre?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
-                    <button type="button" class="btn btn-danger" @onclick="Eliminaractor">Eliminar</button>
+                    <button type="button" class="btn btn-danger" @onclick="EliminarTipoActor">Eliminar</button>
                 </div>
             </div>
         </div>
     </div>
 }
 
-@if (errorMensaje != null)
+@if (!string.IsNullOrEmpty(MensajeError))
 {
     <div class="alert alert-danger">
-        Error: @errorMensaje
+        Error: @MensajeError
     </div>
 }
 
-@if (exitoMensaje != null)
+@if (!string.IsNullOrEmpty(MensajeExito))
 {
     <div class="alert alert-success">
-        @exitoMensaje
+        @MensajeExito
     </div>
 }
 
 @code {
-    // Lista para almacenar los actors que se obtienen de la API
-    private List<Dictionary<string, object>> actores = new List<Dictionary<string, object>>();
+    private const string NOMBRE_TABLA = "tipoactor";
     
-   private bool cargando = true;
-    private string? errorMensaje = null;
-    private string? exitoMensaje = null;
-    private const string TABLA = "tipoactor";
+    private List<Dictionary<string, object>> TiposActores { get; set; } = new();
+    private bool EstamosCargando { get; set; } = true;
+    private string? MensajeError { get; set; }
+    private string? MensajeExito { get; set; }
 
     // Variables para el formulario
-    private bool mostrarFormulario = false;
-    private bool modoEdicion = false;
-    private actorModel actorActual = new actorModel();
+    private bool MostrarFormulario { get; set; } = false;
+    private bool ModoEdicion { get; set; } = false;
+    private TipoActorModel TipoActorActual { get; set; } = new();
 
     // Variables para confirmación de eliminación
-    private bool mostrarConfirmacion = false;
-    private actorModel actorEliminar = new actorModel();
+    private bool MostrarConfirmacion { get; set; } = false;
+    private TipoActorModel TipoActorAEliminar { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await Cargarunidadmedicion();
+        await CargarTiposActores();
     }
 
-    private async Task Cargarunidadmedicion()
+    private async Task CargarTiposActores()
     {
-        cargando = true;
-        errorMensaje = null;
+        EstamosCargando = true;
+        MensajeError = null;
         
         try
         {
-            var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
             
-            if (resultado != null)
-            {
-                actores = resultado;
-            }
-            else
-            {
-                actores = new List<Dictionary<string, object>>();
-            }
+            TiposActores = resultado ?? new List<Dictionary<string, object>>();
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al cargar el actor: {ex.Message}";
-            actores = new List<Dictionary<string, object>>();
+            MensajeError = $"Error al cargar tipos de actores: {ex.Message}";
+            TiposActores = new List<Dictionary<string, object>>();
         }
         finally
         {
-            cargando = false;
+            EstamosCargando = false;
         }
     }
 
@@ -176,133 +164,136 @@ else
         
         return string.Empty;
     }
+
     private void MostrarFormularioCrear()
     {
-        actorActual = new actorModel();
-        modoEdicion = false;
-        mostrarFormulario = true;
+        TipoActorActual = new TipoActorModel();
+        ModoEdicion = false;
+        MostrarFormulario = true;
     }
 
-    private void MostrarFormularioEditar(Dictionary<string, object> actor)
+    private void MostrarFormularioEditar(Dictionary<string, object> tipoActor)
     {
-        actorActual = new actorModel
+        TipoActorActual = new TipoActorModel
         {
-            id = ObtenerValor(actor, "id"),
-            nombre = ObtenerValor(actor, "nombre")
+            Id = ObtenerValor(tipoActor, "id"),
+            Nombre = ObtenerValor(tipoActor, "nombre")
         };
-        modoEdicion = true;
-        mostrarFormulario = true;
+        ModoEdicion = true;
+        MostrarFormulario = true;
     }
 
     private void CerrarFormulario()
     {
-        mostrarFormulario = false;
+        MostrarFormulario = false;
     }
 
-    private async Task Guardaractor()
+    private async Task GuardarTipoActor()
     {
-        errorMensaje = null;
-        exitoMensaje = null;
+        MensajeError = null;
+        MensajeExito = null;
 
         try
         {
-            var actorDict = new Dictionary<string, object>
+            var tipoActorDict = new Dictionary<string, object>
             {
-                ["nombre"] = actorActual.nombre
+                ["nombre"] = TipoActorActual.Nombre
             };
 
             bool resultado;
 
-            if (modoEdicion)
+            if (ModoEdicion)
             {
-                resultado = await servicioEntidad.ActualizarAsync(
-                    TABLA,
+                resultado = await ServicioEntidad.ActualizarAsync(
+                    NOMBRE_TABLA,
                     "id",
-                    actorActual.id,
-                    actorDict
+                    TipoActorActual.Id,
+                    tipoActorDict
                 );
 
                 if (resultado)
                 {
-                    exitoMensaje = "Actor actualizada correctamente.";
+                    MensajeExito = "Tipo de actor actualizado correctamente.";
                 }
             }
             else
             {
-                resultado = await servicioEntidad.CrearAsync(
-                    TABLA,
-                    actorDict
+                resultado = await ServicioEntidad.CrearAsync(
+                    NOMBRE_TABLA,
+                    tipoActorDict
                 );
 
                 if (resultado)
                 {
-                    exitoMensaje = "Actor creado correctamente.";
+                    MensajeExito = "Tipo de actor creado correctamente.";
                 }
             }
 
             if (resultado)
             {
-                await Cargarunidadmedicion();
-                mostrarFormulario = false;
+                await CargarTiposActores();
+                MostrarFormulario = false;
             }
             else
             {
-                errorMensaje = "No se pudo guardar el actor.";
+                MensajeError = "No se pudo guardar el tipo de actor.";
             }
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al guardar el actor: {ex.Message}";
+            MensajeError = $"Error al guardar el tipo de actor: {ex.Message}";
         }
     }
-    private void ConfirmarEliminar(Dictionary<string, object> actor)
+
+    private void ConfirmarEliminar(Dictionary<string, object> tipoActor)
     {
-        actorEliminar = new actorModel
+        TipoActorAEliminar = new TipoActorModel
         {
-            id = ObtenerValor(actor, "id"),
-            nombre = ObtenerValor(actor, "nombre")
+            Id = ObtenerValor(tipoActor, "id"),
+            Nombre = ObtenerValor(tipoActor, "nombre")
         };
-        mostrarConfirmacion = true;
+        MostrarConfirmacion = true;
     }
 
     private void CancelarEliminar()
     {
-        mostrarConfirmacion = false;
+        MostrarConfirmacion = false;
     }
 
-    private async Task Eliminaractor()
+    private async Task EliminarTipoActor()
     {
-        errorMensaje = null;
-        exitoMensaje = null;
+        MensajeError = null;
+        MensajeExito = null;
 
         try
         {
-            var resultado = await servicioEntidad.EliminarAsync(
-                TABLA,
+            var resultado = await ServicioEntidad.EliminarAsync(
+                NOMBRE_TABLA,
                 "id",
-                actorEliminar.id
+                TipoActorAEliminar.Id
             );
 
             if (resultado)
             {
-                exitoMensaje = "actor eliminado correctamente.";
-                await Cargarunidadmedicion();
+                MensajeExito = "Tipo de actor eliminado correctamente.";
+                await CargarTiposActores();
             }
             else
             {
-                errorMensaje = "No se pudo eliminar wl actor.";
+                MensajeError = "No se pudo eliminar el tipo de actor.";
             }
 
-            mostrarConfirmacion = false;
+            MostrarConfirmacion = false;
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al eliminar el actor: {ex.Message}";
+            MensajeError = $"Error al eliminar el tipo de actor: {ex.Message}";
         }
     }
-    private class actorModel
+
+    private class TipoActorModel
     {
-        public string id { get; set; } = string.Empty;
-        public string nombre { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
     }
 }
