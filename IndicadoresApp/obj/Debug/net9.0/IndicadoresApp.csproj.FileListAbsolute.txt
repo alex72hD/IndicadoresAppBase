@@ -1103,8 +1103,6 @@ C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\icudt_CJK.tjcz0u77k5.dat
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\icudt_EFIGS.tptq2av103.dat
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\icudt_no_CJK.lfu7j35m59.dat
-C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.7rz9vj4ilu.pdb
-C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.dsytqk5xnm.wasm
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\Microsoft.AspNetCore.Authorization.qe23mgxr71.wasm
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\Microsoft.AspNetCore.Components.Forms.thhw8cz9wu.wasm
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\Microsoft.AspNetCore.Components.flveird317.wasm
@@ -1468,7 +1466,6 @@ C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\icudt_CJK.tjcz0u77k5.dat.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Runtime.InteropServices.wtgp5mxw1c.wasm.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Threading.Timer.5bvshcz8rs.wasm.gz
-C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.dsytqk5xnm.wasm.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Runtime.Serialization.Primitives.fqg5015ygf.wasm.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Threading.mghm3mgo9q.wasm.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\dotnet.runtime.qrl1fuqt3c.js.gz
@@ -1480,7 +1477,6 @@ C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Security.Claims.l7kx3xked0.wasm.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Security.Cryptography.OpenSsl.uk9h1gfypt.wasm.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Reflection.Emit.ILGeneration.ul9zb0sw6s.wasm.gz
-C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.7rz9vj4ilu.pdb.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Xml.XmlSerializer.0sc0ourwbb.wasm.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\Microsoft.Extensions.Logging.Abstractions.w8ltos2ii6.wasm.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\Microsoft.Extensions.Configuration.Abstractions.pvxa4wu5tg.wasm.gz
@@ -2159,9 +2155,6 @@ C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\tzid1xs3p3-tjcz0u77k5.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\grnlcdzs6t-tptq2av103.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\97i65r1ck2-lfu7j35m59.gz
-C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\uf2t8xckiu-dsytqk5xnm.gz
-C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\vwni4iy9um-7rz9vj4ilu.gz
-C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\czf4ljc4f7-ggvc8mk6uk.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\staticwebassets.build.json
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\staticwebassets.development.json
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\staticwebassets.build.endpoints.json
@@ -2176,3 +2169,10 @@ C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\refint\IndicadoresApp.dll
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\IndicadoresApp.pdb
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\ref\IndicadoresApp.dll
+C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.wa47kjdtj2.pdb
+C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.gn0ewj6v3e.wasm
+C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.gn0ewj6v3e.wasm.gz
+C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.wa47kjdtj2.pdb.gz
+C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\uf2t8xckiu-gn0ewj6v3e.gz
+C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\vwni4iy9um-wa47kjdtj2.gz
+C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\czf4ljc4f7-1yik1cwvii.gz
