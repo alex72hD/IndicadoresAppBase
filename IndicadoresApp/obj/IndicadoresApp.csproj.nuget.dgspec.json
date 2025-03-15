@@ -1,7 +1,6 @@
 {
   "format": 1,
   "restore": {
-<<<<<<< HEAD
     "C:\\Users\\USUARIO\\Documents\\Aplicación y Servicios Web\\Proyectos\\proyectos_08_08_2025\\App\\IndicadoresAppBase\\IndicadoresApp\\IndicadoresApp.csproj": {}
   },
   "projects": {
@@ -13,19 +12,6 @@
         "projectPath": "C:\\Users\\USUARIO\\Documents\\Aplicación y Servicios Web\\Proyectos\\proyectos_08_08_2025\\App\\IndicadoresAppBase\\IndicadoresApp\\IndicadoresApp.csproj",
         "packagesPath": "C:\\Users\\USUARIO\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\USUARIO\\Documents\\Aplicación y Servicios Web\\Proyectos\\proyectos_08_08_2025\\App\\IndicadoresAppBase\\IndicadoresApp\\obj\\",
-=======
-    "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\IndicadoresApp.csproj": {}
-  },
-  "projects": {
-    "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\IndicadoresApp.csproj": {
-      "version": "1.0.0",
-      "restore": {
-        "projectUniqueName": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\IndicadoresApp.csproj",
-        "projectName": "IndicadoresApp",
-        "projectPath": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\IndicadoresApp.csproj",
-        "packagesPath": "C:\\Users\\robin\\.nuget\\packages\\",
-        "outputPath": "C:\\proyectos\\ServiciosWeb2\\Nueva carpeta\\IndicadoresApp\\IndicadoresApp\\obj\\",
->>>>>>> origin/Sprint-9032025-ConfiguracionCRUDR
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\USUARIO\\AppData\\Roaming\\NuGet\\NuGet.Config"
