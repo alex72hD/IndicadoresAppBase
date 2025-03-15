@@ -13,73 +13,73 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = browser
 build_property.RootNamespace = IndicadoresApp
 build_property.RootNamespace = IndicadoresApp
-build_property.ProjectDir = C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\
+build_property.ProjectDir = c:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = false
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp
+build_property.MSBuildProjectDirectory = c:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 9.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/App.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/App.razor]
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Frecuencias.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Frecuencias.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnJlY3VlbmNpYXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Fuentes.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Fuentes.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnVlbnRlcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Home.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/RepresentanteVisual.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/RepresentanteVisual.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwcmVzZW50YW50ZVZpc3VhbC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Roles.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Roles.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUm9sZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Secciones.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Secciones.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VjY2lvbmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Sentidos.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Sentidos.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VudGlkb3MucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Subsecciones.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/Subsecciones.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU3Vic2VjY2lvbmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/TipoActores.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/TipoActores.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGlwb0FjdG9yZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/TipoIndicadores.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/TipoIndicadores.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGlwb0luZGljYWRvcmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/UnidadesDeMedicion.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Pages/UnidadesDeMedicion.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVW5pZGFkZXNEZU1lZGljaW9uLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/_Imports.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Layout/MainLayout.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1haW5MYXlvdXQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-36ulzlir1k
 
-[C:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Layout/NavMenu.razor]
+[c:/proyectos/ServiciosWeb2/Nueva carpeta/IndicadoresApp/IndicadoresApp/Layout/NavMenu.razor]
 build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE5hdk1lbnUucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-5p22zz90aw
