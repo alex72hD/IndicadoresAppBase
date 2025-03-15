@@ -84,8 +84,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName>ScopedCss</AssetTraitName>
       <AssetTraitValue>ApplicationBundle</AssetTraitValue>
-      <Fingerprint>uhsi6l0zn6</Fingerprint>
-      <Integrity>wlpo6GHHm/ZFrZu9EtqkJLl33pzwnJvyUxEROxgm8jY=</Integrity>
+      <Fingerprint>nzr9euhcdh</Fingerprint>
+      <Integrity>8wv5iswoU6UDDAmn5s5y7sEVx0v0b8C+4q+NwK6aXEo=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\IndicadoresApp.styles.css'))</OriginalItemSpec>
