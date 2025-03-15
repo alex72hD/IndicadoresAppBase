@@ -1,0 +1,305 @@
+@page "/frecuencia"  
+@using System.Collections.Generic  
+@using System.Text.Json  
+@using Services  
+@inject ServicioEntidad servicioEntidad  
+@inject NavigationManager navegacionManager  
+
+
+<PageTitle>Lista de frecuencias</PageTitle>
+
+<h1>Frecuencias</h1>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
+</div>
+
+@if (cargando)
+{
+    <p><em>Cargando...</em></p>
+}
+else if (frecuencias == null || frecuencias.Count == 0)
+{
+    <p>No hay Tipos de frecuencias.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var frecuencia in frecuencias)
+                {
+                    <tr>
+                        <td>@ObtenerValor(frecuencia, "id")</td>
+                        <td>@ObtenerValor(frecuencia, "nombre")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(frecuencia)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(frecuencia)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (mostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(modoEdicion ? "Editar" : "Crear") Tipo de frecuencia</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" @bind="frecuenciaActual.nombre" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="Guardarfrecuencia">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (mostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar el frecuencia: @frecuenciaEliminar?.nombre?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="Eliminarfrecuencia">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (errorMensaje != null)
+{
+    <div class="alert alert-danger">
+        Error: @errorMensaje
+    </div>
+}
+
+@if (exitoMensaje != null)
+{
+    <div class="alert alert-success">
+        @exitoMensaje
+    </div>
+}
+
+@code {
+    private List<Dictionary<string, object>> frecuencias = new List<Dictionary<string, object>>();
+    private bool cargando = true;
+    private string? errorMensaje = null;
+    private string? exitoMensaje = null;
+    private const string TABLA = "frecuencia";
+
+    // Variables para el formulario
+    private bool mostrarFormulario = false;
+    private bool modoEdicion = false;
+    private frecuenciaModel frecuenciaActual = new frecuenciaModel();
+
+    // Variables para confirmación de eliminación
+    private bool mostrarConfirmacion = false;
+    private frecuenciaModel frecuenciaEliminar = new frecuenciaModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarTipodeFrecuencias();
+    }
+
+    private async Task CargarTipodeFrecuencias()
+    {
+        cargando = true;
+        errorMensaje = null;
+        
+        try
+        {
+            var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            
+            if (resultado != null)
+            {
+                frecuencias = resultado;
+            }
+            else
+            {
+                frecuencias = new List<Dictionary<string, object>>();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al cargar las frecuencias: {ex.Message}";
+            frecuencias = new List<Dictionary<string, object>>();
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        if (diccionario == null)
+            return string.Empty;
+            
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        
+        return string.Empty;
+    }
+    private void MostrarFormularioCrear()
+    {
+        frecuenciaActual = new frecuenciaModel();
+        modoEdicion = false;
+        mostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> frecuencia)
+    {
+        frecuenciaActual = new frecuenciaModel
+        {
+            id = ObtenerValor(frecuencia, "id"),
+            nombre = ObtenerValor(frecuencia, "nombre")
+        };
+        modoEdicion = true;
+        mostrarFormulario = true;
+    }
+
+    private void CerrarFormulario()
+    {
+        mostrarFormulario = false;
+    }
+
+    private async Task Guardarfrecuencia()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var frecuenciaDict = new Dictionary<string, object>
+            {
+                ["nombre"] = frecuenciaActual.nombre
+            };
+
+            bool resultado;
+
+            if (modoEdicion)
+            {
+                resultado = await servicioEntidad.ActualizarAsync(
+                    TABLA,
+                    "id",
+                    frecuenciaActual.id,
+                    frecuenciaDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "frecuencia actualizado correctamente.";
+                }
+            }
+            else
+            {
+                resultado = await servicioEntidad.CrearAsync(
+                    TABLA,
+                    frecuenciaDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "frecuencia creado correctamente.";
+                }
+            }
+
+            if (resultado)
+            {
+                await CargarTipodeFrecuencias();
+                mostrarFormulario = false;
+            }
+            else
+            {
+                errorMensaje = "No se pudo guardar el frecuencia.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al guardar el frecuencia: {ex.Message}";
+        }
+    }
+
+    // Funciones para eliminar
+    private void ConfirmarEliminar(Dictionary<string, object> frecuencia)
+    {
+        frecuenciaEliminar = new frecuenciaModel
+        {
+            id = ObtenerValor(frecuencia, "id"),
+            nombre = ObtenerValor(frecuencia, "nombre")
+        };
+        mostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        mostrarConfirmacion = false;
+    }
+
+    private async Task Eliminarfrecuencia()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var resultado = await servicioEntidad.EliminarAsync(
+                TABLA,
+                "id",
+                frecuenciaEliminar.id
+            );
+
+            if (resultado)
+            {
+                exitoMensaje = "frecuencia eliminado correctamente.";
+                await CargarTipodeFrecuencias();
+            }
+            else
+            {
+                errorMensaje = "No se pudo eliminar el frecuencia.";
+            }
+
+            mostrarConfirmacion = false;
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al eliminar el frecuencia: {ex.Message}";
+        }
+    }
+    private class frecuenciaModel
+    {
+        public string id { get; set; } = string.Empty;
+        public string nombre { get; set; } = string.Empty;
+    }
+}
