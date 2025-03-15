@@ -1,12 +1,63 @@
-﻿<!-- Directiva que establece que este componente es accesible en la ruta raíz de la aplicación -->
-<!-- La página será la página de inicio (ruta "/") -->
-@page "/"
+﻿@page "/"
 
-<!-- Define el título que se mostrará en la pestaña del navegador cuando se visite la página de inicio -->
-<PageTitle>Home</PageTitle>
+<PageTitle>Indicadores</PageTitle>
 
-<!-- Encabezado principal de la página con un saludo genérico -->
-<h1>Hello, world!</h1>
-
-<!-- Texto simple de bienvenida que aparece debajo del encabezado -->
-Welcome to your new app.
+<div class="container mt-4">
+    <h1 class="display-4 mb-4">Sistema de Indicadores</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <p class="lead">
+                Bienvenido a nuestro sistema de gestión y visualización de indicadores. 
+                Esta plataforma le permite monitorear, analizar, tomar decisiones basadas en datos clave y modificarlos.
+            </p>
+            
+            <h2 class="mt-4">¿Qué son los indicadores?</h2>
+            <p>
+                Los indicadores son métricas cuantificables que reflejan el rendimiento y estado de diversos aspectos 
+                de una organización. Permiten evaluar el progreso hacia objetivos específicos y tomar decisiones 
+                informadas basadas en datos concretos.
+            </p>
+            
+            <h3 class="mt-4">Beneficios de usar indicadores</h3>
+            <ul class="list-group mt-3">
+                <li class="list-group-item">Toma de decisiones basada en datos objetivos</li>
+                <li class="list-group-item">Seguimiento del progreso hacia objetivos estratégicos</li>
+                <li class="list-group-item">Identificación temprana de problemas y oportunidades</li>
+                <li class="list-group-item">Optimización de recursos y procesos</li>
+                <li class="list-group-item">Mejora continua del rendimiento organizacional</li>
+            </ul>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Acceso Rápido</h4>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a href="tipoindicador" class="list-group-item list-group-item-action">
+                            <i class="bi bi-file-earmark-text me-2"></i> Indicadores
+                        </a>
+                        <a href="UnidadesDeMedicion" class="list-group-item list-group-item-action">
+                            <i class="bi bi-gear me-2"></i> Unidades de Medicion
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Resumen</h4>
+                </div>
+                <div class="card-body">
+                    <p>Nuestro sistema permite:</p>
+                    <ul>
+                        <li>Visualizar datos en tiempo real</li>
+                        <li>Edicion y eliminado de datos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,299 @@
+@page "/unidadmedicion"  
+@using System.Collections.Generic  
+@using System.Text.Json  
+@using Services  
+@inject ServicioEntidad ServicioEntidad  
+@inject NavigationManager NavigationManager  
+
+<PageTitle>Unidades de Medición</PageTitle>
+
+<h1>Unidades de Medición</h1>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nueva</button>  
+</div>
+
+@if (EstamosCargando)
+{
+    <p><em>Cargando...</em></p>
+}
+else if (UnidadesMedicion == null || UnidadesMedicion.Count == 0)
+{
+    <p>No hay unidades de medición registradas.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var unidad in UnidadesMedicion)
+                {
+                    <tr>
+                        <td>@ObtenerValor(unidad, "id")</td>
+                        <td>@ObtenerValor(unidad, "descripcion")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(unidad)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(unidad)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (MostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(ModoEdicion ? "Editar" : "Crear") Unidad de Medición</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" @bind="UnidadActual.Nombre" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarUnidad">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (MostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar la unidad de medición: @UnidadAEliminar.Nombre?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="EliminarUnidad">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(MensajeError))
+{
+    <div class="alert alert-danger">
+        Error: @MensajeError
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(MensajeExito))
+{
+    <div class="alert alert-success">
+        @MensajeExito
+    </div>
+}
+
+@code {
+    private const string NOMBRE_TABLA = "unidadmedicion";
+    
+    private List<Dictionary<string, object>> UnidadesMedicion { get; set; } = new();
+    private bool EstamosCargando { get; set; } = true;
+    private string? MensajeError { get; set; }
+    private string? MensajeExito { get; set; }
+
+    // Variables para el formulario
+    private bool MostrarFormulario { get; set; } = false;
+    private bool ModoEdicion { get; set; } = false;
+    private UnidadMedicionModel UnidadActual { get; set; } = new();
+
+    // Variables para confirmación de eliminación
+    private bool MostrarConfirmacion { get; set; } = false;
+    private UnidadMedicionModel UnidadAEliminar { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarUnidadesMedicion();
+    }
+
+    private async Task CargarUnidadesMedicion()
+    {
+        EstamosCargando = true;
+        MensajeError = null;
+        
+        try
+        {
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
+            
+            UnidadesMedicion = resultado ?? new List<Dictionary<string, object>>();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al cargar unidades de medición: {ex.Message}";
+            UnidadesMedicion = new List<Dictionary<string, object>>();
+        }
+        finally
+        {
+            EstamosCargando = false;
+        }
+    }
+
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        if (diccionario == null)
+            return string.Empty;
+            
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        
+        return string.Empty;
+    }
+
+    private void MostrarFormularioCrear()
+    {
+        UnidadActual = new UnidadMedicionModel();
+        ModoEdicion = false;
+        MostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> unidad)
+    {
+        UnidadActual = new UnidadMedicionModel
+        {
+            Id = ObtenerValor(unidad, "id"),
+            Nombre = ObtenerValor(unidad, "descripcion")
+        };
+        ModoEdicion = true;
+        MostrarFormulario = true;
+    }
+
+    private void CerrarFormulario()
+    {
+        MostrarFormulario = false;
+    }
+
+    private async Task GuardarUnidad()
+    {
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            var unidadDict = new Dictionary<string, object>
+            {
+                ["descripcion"] = UnidadActual.Nombre
+            };
+
+            bool resultado;
+
+            if (ModoEdicion)
+            {
+                resultado = await ServicioEntidad.ActualizarAsync(
+                    NOMBRE_TABLA,
+                    "id",
+                    UnidadActual.Id,
+                    unidadDict
+                );
+
+                if (resultado)
+                {
+                    MensajeExito = "Unidad de medición actualizada correctamente.";
+                }
+            }
+            else
+            {
+                resultado = await ServicioEntidad.CrearAsync(
+                    NOMBRE_TABLA,
+                    unidadDict
+                );
+
+                if (resultado)
+                {
+                    MensajeExito = "Unidad de medición creada correctamente.";
+                }
+            }
+
+            if (resultado)
+            {
+                await CargarUnidadesMedicion();
+                MostrarFormulario = false;
+            }
+            else
+            {
+                MensajeError = "No se pudo guardar la unidad de medición.";
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al guardar la unidad de medición: {ex.Message}";
+        }
+    }
+
+    private void ConfirmarEliminar(Dictionary<string, object> unidad)
+    {
+        UnidadAEliminar = new UnidadMedicionModel
+        {
+            Id = ObtenerValor(unidad, "id"),
+            Nombre = ObtenerValor(unidad, "descripcion")
+        };
+        MostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        MostrarConfirmacion = false;
+    }
+
+    private async Task EliminarUnidad()
+    {
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            var resultado = await ServicioEntidad.EliminarAsync(
+                NOMBRE_TABLA,
+                "id",
+                UnidadAEliminar.Id
+            );
+
+            if (resultado)
+            {
+                MensajeExito = "Unidad de medición eliminada correctamente.";
+                await CargarUnidadesMedicion();
+            }
+            else
+            {
+                MensajeError = "No se pudo eliminar la unidad de medición.";
+            }
+
+            MostrarConfirmacion = false;
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al eliminar la unidad de medición: {ex.Message}";
+        }
+    }
+
+    private class UnidadMedicionModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
+    }
+}

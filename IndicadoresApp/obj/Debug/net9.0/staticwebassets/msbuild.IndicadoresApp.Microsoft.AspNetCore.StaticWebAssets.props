@@ -30,8 +30,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>ifv42okdf2</Fingerprint>
-      <Integrity>4mWsDy3aHl36ZbGt8zByK7Pvd4kRUoNgTYzRnwmPHwg=</Integrity>
+      <Fingerprint>7fmt7z18yh</Fingerprint>
+      <Integrity>w/kjETF1/YIzcoGUC/RZg16KdxA/sHcfDF3f9mOpgzg=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\favicon.png'))</OriginalItemSpec>
@@ -48,8 +48,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>f9uvjujlxy</Fingerprint>
-      <Integrity>DbpQaq68ZSb5IoPosBErM1QWBfsbTxpJqhU0REi6wP4=</Integrity>
+      <Fingerprint>7fmt7z18yh</Fingerprint>
+      <Integrity>w/kjETF1/YIzcoGUC/RZg16KdxA/sHcfDF3f9mOpgzg=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\icon-192.png'))</OriginalItemSpec>
@@ -66,8 +66,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>pr3zmgnqgn</Fingerprint>
-      <Integrity>1QNgIHNqbRRI3tDRylUkm7eE+JMd5QTEyixSY7dTgtc=</Integrity>
+      <Fingerprint>6wxyj5tsp6</Fingerprint>
+      <Integrity>Fte55EokjHpSem28SiKhUIVCK3KgvkvKBqQn7ZWmNLM=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\index.html'))</OriginalItemSpec>
@@ -84,8 +84,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName>ScopedCss</AssetTraitName>
       <AssetTraitValue>ApplicationBundle</AssetTraitValue>
-      <Fingerprint>xdrrqwgs2q</Fingerprint>
-      <Integrity>ZZ188wP9G0kPO728xlM1l540iIxN+t6Z9t2qmUzeR3E=</Integrity>
+      <Fingerprint>uhsi6l0zn6</Fingerprint>
+      <Integrity>wlpo6GHHm/ZFrZu9EtqkJLl33pzwnJvyUxEROxgm8jY=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\IndicadoresApp.styles.css'))</OriginalItemSpec>

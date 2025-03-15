@@ -1,4 +1,4 @@
-@page "/Subseccion"  
+@page "/subseccion"  
 @using System.Collections.Generic  
 @using System.Text.Json  
 @using Services  
@@ -6,21 +6,24 @@
 @inject NavigationManager navegacionManager  
 
 
-<PageTitle>Lista de subsecciones</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+<PageTitle>Lista de tipos de subsecciones</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
 
-<h1>subsecciones</h1>  <!-- Encabezado principal de la página -->
+<h1>subsecciones</h1>  
 
 <div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
-    <button class="btn btn-primary" >Crear Nuevo</button>  
+    <button class="btn btn-primary">Crear Nuevo</button> 
 </div>
 
+<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
+<!-- Si no está cargando pero no hay subsecciones o la lista es nula, muestra un mensaje informativo -->
+<!-- Si hay subsecciones para mostrar, muestra la tabla -->
 @if (cargando)
 {
     <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
 }
 else if (subsecciones == null || subsecciones.Count == 0)
 {
-    <p>No hay Tipos de indicadores.</p>  <!-- Mensaje cuando no hay productos para mostrar -->
+    <p>No hay tipos de subsecciones disponible</p>  
 }
 else
 {
@@ -28,17 +31,22 @@ else
         <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
             <thead>  <!-- Encabezado de la tabla -->
                 <tr>  <!-- Fila del encabezado -->
-                    <th>Código</th>  <!-- Columna para el código del producto -->
-                    <th>Nombre</th>  <!-- Columna para el nombre del producto -->
+                    <th>Código</th>  <!-- Columna para el código de la subseccion -->
+                    <th>nombre</th>  <!-- Columna para el nombre de la subseccion -->
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
-             
+                <!-- Bucle foreach que itera sobre cada subseccion en la lista -->
                 @foreach (var subseccion in subsecciones)
                 {
-                    <tr>  
+                    <tr>  <!-- Fila para cada subseccion -->
                         <td>@ObtenerValor(subseccion, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
-                      <td>@ObtenerValor(subseccion, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                        <td>@ObtenerValor(subseccion, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                         <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(subseccion)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(subseccion)">Eliminar</button>
+                         </td>
                     </tr>
                 }
             </tbody>
@@ -46,7 +54,51 @@ else
     </div>
 }
 
-<!-- Mostrar mensaje de error si existe -->
+@if (mostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(modoEdicion ? "Editar" : "Crear") subseccion</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">nombre</label>
+                        <input type="text" class="form-control" id="nombre" @bind="subseccionActual.nombre" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="Guardarsubseccion">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (mostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar la subseccion: @subseccionEliminar?.nombre?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="Eliminarsubseccion">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @if (errorMensaje != null)
 {
     <div class="alert alert-danger">
@@ -54,78 +106,204 @@ else
     </div>
 }
 
+@if (exitoMensaje != null)
+{
+    <div class="alert alert-success">
+        @exitoMensaje
+    </div>
+}
+
 @code {
-    // Lista para almacenar los productos que se obtienen de la API
+    // Lista para almacenar los subsecciones que se obtienen de la API
     private List<Dictionary<string, object>> subsecciones = new List<Dictionary<string, object>>();
     
-    // Bandera para indicar si se están cargando los datos
-    private bool cargando = true;
-    
-    // Variable para almacenar mensajes de error
+   private bool cargando = true;
     private string? errorMensaje = null;
-    
-    // Constantes para los parámetros de la API
+    private string? exitoMensaje = null;
     private const string TABLA = "subseccion";
 
-    // Método que se ejecuta cuando se inicializa el componente
+    // Variables para el formulario
+    private bool mostrarFormulario = false;
+    private bool modoEdicion = false;
+    private subseccionModel subseccionActual = new subseccionModel();
+
+    // Variables para confirmación de eliminación
+    private bool mostrarConfirmacion = false;
+    private subseccionModel subseccionEliminar = new subseccionModel();
+
     protected override async Task OnInitializedAsync()
     {
-        // Llamar al método para cargar los productos
-        await Cargarsubseccion();
+        await Cargarunidadmedicion();
     }
 
-    // Método asíncrono para cargar los productos desde la API
-    private async Task Cargarsubseccion()
+    private async Task Cargarunidadmedicion()
     {
-        // Establecer la bandera de carga en verdadero
         cargando = true;
-        // Limpiar cualquier mensaje de error previo
         errorMensaje = null;
         
         try
         {
-            // Obtener todos los productos usando el servicio de entidades
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
             
-            // Si la lista no es null, asignarla a la variable productos
             if (resultado != null)
             {
                 subsecciones = resultado;
             }
             else
             {
-                // Si es null, inicializar como lista vacía para evitar errores
-                 subsecciones = new List<Dictionary<string, object>>();
+                subsecciones = new List<Dictionary<string, object>>();
             }
         }
         catch (Exception ex)
         {
-            // En caso de error, guardar el mensaje y crear lista vacía
-            errorMensaje = $"Error al cargar Tipos de Indicadores: {ex.Message}";
+            errorMensaje = $"Error al cargar la subseccion: {ex.Message}";
             subsecciones = new List<Dictionary<string, object>>();
         }
         finally
         {
-            // Establecer la bandera de carga en falso una vez finalizada la operación
             cargando = false;
         }
     }
 
-    // Método para obtener un valor específico de un diccionario de manera segura
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        // Verificar si el diccionario es null
         if (diccionario == null)
             return string.Empty;
             
-        // Verificar si el diccionario contiene la clave
         if (diccionario.TryGetValue(clave, out var valor))
         {
-            // Devolver el valor como cadena, o cadena vacía si es null
             return valor?.ToString() ?? string.Empty;
         }
         
-        // Si la clave no existe, devolver cadena vacía
         return string.Empty;
+    }
+    private void MostrarFormularioCrear()
+    {
+        subseccionActual = new subseccionModel();
+        modoEdicion = false;
+        mostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> subseccion)
+    {
+        subseccionActual = new subseccionModel
+        {
+            id = ObtenerValor(subseccion, "id"),
+            nombre = ObtenerValor(subseccion, "nombre")
+        };
+        modoEdicion = true;
+        mostrarFormulario = true;
+    }
+
+    private void CerrarFormulario()
+    {
+        mostrarFormulario = false;
+    }
+
+    private async Task Guardarsubseccion()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var subseccionDict = new Dictionary<string, object>
+            {
+                ["nombre"] = subseccionActual.nombre
+            };
+
+            bool resultado;
+
+            if (modoEdicion)
+            {
+                resultado = await servicioEntidad.ActualizarAsync(
+                    TABLA,
+                    "id",
+                    subseccionActual.id,
+                    subseccionDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "subseccion actualizada correctamente.";
+                }
+            }
+            else
+            {
+                resultado = await servicioEntidad.CrearAsync(
+                    TABLA,
+                    subseccionDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "subseccion creado correctamente.";
+                }
+            }
+
+            if (resultado)
+            {
+                await Cargarunidadmedicion();
+                mostrarFormulario = false;
+            }
+            else
+            {
+                errorMensaje = "No se pudo guardar la subseccion.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al guardar el subseccion: {ex.Message}";
+        }
+    }
+    private void ConfirmarEliminar(Dictionary<string, object> subseccion)
+    {
+        subseccionEliminar = new subseccionModel
+        {
+            id = ObtenerValor(subseccion, "id"),
+            nombre = ObtenerValor(subseccion, "nombre")
+        };
+        mostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        mostrarConfirmacion = false;
+    }
+
+    private async Task Eliminarsubseccion()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var resultado = await servicioEntidad.EliminarAsync(
+                TABLA,
+                "id",
+                subseccionEliminar.id
+            );
+
+            if (resultado)
+            {
+                exitoMensaje = "subseccion eliminado correctamente.";
+                await Cargarunidadmedicion();
+            }
+            else
+            {
+                errorMensaje = "No se pudo eliminar la subseccion.";
+            }
+
+            mostrarConfirmacion = false;
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al eliminar el subseccion: {ex.Message}";
+        }
+    }
+    private class subseccionModel
+    {
+        public string id { get; set; } = string.Empty;
+        public string nombre { get; set; } = string.Empty;
     }
 }

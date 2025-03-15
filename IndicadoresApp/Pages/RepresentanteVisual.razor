@@ -1,0 +1,309 @@
+@page "/representante"  
+@using System.Collections.Generic  
+@using System.Text.Json  
+@using Services  
+@inject ServicioEntidad servicioEntidad  
+@inject NavigationManager navegacionManager  
+
+
+<PageTitle>Lista de tipos de representantees</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+
+<h1>Representantes</h1>  
+
+<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
+    <button class="btn btn-primary">Crear Nuevo</button> 
+</div>
+
+<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
+<!-- Si no está cargando pero no hay Representantes o la lista es nula, muestra un mensaje informativo -->
+<!-- Si hay Representantes para mostrar, muestra la tabla -->
+@if (cargando)
+{
+    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+}
+else if (representantes == null || representantes.Count == 0)
+{
+    <p>No hay tipos de representantes disponible</p>  
+}
+else
+{
+    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
+        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
+            <thead>  <!-- Encabezado de la tabla -->
+                <tr>  <!-- Fila del encabezado -->
+                    <th>Código</th>  <!-- Columna para el código de la representantes -->
+                    <th>nombre</th>  <!-- Columna para el nombre de la representantes -->
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
+                <!-- Bucle foreach que itera sobre cada representante en la lista -->
+                @foreach (var representante in representantes)
+                {
+                    <tr>  <!-- Fila para cada representante -->
+                        <td>@ObtenerValor(representante, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
+                        <td>@ObtenerValor(representante, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                         <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(representante)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(representante)">Eliminar</button>
+                         </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (mostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(modoEdicion ? "Editar" : "Crear") representante</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">nombre</label>
+                        <input type="text" class="form-control" id="nombre" @bind="representanteActual.nombre" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="Guardarrepresentante">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (mostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar el representante: @representanteEliminar?.nombre?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="Eliminarrepresentante">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (errorMensaje != null)
+{
+    <div class="alert alert-danger">
+        Error: @errorMensaje
+    </div>
+}
+
+@if (exitoMensaje != null)
+{
+    <div class="alert alert-success">
+        @exitoMensaje
+    </div>
+}
+
+@code {
+    // Lista para almacenar los representantes que se obtienen de la API
+    private List<Dictionary<string, object>> representantes = new List<Dictionary<string, object>>();
+    
+   private bool cargando = true;
+    private string? errorMensaje = null;
+    private string? exitoMensaje = null;
+    private const string TABLA = "represenvisual";
+
+    // Variables para el formulario
+    private bool mostrarFormulario = false;
+    private bool modoEdicion = false;
+    private representanteModel representanteActual = new representanteModel();
+
+    // Variables para confirmación de eliminación
+    private bool mostrarConfirmacion = false;
+    private representanteModel representanteEliminar = new representanteModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargarunidadmedicion();
+    }
+
+    private async Task Cargarunidadmedicion()
+    {
+        cargando = true;
+        errorMensaje = null;
+        
+        try
+        {
+            var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            
+            if (resultado != null)
+            {
+                representantes = resultado;
+            }
+            else
+            {
+                representantes = new List<Dictionary<string, object>>();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al cargar el representante: {ex.Message}";
+            representantes = new List<Dictionary<string, object>>();
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        if (diccionario == null)
+            return string.Empty;
+            
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        
+        return string.Empty;
+    }
+    private void MostrarFormularioCrear()
+    {
+        representanteActual = new representanteModel();
+        modoEdicion = false;
+        mostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> representante)
+    {
+        representanteActual = new representanteModel
+        {
+            id = ObtenerValor(representante, "id"),
+            nombre = ObtenerValor(representante, "nombre")
+        };
+        modoEdicion = true;
+        mostrarFormulario = true;
+    }
+
+    private void CerrarFormulario()
+    {
+        mostrarFormulario = false;
+    }
+
+    private async Task Guardarrepresentante()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var representanteDict = new Dictionary<string, object>
+            {
+                ["nombre"] = representanteActual.nombre
+            };
+
+            bool resultado;
+
+            if (modoEdicion)
+            {
+                resultado = await servicioEntidad.ActualizarAsync(
+                    TABLA,
+                    "id",
+                    representanteActual.id,
+                    representanteDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "representante actualizado correctamente.";
+                }
+            }
+            else
+            {
+                resultado = await servicioEntidad.CrearAsync(
+                    TABLA,
+                    representanteDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "representante creado correctamente.";
+                }
+            }
+
+            if (resultado)
+            {
+                await Cargarunidadmedicion();
+                mostrarFormulario = false;
+            }
+            else
+            {
+                errorMensaje = "No se pudo guardar el representante.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al guardar el representante: {ex.Message}";
+        }
+    }
+    private void ConfirmarEliminar(Dictionary<string, object> representante)
+    {
+        representanteEliminar = new representanteModel
+        {
+            id = ObtenerValor(representante, "id"),
+            nombre = ObtenerValor(representante, "nombre")
+        };
+        mostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        mostrarConfirmacion = false;
+    }
+
+    private async Task Eliminarrepresentante()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var resultado = await servicioEntidad.EliminarAsync(
+                TABLA,
+                "id",
+                representanteEliminar.id
+            );
+
+            if (resultado)
+            {
+                exitoMensaje = "representante eliminado correctamente.";
+                await Cargarunidadmedicion();
+            }
+            else
+            {
+                errorMensaje = "No se pudo eliminar el representante.";
+            }
+
+            mostrarConfirmacion = false;
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al eliminar el representante: {ex.Message}";
+        }
+    }
+    private class representanteModel
+    {
+        public string id { get; set; } = string.Empty;
+        public string nombre { get; set; } = string.Empty;
+    }
+}

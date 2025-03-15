@@ -811,7 +811,6 @@ C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\blazor.build.boot-extension.json
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\blazor.boot.json
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\csbnrvck8e-8rbvw3on5j.gz
-C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\0vb12baklh-pr3zmgnqgn.gz
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\84w8bz26ir-bqjiyaj88i.gz
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\5jbjujmwtd-c2jlpeoesf.gz
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\9cwd2h2yk9-erw9l3u2r3.gz
@@ -858,8 +857,6 @@ C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\gi9c6fyqrd-k3iqwkvim3.gz
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\1hzaevoi2d-iag0ou56lh.gz
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\2bl2sraua9-yiodnjoszm.gz
-C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\opxl28z7px-xdrrqwgs2q.gz
-C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\5lnszgwcsl-xdrrqwgs2q.gz
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\6rr7uqvg17-qe23mgxr71.gz
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\7w60i9pavu-flveird317.gz
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\compressed\gvcjndczle-thhw8cz9wu.gz
@@ -1075,6 +1072,7 @@ C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\IndicadoresApp.pdb
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\ref\IndicadoresApp.dll
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\obj\Debug\net9.0\IndicadoresApp.sourcelink.json
+<<<<<<< HEAD
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.fbxj231jk3.pdb
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.oid5q400nr.wasm
 C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\indicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.oid5q400nr.wasm.gz
@@ -2166,3 +2164,15 @@ C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\uf2t8xckiu-o8pb0swjgn.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\vwni4iy9um-ig9982at9s.gz
 C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\obj\Debug\net9.0\compressed\czf4ljc4f7-42xvnzd8ff.gz
+=======
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\0vb12baklh-6wxyj5tsp6.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\opxl28z7px-uhsi6l0zn6.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\5lnszgwcsl-uhsi6l0zn6.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.i4j0rq2kd9.pdb
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.w1qq0toqra.wasm
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.w1qq0toqra.wasm.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.i4j0rq2kd9.pdb.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\uf2t8xckiu-w1qq0toqra.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\vwni4iy9um-i4j0rq2kd9.gz
+C:\proyectos\ServiciosWeb2\Nueva carpeta\IndicadoresApp\IndicadoresApp\obj\Debug\net9.0\compressed\czf4ljc4f7-0fojip46sp.gz
+>>>>>>> origin/Sprint-9032025-ConfiguracionCRUDR

@@ -1,0 +1,309 @@
+@page "/sentido"  
+@using System.Collections.Generic  
+@using System.Text.Json  
+@using Services  
+@inject ServicioEntidad servicioEntidad  
+@inject NavigationManager navegacionManager  
+
+
+<PageTitle>Lista de tipos de sentidos</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+
+<h1>sentidos</h1>  
+
+<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
+    <button class="btn btn-primary">Crear Nuevo</button> 
+</div>
+
+<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
+<!-- Si no está cargando pero no hay sentidos o la lista es nula, muestra un mensaje informativo -->
+<!-- Si hay sentidos para mostrar, muestra la tabla -->
+@if (cargando)
+{
+    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+}
+else if (sentidos == null || sentidos.Count == 0)
+{
+    <p>No hay tipos de sentidos disponible</p>  
+}
+else
+{
+    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
+        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
+            <thead>  <!-- Encabezado de la tabla -->
+                <tr>  <!-- Fila del encabezado -->
+                    <th>Código</th>  <!-- Columna para el código de la sentido -->
+                    <th>nombre</th>  <!-- Columna para el nombre de la sentido -->
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
+                <!-- Bucle foreach que itera sobre cada sentido en la lista -->
+                @foreach (var sentido in sentidos)
+                {
+                    <tr>  <!-- Fila para cada sentido -->
+                        <td>@ObtenerValor(sentido, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
+                        <td>@ObtenerValor(sentido, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                         <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(sentido)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(sentido)">Eliminar</button>
+                         </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (mostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(modoEdicion ? "Editar" : "Crear") sentido</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">nombre</label>
+                        <input type="text" class="form-control" id="nombre" @bind="sentidoActual.nombre" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="Guardarsentido">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (mostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar la sentido: @sentidoEliminar?.nombre?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="Eliminarsentido">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (errorMensaje != null)
+{
+    <div class="alert alert-danger">
+        Error: @errorMensaje
+    </div>
+}
+
+@if (exitoMensaje != null)
+{
+    <div class="alert alert-success">
+        @exitoMensaje
+    </div>
+}
+
+@code {
+    // Lista para almacenar los sentidoes que se obtienen de la API
+    private List<Dictionary<string, object>> sentidos = new List<Dictionary<string, object>>();
+    
+   private bool cargando = true;
+    private string? errorMensaje = null;
+    private string? exitoMensaje = null;
+    private const string TABLA = "sentido";
+
+    // Variables para el formulario
+    private bool mostrarFormulario = false;
+    private bool modoEdicion = false;
+    private sentidoModel sentidoActual = new sentidoModel();
+
+    // Variables para confirmación de eliminación
+    private bool mostrarConfirmacion = false;
+    private sentidoModel sentidoEliminar = new sentidoModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargarunidadmedicion();
+    }
+
+    private async Task Cargarunidadmedicion()
+    {
+        cargando = true;
+        errorMensaje = null;
+        
+        try
+        {
+            var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            
+            if (resultado != null)
+            {
+                sentidos = resultado;
+            }
+            else
+            {
+                sentidos = new List<Dictionary<string, object>>();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al cargar la sentido: {ex.Message}";
+            sentidos = new List<Dictionary<string, object>>();
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        if (diccionario == null)
+            return string.Empty;
+            
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        
+        return string.Empty;
+    }
+    private void MostrarFormularioCrear()
+    {
+        sentidoActual = new sentidoModel();
+        modoEdicion = false;
+        mostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> sentido)
+    {
+        sentidoActual = new sentidoModel
+        {
+            id = ObtenerValor(sentido, "id"),
+            nombre = ObtenerValor(sentido, "nombre")
+        };
+        modoEdicion = true;
+        mostrarFormulario = true;
+    }
+
+    private void CerrarFormulario()
+    {
+        mostrarFormulario = false;
+    }
+
+    private async Task Guardarsentido()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var sentidoDict = new Dictionary<string, object>
+            {
+                ["nombre"] = sentidoActual.nombre
+            };
+
+            bool resultado;
+
+            if (modoEdicion)
+            {
+                resultado = await servicioEntidad.ActualizarAsync(
+                    TABLA,
+                    "id",
+                    sentidoActual.id,
+                    sentidoDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "sentido actualizada correctamente.";
+                }
+            }
+            else
+            {
+                resultado = await servicioEntidad.CrearAsync(
+                    TABLA,
+                    sentidoDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "sentido creado correctamente.";
+                }
+            }
+
+            if (resultado)
+            {
+                await Cargarunidadmedicion();
+                mostrarFormulario = false;
+            }
+            else
+            {
+                errorMensaje = "No se pudo guardar el sentido.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al guardar el sentido: {ex.Message}";
+        }
+    }
+    private void ConfirmarEliminar(Dictionary<string, object> sentido)
+    {
+        sentidoEliminar = new sentidoModel
+        {
+            id = ObtenerValor(sentido, "id"),
+            nombre = ObtenerValor(sentido, "nombre")
+        };
+        mostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        mostrarConfirmacion = false;
+    }
+
+    private async Task Eliminarsentido()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var resultado = await servicioEntidad.EliminarAsync(
+                TABLA,
+                "id",
+                sentidoEliminar.id
+            );
+
+            if (resultado)
+            {
+                exitoMensaje = "sentido eliminado correctamente.";
+                await Cargarunidadmedicion();
+            }
+            else
+            {
+                errorMensaje = "No se pudo eliminar el sentido.";
+            }
+
+            mostrarConfirmacion = false;
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al eliminar la sentido: {ex.Message}";
+        }
+    }
+    private class sentidoModel
+    {
+        public string id { get; set; } = string.Empty;
+        public string nombre { get; set; } = string.Empty;
+    }
+}

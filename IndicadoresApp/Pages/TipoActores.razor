@@ -2,46 +2,46 @@
 @using System.Collections.Generic  
 @using System.Text.Json  
 @using Services  
-@inject ServicioEntidad servicioEntidad  
-@inject NavigationManager navegacionManager  
+@inject ServicioEntidad ServicioEntidad  
+@inject NavigationManager NavigationManager  
 
+<PageTitle>Tipos de Actores</PageTitle>
 
-<PageTitle>Lista de tipos de actores</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+<h1>Tipos de Actores</h1>
 
-<h1>actores</h1>  
-
-<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
-    <button class="btn btn-primary">Crear Nuevo</button> 
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
 </div>
 
-<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
-<!-- Si no está cargando pero no hay actors o la lista es nula, muestra un mensaje informativo -->
-<!-- Si hay actors para mostrar, muestra la tabla -->
-@if (cargando)
+@if (EstamosCargando)
 {
-    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+    <p><em>Cargando...</em></p>
 }
-else if (actores == null || actores.Count == 0)
+else if (TiposActores == null || TiposActores.Count == 0)
 {
-    <p>No hay tipos de actores disponible</p>  
+    <p>No hay tipos de actores disponibles.</p>
 }
 else
 {
-    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
-        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
-            <thead>  <!-- Encabezado de la tabla -->
-                <tr>  <!-- Fila del encabezado -->
-                    <th>Código</th>  <!-- Columna para el código del actor -->
-                    <th>Nombre</th>  <!-- Columna para el nombre del actor -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
-                <!-- Bucle foreach que itera sobre cada actor en la lista -->
-                @foreach (var tipoactor in actores)
+            <tbody>
+                @foreach (var tipoActor in TiposActores)
                 {
-                    <tr>  <!-- Fila para cada actor -->
-                        <td>@ObtenerValor(tipoactor, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
-                        <td>@ObtenerValor(tipoactor, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                    <tr>
+                        <td>@ObtenerValor(tipoActor, "id")</td>
+                        <td>@ObtenerValor(tipoActor, "nombre")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(tipoActor)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(tipoActor)">Eliminar</button>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -49,86 +49,251 @@ else
     </div>
 }
 
-<!-- Mostrar mensaje de error si existe -->
-@if (errorMensaje != null)
+@if (MostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(ModoEdicion ? "Editar" : "Crear") Tipo de Actor</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" @bind="TipoActorActual.Nombre" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarTipoActor">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (MostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar el tipo de actor: @TipoActorAEliminar.Nombre?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="EliminarTipoActor">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(MensajeError))
 {
     <div class="alert alert-danger">
-        Error: @errorMensaje
+        Error: @MensajeError
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(MensajeExito))
+{
+    <div class="alert alert-success">
+        @MensajeExito
     </div>
 }
 
 @code {
-    // Lista para almacenar los actors que se obtienen de la API
-    private List<Dictionary<string, object>> actores = new List<Dictionary<string, object>>();
+    private const string NOMBRE_TABLA = "tipoactor";
     
-    // Bandera para indicar si se están cargando los datos
-    private bool cargando = true;
-    
-    // Variable para almacenar mensajes de error
-    private string? errorMensaje = null;
-    
-    // Constante para los parámetro de la API
-    private const string TABLA = "tipoactor";
+    private List<Dictionary<string, object>> TiposActores { get; set; } = new();
+    private bool EstamosCargando { get; set; } = true;
+    private string? MensajeError { get; set; }
+    private string? MensajeExito { get; set; }
 
-    // Método que se ejecuta cuando se inicializa el componente
+    // Variables para el formulario
+    private bool MostrarFormulario { get; set; } = false;
+    private bool ModoEdicion { get; set; } = false;
+    private TipoActorModel TipoActorActual { get; set; } = new();
+
+    // Variables para confirmación de eliminación
+    private bool MostrarConfirmacion { get; set; } = false;
+    private TipoActorModel TipoActorAEliminar { get; set; } = new();
+
     protected override async Task OnInitializedAsync()
     {
-        // Llamar al método para cargar los actores
-        await CargarActores();
+        await CargarTiposActores();
     }
 
-    // Método asíncrono para cargar los actores desde la API
-    private async Task CargarActores()
+    private async Task CargarTiposActores()
     {
-        // Establecer la bandera de carga en verdadero
-        cargando = true;
-        // Limpiar cualquier mensaje de error previo
-        errorMensaje = null;
+        EstamosCargando = true;
+        MensajeError = null;
         
         try
         {
-            // Obtener todos los actores usando el servicio de entidades
-            var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
             
-            // Si la lista no es null, asignarla a la variable actores
-            if (resultado != null)
+            TiposActores = resultado ?? new List<Dictionary<string, object>>();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al cargar tipos de actores: {ex.Message}";
+            TiposActores = new List<Dictionary<string, object>>();
+        }
+        finally
+        {
+            EstamosCargando = false;
+        }
+    }
+
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        if (diccionario == null)
+            return string.Empty;
+            
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        
+        return string.Empty;
+    }
+
+    private void MostrarFormularioCrear()
+    {
+        TipoActorActual = new TipoActorModel();
+        ModoEdicion = false;
+        MostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> tipoActor)
+    {
+        TipoActorActual = new TipoActorModel
+        {
+            Id = ObtenerValor(tipoActor, "id"),
+            Nombre = ObtenerValor(tipoActor, "nombre")
+        };
+        ModoEdicion = true;
+        MostrarFormulario = true;
+    }
+
+    private void CerrarFormulario()
+    {
+        MostrarFormulario = false;
+    }
+
+    private async Task GuardarTipoActor()
+    {
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            var tipoActorDict = new Dictionary<string, object>
             {
-                actores = resultado;
+                ["nombre"] = TipoActorActual.Nombre
+            };
+
+            bool resultado;
+
+            if (ModoEdicion)
+            {
+                resultado = await ServicioEntidad.ActualizarAsync(
+                    NOMBRE_TABLA,
+                    "id",
+                    TipoActorActual.Id,
+                    tipoActorDict
+                );
+
+                if (resultado)
+                {
+                    MensajeExito = "Tipo de actor actualizado correctamente.";
+                }
             }
             else
             {
-                // Si es null, inicializar como lista vacía para evitar errores
-                actores = new List<Dictionary<string, object>>();
+                resultado = await ServicioEntidad.CrearAsync(
+                    NOMBRE_TABLA,
+                    tipoActorDict
+                );
+
+                if (resultado)
+                {
+                    MensajeExito = "Tipo de actor creado correctamente.";
+                }
+            }
+
+            if (resultado)
+            {
+                await CargarTiposActores();
+                MostrarFormulario = false;
+            }
+            else
+            {
+                MensajeError = "No se pudo guardar el tipo de actor.";
             }
         }
         catch (Exception ex)
         {
-            // En caso de error, guardar el mensaje y crear lista vacía
-            errorMensaje = $"Error al cargar actors: {ex.Message}";
-            actores = new List<Dictionary<string, object>>();
-        }
-        finally
-        {
-            // Establecer la bandera de carga en falso una vez finalizada la operación
-            cargando = false;
+            MensajeError = $"Error al guardar el tipo de actor: {ex.Message}";
         }
     }
 
-    // Método para obtener un valor específico de un diccionario de manera segura
-    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    private void ConfirmarEliminar(Dictionary<string, object> tipoActor)
     {
-        // Verificar si el diccionario es null
-        if (diccionario == null)
-            return string.Empty;
-            
-        // Verificar si el diccionario contiene la clave
-        if (diccionario.TryGetValue(clave, out var valor))
+        TipoActorAEliminar = new TipoActorModel
         {
-            // Devolver el valor como cadena, o cadena vacía si es null
-            return valor?.ToString() ?? string.Empty;
+            Id = ObtenerValor(tipoActor, "id"),
+            Nombre = ObtenerValor(tipoActor, "nombre")
+        };
+        MostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        MostrarConfirmacion = false;
+    }
+
+    private async Task EliminarTipoActor()
+    {
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            var resultado = await ServicioEntidad.EliminarAsync(
+                NOMBRE_TABLA,
+                "id",
+                TipoActorAEliminar.Id
+            );
+
+            if (resultado)
+            {
+                MensajeExito = "Tipo de actor eliminado correctamente.";
+                await CargarTiposActores();
+            }
+            else
+            {
+                MensajeError = "No se pudo eliminar el tipo de actor.";
+            }
+
+            MostrarConfirmacion = false;
         }
-        
-        // Si la clave no existe, devolver cadena vacía
-        return string.Empty;
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al eliminar el tipo de actor: {ex.Message}";
+        }
+    }
+
+    private class TipoActorModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
     }
 }
