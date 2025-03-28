@@ -28,6 +28,10 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Articulos.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXJ0aWN1bG9zLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Frecuencias.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnJlY3VlbmNpYXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
@@ -36,12 +40,44 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnVlbnRlcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/FuentesIndicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnVlbnRlc0luZGljYWRvci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Indicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kaWNhZG9yLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Literares.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTGl0ZXJhcmVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Numerales.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTnVtZXJhbGVzLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Paragrafos.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGFyYWdyYWZvcy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/RepresentanteVisual.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwcmVzZW50YW50ZVZpc3VhbC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/RepresentanteVisualIndicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwcmVzZW50YW50ZVZpc3VhbEluZGljYWRvci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/ResponsablePorIndicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVzcG9uc2FibGVQb3JJbmRpY2Fkb3IucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/ResultadosIndicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVzdWx0YWRvc0luZGljYWRvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Roles.razor]
