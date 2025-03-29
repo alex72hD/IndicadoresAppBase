@@ -26,6 +26,7 @@ else
         <table class="table table-striped">
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Nombre</th>
                     <th>Tipo de Actor</th>
                     <th>Acciones</th>
@@ -35,8 +36,9 @@ else
                 @foreach (var actor in Actores)
                 {
                     <tr>
+                        <td>@ObtenerValor(actor, "id")</td>
                         <td>@ObtenerValor(actor, "nombre")</td>
-                        <td>@ObtenerNombreTipoActor(ObtenerValor(actor, "id"))</td>
+                        <td>@ObtenerNombreTipoActor(ObtenerValor(actor, "fkidtipoactor"))</td>
                         <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(actor)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(actor)">Eliminar</button>
@@ -58,6 +60,10 @@ else
                     <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="id" class="form-label">ID</label>
+                        <input type="text" class="form-control" id="id" @bind="ActorActual.Id" />
+                    </div>
                     <div class="mb-3">
                         <label for="nombre" class="form-label">Nombre</label>
                         <input type="text" class="form-control" id="nombre" @bind="ActorActual.Nombre" />
@@ -137,6 +143,7 @@ else
     private const string NOMBRE_TABLA = "actor";
     private const string TABLA_RELACIONES = "responsablesporindicador";
     private const string CAMPO_ACTOR_EN_RELACIONES = "fkidresponsable";
+    private const string CAMPO_TIPO_ACTOR = "fkidtipoactor"; // Nombre correcto del campo de tipo actor
     
     private List<Dictionary<string, object>> Actores { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
@@ -181,6 +188,12 @@ else
         {
             var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
             Actores = resultado ?? new List<Dictionary<string, object>>();
+            
+            // Para debug: mostrar las claves disponibles en el primer actor
+            if (Actores.Count > 0)
+            {
+                Console.WriteLine("Claves disponibles en actor: " + string.Join(", ", Actores[0].Keys));
+            }
         }
         catch (Exception ex)
         {
@@ -272,7 +285,9 @@ else
         {
             var id = ObtenerValor(actor, "id");
             var nombre = ObtenerValor(actor, "nombre");
-            var tipoActorId = ObtenerValor(actor, "id");
+            var tipoActorId = ObtenerValor(actor, CAMPO_TIPO_ACTOR); // Usar la constante correcta
+            
+            Console.WriteLine($"Editando actor: ID={id}, Nombre={nombre}, TipoActorID={tipoActorId}");
             
             ActorActual = new ActorModel
             {
@@ -291,81 +306,87 @@ else
         }
     }
 
-    private async Task GuardarActor()
+  private async Task GuardarActor()
+{
+    MensajeError = null;
+    MensajeExito = null;
+
+    try
     {
-        MensajeError = null;
-        MensajeExito = null;
-
-        try
+        if (string.IsNullOrWhiteSpace(ActorActual.Nombre))
         {
-            if (string.IsNullOrWhiteSpace(ActorActual.Nombre))
-            {
-                MensajeError = "El nombre del actor es obligatorio.";
-                return;
-            }
+            MensajeError = "El nombre del actor es obligatorio.";
+            return;
+        }
 
-            if (string.IsNullOrWhiteSpace(ActorActual.TipoActorId))
-            {
-                MensajeError = "Debe seleccionar un tipo de actor.";
-                return;
-            }
+        if (string.IsNullOrWhiteSpace(ActorActual.TipoActorId))
+        {
+            MensajeError = "Debe seleccionar un tipo de actor.";
+            return;
+        }
 
-            var actorData = new Dictionary<string, object>
-            {
-                ["nombre"] = ActorActual.Nombre,
-                ["id"] = ActorActual.TipoActorId
-            };
+        // Crear el diccionario con los campos correctos para la API
+        var actorData = new Dictionary<string, object>
+        {
+            ["nombre"] = ActorActual.Nombre,
+            [CAMPO_TIPO_ACTOR] = ActorActual.TipoActorId,
+            ["Id"] = ActorActual.Id // Solo si estamos editando, el ID se genera automáticamente al crear
+        };
 
-            bool resultado;
 
-            if (ModoEdicion)
+        bool resultado;
+
+        if (ModoEdicion)
+        {
+            Console.WriteLine($"Actualizando actor: ID={ActorActual.Id}, Nombre={ActorActual.Nombre}, Tipo={ActorActual.TipoActorId}");
+            
+            resultado = await ServicioEntidad.ActualizarAsync(
+                NOMBRE_TABLA,
+                "id",  // Nombre del campo clave
+                ActorActual.Id,  // Valor de la clave
+                actorData  // Datos para actualizar
+            );
+            
+            if (resultado) 
             {
-                
-                resultado = await ServicioEntidad.ActualizarAsync(
-                    NOMBRE_TABLA,
-                    "id",
-                    ActorActual.Id,
-                    actorData
-                );
-                
-                if (resultado) 
-                {
-                    MensajeExito = "Actor actualizado correctamente.";
-                }
-                else
-                {
-                    MensajeError = "No se pudo actualizar el actor.";
-                }
+                MensajeExito = "Actor actualizado correctamente.";
             }
             else
             {
-                resultado = await ServicioEntidad.CrearAsync(
-                    NOMBRE_TABLA,
-                    actorData
-                );
-                
-                if (resultado) 
-                {
-                    MensajeExito = "Actor creado correctamente.";
-                }
-                else
-                {
-                    MensajeError = "No se pudo crear el actor.";
-                }
-            }
-
-            if (resultado)
-            {
-                await CargarActores();
-                MostrarFormulario = false;
+                MensajeError = "No se pudo actualizar el actor.";
             }
         }
-        catch (Exception ex)
+        else
         {
-            MensajeError = $"Error: {ex.Message}";
+            Console.WriteLine($"Creando nuevo actor: ID={ActorActual.Id}, Nombre={ActorActual.Nombre}, Tipo={ActorActual.TipoActorId}");
+            
+            resultado = await ServicioEntidad.CrearAsync(
+                NOMBRE_TABLA,
+                actorData
+            );
+            
+            if (resultado) 
+            {
+                MensajeExito = $"Actor creado correctamente con ID: {ActorActual.Id}";
+            }
+            else
+            {
+                MensajeError = "No se pudo crear el actor.";
+            }
+        }
+
+        if (resultado)
+        {
+            await CargarActores();  // Recargar la lista de actores
+            MostrarFormulario = false;  // Cerrar el formulario
         }
     }
-
+    catch (Exception ex)
+    {
+        MensajeError = $"Error: {ex.Message}";
+        Console.WriteLine($"Excepción al guardar actor: {ex}");
+    }
+}
     private void CerrarFormulario()
     {
         MostrarFormulario = false;

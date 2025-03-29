@@ -1,55 +1,48 @@
-@* @page "/fuentesporindicador"
+@page "/FuentesPorIndicador"
 @using System.Collections.Generic
+@using System.Text.Json
 @using Services
-@inject ServicioEntidad ServicioEntidad
+@using IndicadoresApp.ModalGenerico
+@inject ServicioEntidad ServicioEntidad  
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
-<PageTitle>Fuentes por Indicador</PageTitle>
+<PageTitle>Fuentes Por Indicador</PageTitle>
 
-<h1>Fuentes por Indicador</h1>
+<h1>Fuentes Por Indicador</h1>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nueva Relación</button>
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
 </div>
 
 @if (EstamosCargando)
 {
-    <div class="alert alert-info">
-        <em>Cargando relaciones...</em>
-    </div>
+    <p><em>Cargando...</em></p>
 }
-else if (Relaciones == null || Relaciones.Count == 0)
+else if (FuentesPorIndicador == null || FuentesPorIndicador.Count == 0)
 {
-    <div class="alert alert-warning">
-        No hay relaciones registradas
-    </div>
+    <p>No hay relaciones entre fuentes e indicadores registradas.</p>
 }
 else
 {
     <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
+        <table class="table table-striped">
+            <thead>
                 <tr>
-                    <th>Indicador</th>
-                    <th>Fuente</th>
-                    <th class="text-end">Acciones</th>
+                    <th>ID Fuente</th>
+                    <th>ID Indicador</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var relacion in Relaciones)
+                @foreach (var relacion in FuentesPorIndicador)
                 {
                     <tr>
-                        <td>@ObtenerNombreIndicador(relacion.Ridindicador)</td>
-                        <td>@ObtenerNombreFuente(relacion.Ridfuente)</td>
-                        <td class="text-end">
-                            <button class="btn btn-warning btn-sm me-2" 
-                                    @onclick="() => MostrarFormularioEditar(relacion)">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm" 
-                                    @onclick="() => ConfirmarEliminar(relacion)">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                        <td>@ObtenerValor(relacion, "fkidfuente")</td>
+                        <td>@ObtenerValor(relacion, "fkidindicador")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(relacion)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(relacion)">Eliminar</button>
                         </td>
                     </tr>
                 }
@@ -58,360 +51,134 @@ else
     </div>
 }
 
-@if (MostrarFormulario)
-{
-    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">@(ModoEdicion ? "Editar" : "Crear") Relación</h5>
-                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Indicador</label>
-                        <select class="form-select" @bind="RelacionActual.Ridindicador">
-                            <option value="">Seleccione un indicador</option>
-                            @if (CargandoIndicadores)
-                            {
-                                <option disabled>Cargando indicadores...</option>
-                            }
-                            else
-                            {
-                                @foreach (var indicador in IndicadoresDisponibles)
-                                {
-                                    <option value="@indicador.Id">@indicador.Nombre</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Fuente</label>
-                        <select class="form-select" @bind="RelacionActual.Ridfuente">
-                            <option value="">Seleccione una fuente</option>
-                            @if (CargandoFuentes)
-                            {
-                                <option disabled>Cargando fuentes...</option>
-                            }
-                            else
-                            {
-                                @foreach (var fuente in FuentesDisponibles)
-                                {
-                                    <option value="@fuente.Id">@fuente.Nombre</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                    
-                    @if (!string.IsNullOrEmpty(MensajeErrorFormulario))
-                    {
-                        <div class="alert alert-danger mt-2">
-                            @MensajeErrorFormulario
-                        </div>
-                    }
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
-                    <button type="button" class="btn btn-primary" @onclick="GuardarRelacion">
-                        @(ModoEdicion ? "Actualizar" : "Guardar")
-                    </button>
-                </div>
-            </div>
+<!-- Modal para crear/editar relación -->
+<ModalGenerico @ref="modalFormulario" 
+              Id="formModal" 
+              Title="@TituloModal" 
+              OnSave="GuardarRelacion">
+    <BodyContent>
+        <div class="mb-3">
+            <label for="idFuente" class="form-label">ID Fuente</label>
+            <input type="number" class="form-control" id="idFuente" @bind="RelacionActual.IdFuente" />
         </div>
-    </div>
-}
+        <div class="mb-3">
+            <label for="idIndicador" class="form-label">ID Indicador</label>
+            <input type="number" class="form-control" id="idIndicador" @bind="RelacionActual.IdIndicador" />
+        </div>
+    </BodyContent>
+</ModalGenerico>
 
-@if (MostrarConfirmacion)
+<!-- Modal para confirmar eliminación -->
+<ModalGenerico @ref="modalConfirmacion" 
+              Id="confirmModal" 
+              Title="Confirmar eliminación" 
+              OnSave="EliminarRelacion">
+    <BodyContent>
+        <p>¿Está seguro que desea eliminar esta relación entre Fuente (ID: @RelacionAEliminar.IdFuente) e Indicador (ID: @RelacionAEliminar.IdIndicador)?</p>
+    </BodyContent>
+</ModalGenerico>
+
+@if (!string.IsNullOrEmpty(MensajeError))
 {
-    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmar eliminación</h5>
-                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
-                </div>
-                <div class="modal-body">
-                    <p>¿Está seguro que desea eliminar esta relación?</p>
-                    <ul class="list-unstyled">
-                        <li><strong>Indicador:</strong> @RelacionEliminar.NombreIndicador</li>
-                        <li><strong>Fuente:</strong> @RelacionEliminar.NombreFuente</li>
-                    </ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
-                    <button type="button" class="btn btn-danger" @onclick="EliminarRelacion">Confirmar Eliminación</button>
-                </div>
-            </div>
-        </div>
+    <div class="alert alert-danger">
+        Error: @MensajeError
     </div>
 }
 
 @if (!string.IsNullOrEmpty(MensajeExito))
 {
-    <div class="alert alert-success alert-dismissible fade show mt-3">
+    <div class="alert alert-success">
         @MensajeExito
-        <button type="button" class="btn-close" @onclick="() => MensajeExito = null"></button>
     </div>
 }
 
 @code {
-    // Constantes
-    private const string TABLA_RELACIONES = "fuentesporindicador";
-    private const string TABLA_INDICADORES = "indicador";
-    private const string TABLA_FUENTES = "fuente";
+    private const string NOMBRE_TABLA = "fuentesporindicador";
     
-    // Estado de la aplicación
-    private List<RelacionCompleta> Relaciones { get; set; } = new();
-    private List<Indicador> IndicadoresDisponibles { get; set; } = new();
-    private List<Fuente> FuentesDisponibles { get; set; } = new();
-    private bool EstamosCargando = true;
-    private bool CargandoIndicadores = true;
-    private bool CargandoFuentes = true;
-    
-    // Mensajes
-    private string? MensajeError;
-    private string? MensajeExito;
-    private string? MensajeErrorFormulario;
-    
-    // Control de UI
-    private bool MostrarFormulario = false;
-    private bool ModoEdicion = false;
-    private RelacionActual RelacionActual = new();
-    
-    // Eliminación
-    private bool MostrarConfirmacion = false;
-    private RelacionEliminar RelacionEliminar = new();
+    private List<Dictionary<string, object>> FuentesPorIndicador { get; set; } = new();
+    private bool EstamosCargando { get; set; } = true;
+    private string? MensajeError { get; set; }
+    private string? MensajeExito { get; set; }
+
+    private bool ModoEdicion { get; set; } = false;
+    private RelacionModel RelacionActual { get; set; } = new();
+    private ModalGenerico? modalFormulario;
+    private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Relación Fuente-Indicador";
+
+    private RelacionModel RelacionAEliminar { get; set; } = new();
+    private ModalGenerico? modalConfirmacion;
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarDatosIniciales();
+        await CargarFuentesPorIndicador();
     }
 
-    private async Task CargarDatosIniciales()
-    {
-        try {
-            await Task.WhenAll(
-                CargarIndicadores(),
-                CargarFuentes(),
-                CargarRelaciones()
-            );
-        }
-        catch (Exception ex) {
-            MensajeError = $"Error inicial: {ex.Message}";
-        }
-    }
-
-    private async Task CargarRelaciones()
+    private async Task CargarFuentesPorIndicador()
     {
         EstamosCargando = true;
-        try {
-            var datos = await ServicioEntidad.ObtenerTodosAsync(TABLA_RELACIONES);
-            Relaciones = datos?.Select(d => new RelacionCompleta {
-                Id = Convert.ToInt32(ObtenerValor(d, "Rid")),
-                Ridindicador = Convert.ToInt32(ObtenerValor(d, "Ridindicador")),
-                Ridfuente = Convert.ToInt32(ObtenerValor(d, "Ridfuente"))
-            }).ToList() ?? new();
+        MensajeError = null;
+        
+        try
+        {
+            FuentesPorIndicador = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
         }
-        catch (Exception ex) {
-            MensajeError = $"Error cargando relaciones: {ex.Message}";
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al cargar relaciones: {ex.Message}";
+            FuentesPorIndicador = new List<Dictionary<string, object>>();
         }
-        finally {
+        finally
+        {
             EstamosCargando = false;
-            StateHasChanged();
         }
     }
 
-    private async Task CargarIndicadores()
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        CargandoIndicadores = true;
-        try {
-            var datos = await ServicioEntidad.ObtenerTodosAsync(TABLA_INDICADORES);
-            IndicadoresDisponibles = datos?.Select(d => new Indicador {
-                Id = Convert.ToInt32(ObtenerValor(d, "id")),
-                Nombre = ObtenerValor(d, "nombre")
-            }).ToList() ?? new();
-        }
-        finally {
-            CargandoIndicadores = false;
-            StateHasChanged();
-        }
+        return diccionario.TryGetValue(clave, out var valor) ? valor?.ToString() ?? string.Empty : string.Empty;
     }
 
-    private async Task CargarFuentes()
+    private async Task MostrarFormularioCrear()
     {
-        CargandoFuentes = true;
-        try {
-            var datos = await ServicioEntidad.ObtenerTodosAsync(TABLA_FUENTES);
-            FuentesDisponibles = datos?.Select(d => new Fuente {
-                Id = Convert.ToInt32(ObtenerValor(d, "id")),
-                Nombre = ObtenerValor(d, "nombre")
-            }).ToList() ?? new();
-        }
-        finally {
-            CargandoFuentes = false;
-            StateHasChanged();
-        }
-    }
-
-    private string ObtenerNombreIndicador(int id)
-    {
-        return IndicadoresDisponibles.FirstOrDefault(i => i.Id == id)?.Nombre ?? "Indicador desconocido";
-    }
-
-    private string ObtenerNombreFuente(int id)
-    {
-        return FuentesDisponibles.FirstOrDefault(f => f.Id == id)?.Nombre ?? "Fuente desconocida";
-    }
-
-    private string ObtenerValor(Dictionary<string, object> datos, string clave)
-    {
-        return datos.TryGetValue(clave, out object? valor) ? valor?.ToString() ?? "" : "";
-    }
-
-    private void MostrarFormularioCrear()
-    {
-        RelacionActual = new RelacionActual();
+        RelacionActual = new RelacionModel();
         ModoEdicion = false;
-        MostrarFormulario = true;
-        MensajeErrorFormulario = null;
+        await modalFormulario.ShowModalAsync();
     }
 
-    private void MostrarFormularioEditar(RelacionCompleta relacion)
+    private async Task MostrarFormularioEditar(Dictionary<string, object> relacion)
     {
-        RelacionActual = new RelacionActual {
-            Id = relacion.Id,
-            Ridindicador = relacion.Ridindicador,
-            Ridfuente = relacion.Ridfuente
+        RelacionActual = new RelacionModel
+        {
+            IdFuente = Convert.ToInt32(ObtenerValor(relacion, "fkidfuente")),
+            IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador"))
         };
         ModoEdicion = true;
-        MostrarFormulario = true;
-        MensajeErrorFormulario = null;
+        await modalFormulario.ShowModalAsync();
+    }
+
+    private async Task ConfirmarEliminar(Dictionary<string, object> relacion)
+    {
+        RelacionAEliminar = new RelacionModel
+        {
+            IdFuente = Convert.ToInt32(ObtenerValor(relacion, "fkidfuente")),
+            IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador"))
+        };
+        await modalConfirmacion.ShowModalAsync();
     }
 
     private async Task GuardarRelacion()
-    {
-        MensajeErrorFormulario = null;
+     {
         
-        // Validación
-        if (RelacionActual.Ridindicador == 0 || RelacionActual.Ridfuente == 0)
-        {
-            MensajeErrorFormulario = "Debe seleccionar ambos campos";
-            return;
-        }
-        
-        // Validar duplicados
-        if (Relaciones.Any(r => 
-            r.Ridindicador == RelacionActual.Ridindicador && 
-            r.Ridfuente == RelacionActual.Ridfuente &&
-            r.Id != RelacionActual.Id))
-        {
-            MensajeErrorFormulario = "Esta relación ya existe";
-            return;
-        }
-
-        try {
-            var datos = new Dictionary<string, object> {
-                ["Ridindicador"] = RelacionActual.Ridindicador,
-                ["Ridfuente"] = RelacionActual.Ridfuente
-            };
-
-            bool resultado;
-            
-            if (ModoEdicion) {
-                resultado = await ServicioEntidad.ActualizarAsync(
-                    TABLA_RELACIONES,
-                    "Rid",
-                    RelacionActual.Id,
-                    datos
-                );
-            } else {
-                resultado = await ServicioEntidad.CrearAsync(TABLA_RELACIONES, datos);
-            }
-
-            if (resultado) {
-                MensajeExito = ModoEdicion 
-                    ? "Relación actualizada correctamente" 
-                    : "Relación creada exitosamente";
-                await CargarRelaciones();
-                CerrarFormulario();
-            }
-        }
-        catch (Exception ex) {
-            MensajeErrorFormulario = $"Error guardando: {ex.Message}";
-        }
-    }
-
-    private void ConfirmarEliminar(RelacionCompleta relacion)
-    {
-        RelacionEliminar = new RelacionEliminar {
-            Id = relacion.Id,
-            NombreIndicador = ObtenerNombreIndicador(relacion.Ridindicador),
-            NombreFuente = ObtenerNombreFuente(relacion.Ridfuente)
-        };
-        MostrarConfirmacion = true;
-    }
+     }
 
     private async Task EliminarRelacion()
     {
-        try {
-            var resultado = await ServicioEntidad.EliminarAsync(
-                TABLA_RELACIONES,
-                "Rid",
-                RelacionEliminar.Id
-            );
-            
-            if (resultado) {
-                MensajeExito = "Relación eliminada correctamente";
-                await CargarRelaciones();
-                MostrarConfirmacion = false;
-            }
-        }
-        catch (Exception ex) {
-            MensajeError = $"Error eliminando: {ex.Message}";
-            MostrarConfirmacion = false;
-        }
+       
     }
 
-    private void CerrarFormulario()
+    private class RelacionModel
     {
-        MostrarFormulario = false;
-        RelacionActual = new RelacionActual();
-        MensajeErrorFormulario = null;
+        public int IdFuente { get; set; }
+        public int IdIndicador { get; set; }
     }
-
-    private void CancelarEliminar()
-    {
-        MostrarConfirmacion = false;
-        RelacionEliminar = new RelacionEliminar();
-    }
-
-    // Modelos
-    private class RelacionCompleta {
-        public int Id { get; set; }
-        public int Ridindicador { get; set; }
-        public int Ridfuente { get; set; }
-    }
-
-    private class RelacionActual {
-        public int Id { get; set; }
-        public int Ridindicador { get; set; }
-        public int Ridfuente { get; set; }
-    }
-
-    private class RelacionEliminar {
-        public int Id { get; set; }
-        public string NombreIndicador { get; set; } = "";
-        public string NombreFuente { get; set; } = "";
-    }
-
-    private class Indicador {
-        public int Id { get; set; }
-        public string Nombre { get; set; } = "";
-    }
-
-    private class Fuente {
-        public int Id { get; set; }
-        public string Nombre { get; set; } = "";
-    }
-} *@
+}
