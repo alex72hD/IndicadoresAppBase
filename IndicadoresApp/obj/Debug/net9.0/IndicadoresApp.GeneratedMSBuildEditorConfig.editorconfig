@@ -28,84 +28,72 @@ build_property.EnableCodeStyleSeverity =
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Articulos.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXJ0aWN1bG9zLnJhem9y
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Frecuencias.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnJlY3VlbmNpYXMucmF6b3I=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Fuentes.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnVlbnRlcy5yYXpvcg==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/FuentesIndicador.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnVlbnRlc0luZGljYWRvci5yYXpvcg==
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/ModalGenerico/ModalGenerico.razor]
+build_metadata.AdditionalFiles.TargetPath = TW9kYWxHZW5lcmljb1xNb2RhbEdlbmVyaWNvLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Indicador.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kaWNhZG9yLnJhem9y
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TabalasIntermedias/Actor.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFiYWxhc0ludGVybWVkaWFzXEFjdG9yLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Literares.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTGl0ZXJhcmVzLnJhem9y
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TabalasIntermedias/FuentesIndicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFiYWxhc0ludGVybWVkaWFzXEZ1ZW50ZXNJbmRpY2Fkb3IucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Numerales.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTnVtZXJhbGVzLnJhem9y
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TabalasIntermedias/Indicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFiYWxhc0ludGVybWVkaWFzXEluZGljYWRvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Paragrafos.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGFyYWdyYWZvcy5yYXpvcg==
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TabalasIntermedias/RepresentanteVisualIndicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFiYWxhc0ludGVybWVkaWFzXFJlcHJlc2VudGFudGVWaXN1YWxJbmRpY2Fkb3IucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/RepresentanteVisual.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwcmVzZW50YW50ZVZpc3VhbC5yYXpvcg==
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TabalasIntermedias/ResponsablePorIndicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFiYWxhc0ludGVybWVkaWFzXFJlc3BvbnNhYmxlUG9ySW5kaWNhZG9yLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/RepresentanteVisualIndicador.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwcmVzZW50YW50ZVZpc3VhbEluZGljYWRvci5yYXpvcg==
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TabalasIntermedias/ResultadosIndicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFiYWxhc0ludGVybWVkaWFzXFJlc3VsdGFkb3NJbmRpY2Fkb3IucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/ResponsablePorIndicador.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVzcG9uc2FibGVQb3JJbmRpY2Fkb3IucmF6b3I=
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TabalasIntermedias/VariablesPorIndicador.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFiYWxhc0ludGVybWVkaWFzXFZhcmlhYmxlc1BvckluZGljYWRvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/ResultadosIndicador.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVzdWx0YWRvc0luZGljYWRvci5yYXpvcg==
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Tablas/Frecuencias.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFibGFzXEZyZWN1ZW5jaWFzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Roles.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUm9sZXMucmF6b3I=
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Tablas/Fuentes.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFibGFzXEZ1ZW50ZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Secciones.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VjY2lvbmVzLnJhem9y
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Tablas/RepresentanteVisual.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFibGFzXFJlcHJlc2VudGFudGVWaXN1YWwucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Sentidos.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VudGlkb3MucmF6b3I=
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Tablas/Roles.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFibGFzXFJvbGVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Subsecciones.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU3Vic2VjY2lvbmVzLnJhem9y
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Tablas/Sentidos.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFibGFzXFNlbnRpZG9zLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TipoActores.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGlwb0FjdG9yZXMucmF6b3I=
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Tablas/TipoActores.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFibGFzXFRpcG9BY3RvcmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TipoIndicadores.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGlwb0luZGljYWRvcmVzLnJhem9y
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Tablas/TipoIndicadores.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFibGFzXFRpcG9JbmRpY2Fkb3Jlcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/UnidadesDeMedicion.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVW5pZGFkZXNEZU1lZGljaW9uLnJhem9y
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Tablas/UnidadesDeMedicion.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFibGFzXFVuaWRhZGVzRGVNZWRpY2lvbi5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/_Imports.razor]

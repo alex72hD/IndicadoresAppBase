@@ -1,0 +1,101 @@
+@inject IJSRuntime JSRuntime
+
+<div class="modal" id="@Id" tabindex="-1" aria-labelledby="@Id-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="@Id-label">@Title</h5>
+                <button type="button" class="btn-close" @onclick="HideModalAsync" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @BodyContent
+            </div>
+            <div class="modal-footer">
+                @if (ShowSaveButton)
+                {
+                    <button type="button" class="btn btn-primary" @onclick="HandleSave">Guardar</button>
+                }
+                <button type="button" class="btn btn-secondary" @onclick="HideModalAsync">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = "genericModal";
+
+    [Parameter]
+    public string Title { get; set; } = "Modal Genérico";
+
+    [Parameter]
+    public RenderFragment? BodyContent { get; set; }
+
+    [Parameter]
+    public EventCallback OnSave { get; set; }
+
+    [Parameter]
+    public bool ShowSaveButton { get; set; } = true;
+
+    private bool _isVisible = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Inicializa el JS para manejar el modal
+            await JSRuntime.InvokeVoidAsync("eval", $@"
+                window.showModal = function(id) {{
+                    var modalElement = document.getElementById(id);
+                    if (modalElement) {{
+                        modalElement.style.display = 'block';
+                        modalElement.classList.add('show');
+                        document.body.classList.add('modal-open');
+                        var backdrop = document.createElement('div');
+                        backdrop.className = 'modal-backdrop fade show';
+                        document.body.appendChild(backdrop);
+                    }}
+                }};
+
+                window.hideModal = function(id) {{
+                    var modalElement = document.getElementById(id);
+                    if (modalElement) {{
+                        modalElement.style.display = 'none';
+                        modalElement.classList.remove('show');
+                        document.body.classList.remove('modal-open');
+                        var backdrop = document.getElementsByClassName('modal-backdrop');
+                        if (backdrop.length > 0) {{
+                            document.body.removeChild(backdrop[0]);
+                        }}
+                    }}
+                }};
+            ");
+        }
+    }
+
+    public async Task ShowModalAsync()
+    {
+        _isVisible = true;
+        await JSRuntime.InvokeVoidAsync("showModal", Id);
+        StateHasChanged();
+    }
+
+    public async Task HideModalAsync()
+    {
+        _isVisible = false;
+        await JSRuntime.InvokeVoidAsync("hideModal", Id);
+        StateHasChanged();
+    }
+
+    private async Task HandleSave()
+    {
+        // Primero ejecutamos la acción de guardar
+        if (OnSave.HasDelegate)
+        {
+            await OnSave.InvokeAsync();
+        }
+        
+        // Luego cerramos el modal
+        await HideModalAsync();
+    }
+}

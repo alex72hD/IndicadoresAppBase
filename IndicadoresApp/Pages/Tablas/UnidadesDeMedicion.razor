@@ -2,8 +2,10 @@
 @using System.Collections.Generic  
 @using System.Text.Json  
 @using Services  
+@using IndicadoresApp.ModalGenerico
 @inject ServicioEntidad ServicioEntidad  
-@inject NavigationManager NavigationManager  
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Unidades de Medición</PageTitle>
 
@@ -49,50 +51,28 @@ else
     </div>
 }
 
-@if (MostrarFormulario)
-{
-    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">@(ModoEdicion ? "Editar" : "Crear") Unidad de Medición</h5>
-                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="nombre" @bind="UnidadActual.Nombre" />
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
-                    <button type="button" class="btn btn-primary" @onclick="GuardarUnidad">Guardar</button>
-                </div>
-            </div>
+<!-- Modal para crear/editar unidad -->
+<ModalGenerico @ref="modalFormulario" 
+              Id="formModal" 
+              Title="@TituloModal" 
+              OnSave="GuardarUnidad">
+    <BodyContent>
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" @bind="UnidadActual.Nombre" />
         </div>
-    </div>
-}
+    </BodyContent>
+</ModalGenerico>
 
-@if (MostrarConfirmacion)
-{
-    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmar eliminación</h5>
-                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
-                </div>
-                <div class="modal-body">
-                    <p>¿Está seguro que desea eliminar la unidad de medición: @UnidadAEliminar.Nombre?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
-                    <button type="button" class="btn btn-danger" @onclick="EliminarUnidad">Eliminar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
+<!-- Modal para confirmar eliminación -->
+<ModalGenerico @ref="modalConfirmacion" 
+              Id="confirmModal" 
+              Title="Confirmar eliminación" 
+              OnSave="EliminarUnidad">
+    <BodyContent>
+        <p>¿Está seguro que desea eliminar la unidad de medición: @UnidadAEliminar.Nombre?</p>
+    </BodyContent>
+</ModalGenerico>
 
 @if (!string.IsNullOrEmpty(MensajeError))
 {
@@ -117,13 +97,14 @@ else
     private string? MensajeExito { get; set; }
 
     // Variables para el formulario
-    private bool MostrarFormulario { get; set; } = false;
     private bool ModoEdicion { get; set; } = false;
     private UnidadMedicionModel UnidadActual { get; set; } = new();
+    private ModalGenerico? modalFormulario;
+    private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Unidad de Medición";
 
     // Variables para confirmación de eliminación
-    private bool MostrarConfirmacion { get; set; } = false;
     private UnidadMedicionModel UnidadAEliminar { get; set; } = new();
+    private ModalGenerico? modalConfirmacion;
 
     protected override async Task OnInitializedAsync()
     {
@@ -165,14 +146,15 @@ else
         return string.Empty;
     }
 
-    private void MostrarFormularioCrear()
+    private async Task MostrarFormularioCrear()
     {
         UnidadActual = new UnidadMedicionModel();
         ModoEdicion = false;
-        MostrarFormulario = true;
+        await InvokeAsync(StateHasChanged);
+        await modalFormulario.ShowModalAsync();
     }
 
-    private void MostrarFormularioEditar(Dictionary<string, object> unidad)
+    private async Task MostrarFormularioEditar(Dictionary<string, object> unidad)
     {
         UnidadActual = new UnidadMedicionModel
         {
@@ -180,12 +162,19 @@ else
             Nombre = ObtenerValor(unidad, "descripcion")
         };
         ModoEdicion = true;
-        MostrarFormulario = true;
+        await InvokeAsync(StateHasChanged);
+        await modalFormulario.ShowModalAsync();
     }
 
-    private void CerrarFormulario()
+    private async Task ConfirmarEliminar(Dictionary<string, object> unidad)
     {
-        MostrarFormulario = false;
+        UnidadAEliminar = new UnidadMedicionModel
+        {
+            Id = ObtenerValor(unidad, "id"),
+            Nombre = ObtenerValor(unidad, "descripcion")
+        };
+        await InvokeAsync(StateHasChanged);
+        await modalConfirmacion.ShowModalAsync();
     }
 
     private async Task GuardarUnidad()
@@ -232,7 +221,6 @@ else
             if (resultado)
             {
                 await CargarUnidadesMedicion();
-                MostrarFormulario = false;
             }
             else
             {
@@ -243,21 +231,6 @@ else
         {
             MensajeError = $"Error al guardar la unidad de medición: {ex.Message}";
         }
-    }
-
-    private void ConfirmarEliminar(Dictionary<string, object> unidad)
-    {
-        UnidadAEliminar = new UnidadMedicionModel
-        {
-            Id = ObtenerValor(unidad, "id"),
-            Nombre = ObtenerValor(unidad, "descripcion")
-        };
-        MostrarConfirmacion = true;
-    }
-
-    private void CancelarEliminar()
-    {
-        MostrarConfirmacion = false;
     }
 
     private async Task EliminarUnidad()
@@ -282,8 +255,6 @@ else
             {
                 MensajeError = "No se pudo eliminar la unidad de medición.";
             }
-
-            MostrarConfirmacion = false;
         }
         catch (Exception ex)
         {

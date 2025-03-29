@@ -1,0 +1,454 @@
+@page "/indicador"
+@using System.Collections.Generic
+@using Services
+@inject ServicioEntidad ServicioEntidad
+@inject NavigationManager NavigationManager
+
+<PageTitle>Indicadores</PageTitle>
+
+<h1>Indicadores</h1>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+</div>
+
+@if (EstamosCargando)
+{
+    <p><em>Cargando indicadores...</em></p>
+}
+else if (Indicadores == null || Indicadores.Count == 0)
+{
+    <p>No hay indicadores disponibles.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Meta</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var indicador in Indicadores)
+                {
+                    <tr>
+                        <td>@ObtenerValor(indicador, "codigo")</td>
+                        <td>@ObtenerValor(indicador, "nombre")</td>
+                        <td>@ObtenerValor(indicador, "meta")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(indicador)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(indicador)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (MostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(ModoEdicion ? "Editar" : "Crear") Indicador</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Columna Izquierda -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Código</label>
+                                <input type="text" class="form-control" @bind="IndicadorActual.Codigo" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nombre</label>
+                                <input type="text" class="form-control" @bind="IndicadorActual.Nombre" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Unidad de Medición</label>
+                                <select class="form-select" @bind="IndicadorActual.UnidadMedicionId">
+                                    <option value="">Seleccione...</option>
+                                    @foreach (var unidad in UnidadesMedicion)
+                                    {
+                                        <option value="@unidad.Id">@unidad.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Frecuencia</label>
+                                <select class="form-select" @bind="IndicadorActual.FrecuenciaId">
+                                    <option value="">Seleccione...</option>
+                                    @foreach (var freq in Frecuencias)
+                                    {
+                                        <option value="@freq.Id">@freq.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna Derecha -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Objetivo</label>
+                                <textarea class="form-control" rows="3" @bind="IndicadorActual.Objetivo"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Alcance</label>
+                                <textarea class="form-control" rows="3" @bind="IndicadorActual.Alcance"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Fórmula</label>
+                                <input type="text" class="form-control" @bind="IndicadorActual.Formula" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Meta</label>
+                                <input type="text" class="form-control" @bind="IndicadorActual.Meta" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarIndicador">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (MostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar el indicador: @IndicadorEliminar.Nombre?</p>
+                    <p class="text-danger">Esto eliminará todas las relaciones asociadas a este indicador.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="EliminarIndicador">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(MensajeError))
+{
+    <div class="alert alert-danger mt-3">
+        @MensajeError
+        <button type="button" class="btn-close float-end" @onclick="() => MensajeError = null"></button>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(MensajeExito))
+{
+    <div class="alert alert-success mt-3">
+        @MensajeExito
+        <button type="button" class="btn-close float-end" @onclick="() => MensajeExito = null"></button>
+    </div>
+}
+
+@code {
+    private const string NOMBRE_TABLA = "indicator";
+    private const string TABLA_RELACIONES = "responsablesporindicador";
+    private const string CAMPO_INDICADOR_EN_RELACIONES = "fkidindicador";
+    
+    private List<Dictionary<string, object>> Indicadores { get; set; } = new();
+    private bool EstamosCargando { get; set; } = true;
+    private string? MensajeError { get; set; }
+    private string? MensajeExito { get; set; }
+
+    // Listas para FK
+    private List<EntidadSelect> UnidadesMedicion { get; set; } = new();
+    private List<EntidadSelect> Frecuencias { get; set; } = new();
+    
+    // Variables para el formulario
+    private bool MostrarFormulario { get; set; } = false;
+    private bool ModoEdicion { get; set; } = false;
+    private IndicadorModel IndicadorActual { get; set; } = new();
+
+    // Variables para confirmación de eliminación
+    private bool MostrarConfirmacion { get; set; } = false;
+    private IndicadorModel IndicadorEliminar { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatosIniciales();
+        await CargarEntidadesRelacionadas();
+    }
+
+    private async Task CargarDatosIniciales()
+    {
+        try {
+            EstamosCargando = true;
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
+            Indicadores = resultado ?? new List<Dictionary<string, object>>();
+        }
+        catch (Exception ex) {
+            MensajeError = $"Error cargando indicadores: {ex.Message}";
+        }
+        finally {
+            EstamosCargando = false;
+            StateHasChanged(); // Forzar actualización del UI
+        }
+    }
+
+    private async Task CargarEntidadesRelacionadas()
+    {
+        // Cargar opciones para FK
+        try {
+            UnidadesMedicion = await CargarOpcionesFK("unidadmedicion");
+            Frecuencias = await CargarOpcionesFK("frecuencia");
+        }
+        catch (Exception ex) {
+            MensajeError = $"Error cargando datos relacionados: {ex.Message}";
+        }
+    }
+
+    private async Task<List<EntidadSelect>> CargarOpcionesFK(string tabla)
+    {
+        try {
+            var datos = await ServicioEntidad.ObtenerTodosAsync(tabla);
+            return datos.Select(d => new EntidadSelect {
+                Id = ObtenerValor(d, "id"),
+                Nombre = ObtenerValor(d, "nombre")
+            }).ToList();
+        }
+        catch {
+            return new List<EntidadSelect>();
+        }
+    }
+
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        if (diccionario == null)
+        {
+            return "";
+        }
+
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? "";
+        }
+        else
+        {
+            return "";
+        }
+    }
+
+    private void MostrarFormularioCrear()
+    {
+        IndicadorActual = new IndicadorModel();
+        ModoEdicion = false;
+        MostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> indicador)
+    {
+        try {
+            IndicadorActual = new IndicadorModel
+            {
+                Id = ObtenerValor(indicador, "id"),
+                Codigo = ObtenerValor(indicador, "codigo"),
+                Nombre = ObtenerValor(indicador, "nombre"),
+                Objetivo = ObtenerValor(indicador, "objetivo"),
+                Alcance = ObtenerValor(indicador, "alcance"),
+                Formula = ObtenerValor(indicador, "formula"),
+                Meta = ObtenerValor(indicador, "meta"),
+                UnidadMedicionId = ObtenerValor(indicador, "fiddunidadmedicion"),
+                FrecuenciaId = ObtenerValor(indicador, "fiddrecuencia")
+            };
+            ModoEdicion = true;
+            MostrarFormulario = true;
+        }
+        catch (Exception ex) {
+            MensajeError = $"Error al preparar el formulario de edición: {ex.Message}";
+        }
+    }
+
+    private async Task GuardarIndicador()
+    {
+        MensajeError = null;
+        MensajeExito = null;
+
+        // Validar campos obligatorios
+        if (string.IsNullOrWhiteSpace(IndicadorActual.Codigo) || 
+            string.IsNullOrWhiteSpace(IndicadorActual.Nombre))
+        {
+            MensajeError = "Código y Nombre son obligatorios";
+            return;
+        }
+
+        var data = new Dictionary<string, object> {
+            ["codigo"] = IndicadorActual.Codigo,
+            ["nombre"] = IndicadorActual.Nombre,
+            ["objetivo"] = IndicadorActual.Objetivo ?? "",
+            ["alcance"] = IndicadorActual.Alcance ?? "",
+            ["formula"] = IndicadorActual.Formula ?? "",
+            ["meta"] = IndicadorActual.Meta ?? "",
+            ["fiddunidadmedicion"] = IndicadorActual.UnidadMedicionId ?? "",
+            ["fiddrecuencia"] = IndicadorActual.FrecuenciaId ?? ""
+        };
+
+        try {
+            bool resultado;
+            
+            if (ModoEdicion)
+            {
+                resultado = await ServicioEntidad.ActualizarAsync(
+                    NOMBRE_TABLA,
+                    "id",
+                    IndicadorActual.Id,
+                    data
+                );
+                
+                if (resultado) 
+                {
+                    MensajeExito = "Indicador actualizado correctamente.";
+                }
+                else
+                {
+                    MensajeError = "No se pudo actualizar el indicador.";
+                }
+            }
+            else
+            {
+                resultado = await ServicioEntidad.CrearAsync(
+                    NOMBRE_TABLA,
+                    data
+                );
+                
+                if (resultado) 
+                {
+                    MensajeExito = "Indicador creado correctamente.";
+                }
+                else
+                {
+                    MensajeError = "No se pudo crear el indicador.";
+                }
+            }
+
+            if (resultado)
+            {
+                await CargarDatosIniciales();
+                MostrarFormulario = false;
+            }
+        }
+        catch (Exception ex) {
+            MensajeError = $"Error al guardar el indicador: {ex.Message}";
+        }
+    }
+
+    private void CerrarFormulario()
+    {
+        MostrarFormulario = false;
+    }
+
+    private void ConfirmarEliminar(Dictionary<string, object> indicador)
+    {
+        IndicadorEliminar = new IndicadorModel
+        {
+            Id = ObtenerValor(indicador, "id"),
+            Nombre = ObtenerValor(indicador, "nombre")
+        };
+        MostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        MostrarConfirmacion = false;
+    }
+
+    private async Task EliminarIndicador()
+    {
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            // Primero eliminar las relaciones en responsablesporindicador
+            bool relacionesEliminadas = await EliminarRelacionesIndicador(IndicadorEliminar.Id);
+            
+            if (!relacionesEliminadas)
+            {
+                MensajeError = "No se pudieron eliminar las relaciones del indicador.";
+                MostrarConfirmacion = false;
+                return;
+            }
+
+            // Luego eliminar el indicador
+            var resultado = await ServicioEntidad.EliminarAsync(
+                NOMBRE_TABLA,
+                "id",
+                IndicadorEliminar.Id
+            );
+
+            if (resultado)
+            {
+                MensajeExito = "Indicador y sus relaciones eliminados correctamente.";
+                await CargarDatosIniciales();
+            }
+            else
+            {
+                MensajeError = "No se pudo eliminar el indicador.";
+            }
+
+            MostrarConfirmacion = false;
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al eliminar el indicador: {ex.Message}";
+            MostrarConfirmacion = false;
+        }
+    }
+
+    private async Task<bool> EliminarRelacionesIndicador(string indicadorId)
+    {
+        try
+        {
+            // Eliminamos todas las relaciones que tienen ese indicador
+            return await ServicioEntidad.EliminarAsync(
+                TABLA_RELACIONES,
+                CAMPO_INDICADOR_EN_RELACIONES,
+                indicadorId
+            );
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al eliminar relaciones: {ex.Message}";
+            return false;
+        }
+    }
+
+    private class IndicadorModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Codigo { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
+        public string Objetivo { get; set; } = string.Empty;
+        public string Alcance { get; set; } = string.Empty;
+        public string Formula { get; set; } = string.Empty;
+        public string Meta { get; set; } = string.Empty;
+        public string UnidadMedicionId { get; set; } = string.Empty;
+        public string FrecuenciaId { get; set; } = string.Empty;
+    }
+
+    private class EntidadSelect
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
+    }
+}
