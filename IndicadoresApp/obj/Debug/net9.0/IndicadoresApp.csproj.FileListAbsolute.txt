@@ -9,8 +9,6 @@ C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framewo
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\icudt_CJK.tjcz0u77k5.dat
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\icudt_EFIGS.tptq2av103.dat
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\icudt_no_CJK.lfu7j35m59.dat
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.gkr7wgu39e.pdb
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.ft5ckm5dks.wasm
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\Microsoft.AspNetCore.Authorization.qe23mgxr71.wasm
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\Microsoft.AspNetCore.Components.Forms.thhw8cz9wu.wasm
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\Microsoft.AspNetCore.Components.flveird317.wasm
@@ -374,7 +372,6 @@ C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framewo
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\icudt_CJK.tjcz0u77k5.dat.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Runtime.InteropServices.wtgp5mxw1c.wasm.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Threading.Timer.5bvshcz8rs.wasm.gz
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.ft5ckm5dks.wasm.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Runtime.Serialization.Primitives.fqg5015ygf.wasm.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Threading.mghm3mgo9q.wasm.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\dotnet.runtime.qrl1fuqt3c.js.gz
@@ -386,7 +383,6 @@ C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framewo
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Security.Claims.l7kx3xked0.wasm.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Security.Cryptography.OpenSsl.uk9h1gfypt.wasm.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Reflection.Emit.ILGeneration.ul9zb0sw6s.wasm.gz
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.gkr7wgu39e.pdb.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\System.Xml.XmlSerializer.0sc0ourwbb.wasm.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\Microsoft.Extensions.Logging.Abstractions.w8ltos2ii6.wasm.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\Microsoft.Extensions.Configuration.Abstractions.pvxa4wu5tg.wasm.gz
@@ -1065,9 +1061,6 @@ C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\cvakj
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\tzid1xs3p3-tjcz0u77k5.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\grnlcdzs6t-tptq2av103.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\97i65r1ck2-lfu7j35m59.gz
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\uf2t8xckiu-ft5ckm5dks.gz
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\vwni4iy9um-gkr7wgu39e.gz
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\czf4ljc4f7-cqr99jjvqa.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\staticwebassets.build.json
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\staticwebassets.development.json
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\staticwebassets.build.endpoints.json
@@ -1082,3 +1075,10 @@ C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\IndicadoresApp.d
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\refint\IndicadoresApp.dll
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\IndicadoresApp.pdb
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\ref\IndicadoresApp.dll
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.7r1gruq3ue.pdb
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.w3vdyyyfwv.wasm
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.w3vdyyyfwv.wasm.gz
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.7r1gruq3ue.pdb.gz
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\uf2t8xckiu-w3vdyyyfwv.gz
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\vwni4iy9um-7r1gruq3ue.gz
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\czf4ljc4f7-u64mvrtfse.gz

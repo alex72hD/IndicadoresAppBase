@@ -28,6 +28,15 @@
                 <NavLink class="dropdown-item" href="sentido">
                     <span class="bi bi-arrow-left-right"></span> Sentidos
                 </NavLink>
+                 <NavLink class="dropdown-item" href="indicador">
+                    <span class="bi bi-graph-up"></span> Indicador
+                </NavLink>
+                 <NavLink class="dropdown-item" href="Variable">
+                    <span class="bi bi-graph-up"></span> Variables
+                </NavLink>
+                <NavLink class="dropdown-item" href="VariablePorIndicador">
+                    <span class="bi bi-graph-up"></span> Variable Por Indicador
+                </NavLink>
             </div>
         </div>
 
@@ -46,13 +55,12 @@
                 <NavLink class="nav-link" href="rol">
                 <span class="bi bi-person-badge"></span> Rol
                 </NavLink>
-                <NavLink class="nav-link" href="rolUsuario"></NavLink>
+                <NavLink class="nav-link" href="rolUsuario">
                 <span class="bi bi-person-badge"></span> Rol de usuario
                 </NavLink>
-                
-        </div>
-            </div>
-        </div>
+          </div>
+       </div>
+
 
         <!-- Grupo Fuentes -->
         <div class="nav-item px-3 dropdown">
@@ -81,6 +89,9 @@
                 <NavLink class="dropdown-item" href="unidadmedicion">
                     <span class="bi bi-rulers"></span> Unidad de Medición
                 </NavLink>
+                 <NavLink class="dropdown-item" href="resultadoindicador">
+                    <span class="bi bi-rulers"></span> resultado del indicador
+                </NavLink>
             </div>
         </div>
 
@@ -99,7 +110,7 @@
                 <NavLink class="dropdown-item" href="responsableporindicador">
                     <span class="bi bi-person-check"></span> Responsable por indicador
                 </NavLink>
-                
+
             </div>
         </div>
     </nav>
@@ -117,7 +128,7 @@
     {
         dropdownStates[index] = !dropdownStates[index];
         
-        // Opcional: Comportamiento de acordeón (solo un dropdown abierto)
+        //Comportamiento de acordeón (solo un dropdown abierto)
         for (int i = 0; i < dropdownStates.Length; i++)
         {
             if(i != index) dropdownStates[i] = false;
