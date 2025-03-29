@@ -1,9 +1,9 @@
-@* @page "/ResponsablePorIndicador"  
-@using System.Collections.Generic  
-@using System.Text.Json  
-@using Services  
+@page "/ResponsablePorIndicador"
+@using System.Collections.Generic
+@using System.Text.Json
+@using Services
 @using IndicadoresApp.ModalGenerico
-@inject ServicioEntidad ServicioEntidad  
+@inject ServicioEntidad ServicioEntidad
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
@@ -12,7 +12,7 @@
 <h1>Responsables por indicadores</h1>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
 </div>
 
 @if (EstamosCargando)
@@ -21,7 +21,7 @@
 }
 else if (Responsables == null || Responsables.Count == 0)
 {
-    <p>No hay Responsables por los indicadores registrados.</p>
+    <p>No hay responsables asignados a indicadores.</p>
 }
 else
 {
@@ -29,22 +29,22 @@ else
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>IdResponsable</th>
-                    <th>IdIncador</th>
-                    <th>FechaDeAsignacion</th>
+                    <th>ID Responsable</th>
+                    <th>ID Indicador</th>
+                    <th>Fecha de Asignación</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var Responsable in Responsables)
+                @foreach (var responsable in Responsables)
                 {
                     <tr>
-                        <td>@ObtenerValor(Responsable, "fkidresponsable")</td>
-                        <td>@ObtenerValor(Responsable, "fkidindicador")</td>
-                        <td>@ObtenerValor(Responsable, "fechaasignacion")</td>
+                        <td>@ObtenerValor(responsable, "fkidresponsable")</td>
+                        <td>@ObtenerValor(responsable, "fkidindicador")</td>
+                        <td>@ObtenerValor(responsable, "fechaasignacion")</td>
                         <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(Responsable)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(Responsable)">Eliminar</button>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(responsable)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(responsable)">Eliminar</button>
                         </td>
                     </tr>
                 }
@@ -53,26 +53,38 @@ else
     </div>
 }
 
-<!-- Modal para crear/editar Responsable de indicador -->
-<ModalGenerico @ref="modalFormulario" 
-              Id="formModal" 
-              Title="@TituloModal" 
+<!-- Modal para crear/editar -->
+<ModalGenerico @ref="modalFormulario"
+              Id="formModal"
+              Title="@TituloModal"
               OnSave="GuardarResponsable">
     <BodyContent>
         <div class="mb-3">
             <label for="idResponsable" class="form-label">ID Responsable</label>
             <input type="text" class="form-control" id="idResponsable" @bind="ResponsableActual.FkIdResponsable" />
         </div>
+        <div class="mb-3">
+            <label for="idIndicador" class="form-label">ID Indicador</label>
+            <input type="text" class="form-control" id="idIndicador" @bind="ResponsableActual.FkIdIndicador" />
+        </div>
+        <div class="mb-3">
+            <label for="fechaAsignacion" class="form-label">Fecha de Asignación</label>
+            <input type="date" class="form-control" id="fechaAsignacion" 
+                   @bind="ResponsableActual.FechaAsignacion" 
+                   @bind:format="yyyy-MM-dd" />
+        </div>
     </BodyContent>
 </ModalGenerico>
 
-<!-- Modal para confirmar eliminación -->
-<ModalGenerico @ref="modalConfirmacion" 
-              Id="confirmModal" 
-              Title="Confirmar eliminación" 
+<!-- Modal de confirmación -->
+<ModalGenerico @ref="modalConfirmacion"
+              Id="confirmModal"
+              Title="Confirmar eliminación"
               OnSave="EliminarResponsable">
     <BodyContent>
-        <p>¿Está seguro que desea eliminar el Responsable de usuario con email: @ResponsableAEliminar.FkIdIndicador?</p>
+        <p>¿Está seguro que desea eliminar la asignación del responsable 
+            @ResponsableAEliminar.FkIdResponsable al indicador 
+            @ResponsableAEliminar.FkIdIndicador?</p>
     </BodyContent>
 </ModalGenerico>
 
@@ -95,18 +107,16 @@ else
     
     private List<Dictionary<string, object>> Responsables { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
-    private string? MensajeError { get; set; }
-    private string? MensajeExito { get; set; }
+    private string MensajeError { get; set; }
+    private string MensajeExito { get; set; }
 
-    // Variables para el formulario
-    private bool ModoEdicion { get; set; } = false;
+    private bool ModoEdicion { get; set; }
     private ResponsableModel ResponsableActual { get; set; } = new();
-    private ModalGenerico? modalFormulario;
-    private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Responsable del indicador";
+    private ModalGenerico modalFormulario;
+    private string TituloModal => ModoEdicion ? "Editar Asignación" : "Nueva Asignación";
 
-    // Variables para confirmación de eliminación
     private ResponsableModel ResponsableAEliminar { get; set; } = new();
-    private ModalGenerico? modalConfirmacion;
+    private ModalGenerico modalConfirmacion;
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,18 +126,15 @@ else
     private async Task CargarResponsables()
     {
         EstamosCargando = true;
-        MensajeError = null;
-        
         try
         {
-            var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
-            
-            Responsables = resultado ?? new List<Dictionary<string, object>>();
+            Responsables = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new();
+            MensajeError = null;
         }
         catch (Exception ex)
         {
-            MensajeError = $"Error al cargar Responsablees de usuario: {ex.Message}";
-            Responsables = new List<Dictionary<string, object>>();
+            MensajeError = $"Error al cargar datos: {ex.Message}";
+            Responsables = new();
         }
         finally
         {
@@ -137,60 +144,95 @@ else
 
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        if (diccionario == null)
-            return string.Empty;
-            
-        if (diccionario.TryGetValue(clave, out var valor))
-        {
-            return valor?.ToString() ?? string.Empty;
-        }
-        
-        return string.Empty;
+        return diccionario.TryGetValue(clave, out var valor) 
+            ? valor?.ToString() ?? string.Empty 
+            : string.Empty;
     }
 
     private async Task MostrarFormularioCrear()
     {
-        ResponsableActual = new ResponsableModel();
+        ResponsableActual = new();
         ModoEdicion = false;
-        await InvokeAsync(StateHasChanged);
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> responsable)
     {
-        ResponsableActual = new ResponsableModel
+        ResponsableActual = new()
         {
-           FkIdresponsable = ObtenerValor(responsable, "fkidresponsable"),
+            FkIdResponsable = ObtenerValor(responsable, "fkidresponsable"),
             FkIdIndicador = ObtenerValor(responsable, "fkidindicador"),
-         FechaAsignacion = ObtenerValor(responsable, "fechaasignacion")
+            FechaAsignacion = DateTime.Parse(ObtenerValor(responsable, "fechaasignacion"))
         };
         ModoEdicion = true;
-        await InvokeAsync(StateHasChanged);
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task ConfirmarEliminar(Dictionary<string, object> responsable)
     {
-        ResponsableAEliminar = new ResponsableModel
+        ResponsableAEliminar = new()
         {
-             FkIdResponsable = ObtenerValor(responsable, "fkidresponsable"),
-            FkIdIndicador = ObtenerValor(responsable, "fkidindicador"), 
-            FechaAsignacion = ObtenerValor(responsable, "fechaasignacion")
-        
+            FkIdResponsable = ObtenerValor(responsable, "fkidresponsable"),
+            FkIdIndicador = ObtenerValor(responsable, "fkidindicador")
         };
-        await InvokeAsync(StateHasChanged);
         await modalConfirmacion.ShowModalAsync();
     }
-    private async Task GuardarResponsable()
-    {}
-    private async Task EliminarResponsable()
-    {}
 
+    private async Task GuardarResponsable()
+    {
+        try
+        {
+            var datos = new Dictionary<string, object>
+            {
+                ["fkidresponsable"] = ResponsableActual.FkIdResponsable,
+                ["fkidindicador"] = ResponsableActual.FkIdIndicador,
+                ["fechaasignacion"] = ResponsableActual.FechaAsignacion.ToString("yyyy-MM-dd")
+            };
+
+            @* if (ModoEdicion)
+            {
+                await ServicioEntidad.ActualizarAsync(NOMBRE_TABLA, datos);
+            }
+            else
+            {
+                await ServicioEntidad.CrearAsync(NOMBRE_TABLA, datos);
+            } *@
+
+            MensajeExito = "Operación realizada correctamente";
+            await modalFormulario.HideModalAsync();
+            await CargarResponsables();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task EliminarResponsable()
+    {
+        try
+        {
+            var datos = new Dictionary<string, object>
+            {
+                ["fkidresponsable"] = ResponsableAEliminar.FkIdResponsable,
+                ["fkidindicador"] = ResponsableAEliminar.FkIdIndicador
+            };
+
+            @* await ServicioEntidad.EliminarAsync(NOMBRE_TABLA, datos); *@
+            MensajeExito = "Asignación eliminada correctamente";
+            await modalConfirmacion.HideModalAsync();
+            await CargarResponsables();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error: {ex.Message}";
+        }
+    }
 
     private class ResponsableModel
     {
         public string FkIdResponsable { get; set; } = string.Empty;
         public string FkIdIndicador { get; set; } = string.Empty;
-        public string FechaAsignacion { get; set; } = string.Empty;
+        public DateTime FechaAsignacion { get; set; } = DateTime.Today;
     }
-} *@
+}

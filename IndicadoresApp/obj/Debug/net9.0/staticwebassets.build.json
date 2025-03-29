@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "1aLrqmeHGWwxuYxx7raRSerg0wmDWWZxosivHuMXSVw=",
+  "Hash": "4K9Atj3hunodWKQ4hyyQZyyuf36q5fnmnjiCR/wp3GE=",
   "Source": "IndicadoresApp",
   "BasePath": "/",
   "Mode": "Root",
@@ -31,8 +31,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "WasmResource",
       "AssetTraitValue": "manifest",
-      "Fingerprint": "7a4ajk90a7",
-      "Integrity": "L4cA/ZimPwxhrwkwuRBHRqyZHUsBSTCakEKkaUeZWW8=",
+      "Fingerprint": "0lpwayl7f7",
+      "Integrity": "hGtMbNkr8NZsxxAeP++5EfTj7pQyWHWOgOU6WT5gbBg=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "Never",
       "OriginalItemSpec": "obj\\Debug\\net9.0\\blazor.boot.json"
@@ -262,8 +262,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "WasmResource",
       "AssetTraitValue": "symbol",
-      "Fingerprint": "scypv5focm",
-      "Integrity": "1OIxlxYxq4S/i2EcvVdBP/dn46XyEMyaIuT9CRjz2Rg=",
+      "Fingerprint": "9vd2uo07vo",
+      "Integrity": "tbAkFWKq8T9JLEOEL8o1C9gWH2hnEKA9GKijislNYLU=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "Never",
       "OriginalItemSpec": "obj\\Debug\\net9.0\\IndicadoresApp.pdb"
@@ -283,8 +283,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "WasmResource",
       "AssetTraitValue": "runtime",
-      "Fingerprint": "1ubr4aykui",
-      "Integrity": "V3/Igurg6KnZB5AJZOlEzPP1QzMMYcckQFoiey1IxD8=",
+      "Fingerprint": "2zsvbod8jv",
+      "Integrity": "kkCb3+sDxG+0IUqhn8oKhkTsHnW3nVCfnVdKed9bcGg=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "Never",
       "OriginalItemSpec": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\webcil\\IndicadoresApp.wasm"
@@ -6464,7 +6464,7 @@
       "OriginalItemSpec": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\System.Data.DataSetExtensions.wasm"
     },
     {
-      "Identity": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\czf4ljc4f7-7a4ajk90a7.gz",
+      "Identity": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\czf4ljc4f7-0lpwayl7f7.gz",
       "SourceId": "IndicadoresApp",
       "SourceType": "Computed",
       "ContentRoot": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\",
@@ -6478,8 +6478,8 @@
       "RelatedAsset": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\blazor.boot.json",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "gzip",
-      "Fingerprint": "qydvpqm8g8",
-      "Integrity": "chmZi3XbUvExElSkVGOTYk/ZduhNAfErNXJe7+zfUsc=",
+      "Fingerprint": "869891soxz",
+      "Integrity": "kBKwW/vY97udBCI/EJiuBnyObeqpS7DegOeOj45Kr8Q=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "Never",
       "OriginalItemSpec": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\blazor.boot.json"
@@ -8858,12 +8858,12 @@
       "OriginalItemSpec": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\System.Threading.Timer.wasm"
     },
     {
-      "Identity": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\uf2t8xckiu-1ubr4aykui.gz",
+      "Identity": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\uf2t8xckiu-2zsvbod8jv.gz",
       "SourceId": "IndicadoresApp",
       "SourceType": "Computed",
       "ContentRoot": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\",
       "BasePath": "/",
-      "RelativePath": "_framework/IndicadoresApp#[.{fingerprint=1ubr4aykui}]!.wasm.gz",
+      "RelativePath": "_framework/IndicadoresApp#[.{fingerprint=2zsvbod8jv}]!.wasm.gz",
       "AssetKind": "Build",
       "AssetMode": "All",
       "AssetRole": "Alternative",
@@ -8872,8 +8872,8 @@
       "RelatedAsset": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\IndicadoresApp.wasm",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "gzip",
-      "Fingerprint": "v5bjwhil7z",
-      "Integrity": "QyOkUubZbfUutDcnrUivT1/23kPNIZNi9IhcjKKopRo=",
+      "Fingerprint": "mdd8fkfzpk",
+      "Integrity": "uuSoKJpv7Roz3h0eds4TwERVx0OWMlWjhdfcM0F02nE=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "Never",
       "OriginalItemSpec": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\IndicadoresApp.wasm"
@@ -9152,12 +9152,12 @@
       "OriginalItemSpec": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\System.Reflection.Emit.ILGeneration.wasm"
     },
     {
-      "Identity": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\vwni4iy9um-scypv5focm.gz",
+      "Identity": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\vwni4iy9um-9vd2uo07vo.gz",
       "SourceId": "IndicadoresApp",
       "SourceType": "Computed",
       "ContentRoot": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\",
       "BasePath": "/",
-      "RelativePath": "_framework/IndicadoresApp#[.{fingerprint=scypv5focm}]!.pdb.gz",
+      "RelativePath": "_framework/IndicadoresApp#[.{fingerprint=9vd2uo07vo}]!.pdb.gz",
       "AssetKind": "Build",
       "AssetMode": "All",
       "AssetRole": "Alternative",
@@ -9166,8 +9166,8 @@
       "RelatedAsset": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\IndicadoresApp.pdb",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "gzip",
-      "Fingerprint": "jox0mymgtp",
-      "Integrity": "g6juNfBTViYsox8fhegab4sZ/3N5F7gOq3IMM7LOzZM=",
+      "Fingerprint": "dnvbh4ddgr",
+      "Integrity": "BzqgGbEjVWqO9KPXkiv37N1qv0LYAugVOQK+8gzNaBE=",
       "CopyToOutputDirectory": "PreserveNewest",
       "CopyToPublishDirectory": "Never",
       "OriginalItemSpec": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\IndicadoresApp.pdb"
@@ -10705,11 +10705,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"L4cA/ZimPwxhrwkwuRBHRqyZHUsBSTCakEKkaUeZWW8=\""
+          "Value": "\"hGtMbNkr8NZsxxAeP++5EfTj7pQyWHWOgOU6WT5gbBg=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:20 GMT"
+          "Value": "Sat, 29 Mar 2025 18:38:57 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -10719,18 +10719,18 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-L4cA/ZimPwxhrwkwuRBHRqyZHUsBSTCakEKkaUeZWW8="
+          "Value": "sha256-hGtMbNkr8NZsxxAeP++5EfTj7pQyWHWOgOU6WT5gbBg="
         }
       ]
     },
     {
       "Route": "_framework/blazor.boot.json",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\czf4ljc4f7-7a4ajk90a7.gz",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\czf4ljc4f7-0lpwayl7f7.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000081201786"
+          "Quality": "0.000081188601"
         }
       ],
       "ResponseHeaders": [
@@ -10740,15 +10740,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "12314"
+          "Value": "12316"
         },
         {
           "Name": "ETag",
-          "Value": "\"chmZi3XbUvExElSkVGOTYk/ZduhNAfErNXJe7+zfUsc=\""
+          "Value": "\"kBKwW/vY97udBCI/EJiuBnyObeqpS7DegOeOj45Kr8Q=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:29:29 GMT"
+          "Value": "Sat, 29 Mar 2025 18:30:54 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -10768,19 +10768,19 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"L4cA/ZimPwxhrwkwuRBHRqyZHUsBSTCakEKkaUeZWW8=\""
+          "Value": "W/\"hGtMbNkr8NZsxxAeP++5EfTj7pQyWHWOgOU6WT5gbBg=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-L4cA/ZimPwxhrwkwuRBHRqyZHUsBSTCakEKkaUeZWW8="
+          "Value": "sha256-hGtMbNkr8NZsxxAeP++5EfTj7pQyWHWOgOU6WT5gbBg="
         }
       ]
     },
     {
       "Route": "_framework/blazor.boot.json.gz",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\czf4ljc4f7-7a4ajk90a7.gz",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\czf4ljc4f7-0lpwayl7f7.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -10789,7 +10789,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "12314"
+          "Value": "12316"
         },
         {
           "Name": "Content-Type",
@@ -10797,11 +10797,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"chmZi3XbUvExElSkVGOTYk/ZduhNAfErNXJe7+zfUsc=\""
+          "Value": "\"kBKwW/vY97udBCI/EJiuBnyObeqpS7DegOeOj45Kr8Q=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:29:29 GMT"
+          "Value": "Sat, 29 Mar 2025 18:30:54 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -10819,7 +10819,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-chmZi3XbUvExElSkVGOTYk/ZduhNAfErNXJe7+zfUsc="
+          "Value": "sha256-kBKwW/vY97udBCI/EJiuBnyObeqpS7DegOeOj45Kr8Q="
         }
       ]
     },
@@ -13643,7 +13643,7 @@
       ]
     },
     {
-      "Route": "_framework/IndicadoresApp.1ubr4aykui.wasm",
+      "Route": "_framework/IndicadoresApp.2zsvbod8jv.wasm",
       "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\IndicadoresApp.wasm",
       "Selectors": [],
       "ResponseHeaders": [
@@ -13653,7 +13653,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "226581"
+          "Value": "240917"
         },
         {
           "Name": "Content-Type",
@@ -13661,11 +13661,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"V3/Igurg6KnZB5AJZOlEzPP1QzMMYcckQFoiey1IxD8=\""
+          "Value": "\"kkCb3+sDxG+0IUqhn8oKhkTsHnW3nVCfnVdKed9bcGg=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:19 GMT"
+          "Value": "Sat, 29 Mar 2025 18:38:56 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -13675,7 +13675,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1ubr4aykui"
+          "Value": "2zsvbod8jv"
         },
         {
           "Name": "label",
@@ -13683,18 +13683,18 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-V3/Igurg6KnZB5AJZOlEzPP1QzMMYcckQFoiey1IxD8="
+          "Value": "sha256-kkCb3+sDxG+0IUqhn8oKhkTsHnW3nVCfnVdKed9bcGg="
         }
       ]
     },
     {
-      "Route": "_framework/IndicadoresApp.1ubr4aykui.wasm",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\uf2t8xckiu-1ubr4aykui.gz",
+      "Route": "_framework/IndicadoresApp.2zsvbod8jv.wasm",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\uf2t8xckiu-2zsvbod8jv.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000015482033"
+          "Quality": "0.000014413168"
         }
       ],
       "ResponseHeaders": [
@@ -13704,15 +13704,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "64590"
+          "Value": "69380"
         },
         {
           "Name": "ETag",
-          "Value": "\"QyOkUubZbfUutDcnrUivT1/23kPNIZNi9IhcjKKopRo=\""
+          "Value": "\"uuSoKJpv7Roz3h0eds4TwERVx0OWMlWjhdfcM0F02nE=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:20 GMT"
+          "Value": "Sat, 29 Mar 2025 18:38:57 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -13732,13 +13732,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"V3/Igurg6KnZB5AJZOlEzPP1QzMMYcckQFoiey1IxD8=\""
+          "Value": "W/\"kkCb3+sDxG+0IUqhn8oKhkTsHnW3nVCfnVdKed9bcGg=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1ubr4aykui"
+          "Value": "2zsvbod8jv"
         },
         {
           "Name": "label",
@@ -13746,13 +13746,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-V3/Igurg6KnZB5AJZOlEzPP1QzMMYcckQFoiey1IxD8="
+          "Value": "sha256-kkCb3+sDxG+0IUqhn8oKhkTsHnW3nVCfnVdKed9bcGg="
         }
       ]
     },
     {
-      "Route": "_framework/IndicadoresApp.1ubr4aykui.wasm.gz",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\uf2t8xckiu-1ubr4aykui.gz",
+      "Route": "_framework/IndicadoresApp.2zsvbod8jv.wasm.gz",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\uf2t8xckiu-2zsvbod8jv.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -13761,7 +13761,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "64590"
+          "Value": "69380"
         },
         {
           "Name": "Content-Type",
@@ -13769,11 +13769,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"QyOkUubZbfUutDcnrUivT1/23kPNIZNi9IhcjKKopRo=\""
+          "Value": "\"uuSoKJpv7Roz3h0eds4TwERVx0OWMlWjhdfcM0F02nE=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:20 GMT"
+          "Value": "Sat, 29 Mar 2025 18:38:57 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -13791,7 +13791,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "1ubr4aykui"
+          "Value": "2zsvbod8jv"
         },
         {
           "Name": "label",
@@ -13799,12 +13799,12 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-QyOkUubZbfUutDcnrUivT1/23kPNIZNi9IhcjKKopRo="
+          "Value": "sha256-uuSoKJpv7Roz3h0eds4TwERVx0OWMlWjhdfcM0F02nE="
         }
       ]
     },
     {
-      "Route": "_framework/IndicadoresApp.pdb",
+      "Route": "_framework/IndicadoresApp.9vd2uo07vo.pdb",
       "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\IndicadoresApp.pdb",
       "Selectors": [],
       "ResponseHeaders": [
@@ -13814,7 +13814,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "144328"
+          "Value": "150280"
         },
         {
           "Name": "Content-Type",
@@ -13822,148 +13822,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"1OIxlxYxq4S/i2EcvVdBP/dn46XyEMyaIuT9CRjz2Rg=\""
+          "Value": "\"tbAkFWKq8T9JLEOEL8o1C9gWH2hnEKA9GKijislNYLU=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:19 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "no-cache"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "integrity",
-          "Value": "sha256-1OIxlxYxq4S/i2EcvVdBP/dn46XyEMyaIuT9CRjz2Rg="
-        }
-      ]
-    },
-    {
-      "Route": "_framework/IndicadoresApp.pdb",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\vwni4iy9um-scypv5focm.gz",
-      "Selectors": [
-        {
-          "Name": "Content-Encoding",
-          "Value": "gzip",
-          "Quality": "0.000009879763"
-        }
-      ],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "101216"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"g6juNfBTViYsox8fhegab4sZ/3N5F7gOq3IMM7LOzZM=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:20 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "no-cache"
-        },
-        {
-          "Name": "Content-Encoding",
-          "Value": "gzip"
-        },
-        {
-          "Name": "Vary",
-          "Value": "Content-Encoding"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "application/octet-stream"
-        },
-        {
-          "Name": "ETag",
-          "Value": "W/\"1OIxlxYxq4S/i2EcvVdBP/dn46XyEMyaIuT9CRjz2Rg=\""
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "integrity",
-          "Value": "sha256-1OIxlxYxq4S/i2EcvVdBP/dn46XyEMyaIuT9CRjz2Rg="
-        }
-      ]
-    },
-    {
-      "Route": "_framework/IndicadoresApp.pdb.gz",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\vwni4iy9um-scypv5focm.gz",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "101216"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "application/octet-stream"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"g6juNfBTViYsox8fhegab4sZ/3N5F7gOq3IMM7LOzZM=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:20 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "no-cache"
-        },
-        {
-          "Name": "Content-Encoding",
-          "Value": "gzip"
-        },
-        {
-          "Name": "Vary",
-          "Value": "Content-Encoding"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "integrity",
-          "Value": "sha256-g6juNfBTViYsox8fhegab4sZ/3N5F7gOq3IMM7LOzZM="
-        }
-      ]
-    },
-    {
-      "Route": "_framework/IndicadoresApp.scypv5focm.pdb",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\IndicadoresApp.pdb",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "144328"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "application/octet-stream"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"1OIxlxYxq4S/i2EcvVdBP/dn46XyEMyaIuT9CRjz2Rg=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:19 GMT"
+          "Value": "Sat, 29 Mar 2025 18:38:56 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -13973,7 +13836,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "scypv5focm"
+          "Value": "9vd2uo07vo"
         },
         {
           "Name": "label",
@@ -13981,18 +13844,18 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-1OIxlxYxq4S/i2EcvVdBP/dn46XyEMyaIuT9CRjz2Rg="
+          "Value": "sha256-tbAkFWKq8T9JLEOEL8o1C9gWH2hnEKA9GKijislNYLU="
         }
       ]
     },
     {
-      "Route": "_framework/IndicadoresApp.scypv5focm.pdb",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\vwni4iy9um-scypv5focm.gz",
+      "Route": "_framework/IndicadoresApp.9vd2uo07vo.pdb",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\vwni4iy9um-9vd2uo07vo.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000009879763"
+          "Quality": "0.000009425160"
         }
       ],
       "ResponseHeaders": [
@@ -14002,15 +13865,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "101216"
+          "Value": "106098"
         },
         {
           "Name": "ETag",
-          "Value": "\"g6juNfBTViYsox8fhegab4sZ/3N5F7gOq3IMM7LOzZM=\""
+          "Value": "\"BzqgGbEjVWqO9KPXkiv37N1qv0LYAugVOQK+8gzNaBE=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:20 GMT"
+          "Value": "Sat, 29 Mar 2025 18:38:57 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -14030,13 +13893,13 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"1OIxlxYxq4S/i2EcvVdBP/dn46XyEMyaIuT9CRjz2Rg=\""
+          "Value": "W/\"tbAkFWKq8T9JLEOEL8o1C9gWH2hnEKA9GKijislNYLU=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "scypv5focm"
+          "Value": "9vd2uo07vo"
         },
         {
           "Name": "label",
@@ -14044,13 +13907,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-1OIxlxYxq4S/i2EcvVdBP/dn46XyEMyaIuT9CRjz2Rg="
+          "Value": "sha256-tbAkFWKq8T9JLEOEL8o1C9gWH2hnEKA9GKijislNYLU="
         }
       ]
     },
     {
-      "Route": "_framework/IndicadoresApp.scypv5focm.pdb.gz",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\vwni4iy9um-scypv5focm.gz",
+      "Route": "_framework/IndicadoresApp.9vd2uo07vo.pdb.gz",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\vwni4iy9um-9vd2uo07vo.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -14059,7 +13922,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "101216"
+          "Value": "106098"
         },
         {
           "Name": "Content-Type",
@@ -14067,11 +13930,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"g6juNfBTViYsox8fhegab4sZ/3N5F7gOq3IMM7LOzZM=\""
+          "Value": "\"BzqgGbEjVWqO9KPXkiv37N1qv0LYAugVOQK+8gzNaBE=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:20 GMT"
+          "Value": "Sat, 29 Mar 2025 18:38:57 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -14089,7 +13952,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "scypv5focm"
+          "Value": "9vd2uo07vo"
         },
         {
           "Name": "label",
@@ -14097,7 +13960,144 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-g6juNfBTViYsox8fhegab4sZ/3N5F7gOq3IMM7LOzZM="
+          "Value": "sha256-BzqgGbEjVWqO9KPXkiv37N1qv0LYAugVOQK+8gzNaBE="
+        }
+      ]
+    },
+    {
+      "Route": "_framework/IndicadoresApp.pdb",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\bin\\Debug\\net9.0\\wwwroot\\_framework\\IndicadoresApp.pdb",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "150280"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/octet-stream"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"tbAkFWKq8T9JLEOEL8o1C9gWH2hnEKA9GKijislNYLU=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 29 Mar 2025 18:38:56 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-tbAkFWKq8T9JLEOEL8o1C9gWH2hnEKA9GKijislNYLU="
+        }
+      ]
+    },
+    {
+      "Route": "_framework/IndicadoresApp.pdb",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\vwni4iy9um-9vd2uo07vo.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.000009425160"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "106098"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"BzqgGbEjVWqO9KPXkiv37N1qv0LYAugVOQK+8gzNaBE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 29 Mar 2025 18:38:57 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/octet-stream"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"tbAkFWKq8T9JLEOEL8o1C9gWH2hnEKA9GKijislNYLU=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-tbAkFWKq8T9JLEOEL8o1C9gWH2hnEKA9GKijislNYLU="
+        }
+      ]
+    },
+    {
+      "Route": "_framework/IndicadoresApp.pdb.gz",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\vwni4iy9um-9vd2uo07vo.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "106098"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/octet-stream"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"BzqgGbEjVWqO9KPXkiv37N1qv0LYAugVOQK+8gzNaBE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Sat, 29 Mar 2025 18:38:57 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-BzqgGbEjVWqO9KPXkiv37N1qv0LYAugVOQK+8gzNaBE="
         }
       ]
     },
@@ -14112,7 +14112,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "226581"
+          "Value": "240917"
         },
         {
           "Name": "Content-Type",
@@ -14120,11 +14120,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"V3/Igurg6KnZB5AJZOlEzPP1QzMMYcckQFoiey1IxD8=\""
+          "Value": "\"kkCb3+sDxG+0IUqhn8oKhkTsHnW3nVCfnVdKed9bcGg=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:19 GMT"
+          "Value": "Sat, 29 Mar 2025 18:38:56 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -14134,18 +14134,18 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-V3/Igurg6KnZB5AJZOlEzPP1QzMMYcckQFoiey1IxD8="
+          "Value": "sha256-kkCb3+sDxG+0IUqhn8oKhkTsHnW3nVCfnVdKed9bcGg="
         }
       ]
     },
     {
       "Route": "_framework/IndicadoresApp.wasm",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\uf2t8xckiu-1ubr4aykui.gz",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\uf2t8xckiu-2zsvbod8jv.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.000015482033"
+          "Quality": "0.000014413168"
         }
       ],
       "ResponseHeaders": [
@@ -14155,15 +14155,15 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "64590"
+          "Value": "69380"
         },
         {
           "Name": "ETag",
-          "Value": "\"QyOkUubZbfUutDcnrUivT1/23kPNIZNi9IhcjKKopRo=\""
+          "Value": "\"uuSoKJpv7Roz3h0eds4TwERVx0OWMlWjhdfcM0F02nE=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:20 GMT"
+          "Value": "Sat, 29 Mar 2025 18:38:57 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -14183,19 +14183,19 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"V3/Igurg6KnZB5AJZOlEzPP1QzMMYcckQFoiey1IxD8=\""
+          "Value": "W/\"kkCb3+sDxG+0IUqhn8oKhkTsHnW3nVCfnVdKed9bcGg=\""
         }
       ],
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-V3/Igurg6KnZB5AJZOlEzPP1QzMMYcckQFoiey1IxD8="
+          "Value": "sha256-kkCb3+sDxG+0IUqhn8oKhkTsHnW3nVCfnVdKed9bcGg="
         }
       ]
     },
     {
       "Route": "_framework/IndicadoresApp.wasm.gz",
-      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\uf2t8xckiu-1ubr4aykui.gz",
+      "AssetFile": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\obj\\Debug\\net9.0\\compressed\\uf2t8xckiu-2zsvbod8jv.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -14204,7 +14204,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "64590"
+          "Value": "69380"
         },
         {
           "Name": "Content-Type",
@@ -14212,11 +14212,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"QyOkUubZbfUutDcnrUivT1/23kPNIZNi9IhcjKKopRo=\""
+          "Value": "\"uuSoKJpv7Roz3h0eds4TwERVx0OWMlWjhdfcM0F02nE=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Sat, 29 Mar 2025 17:43:20 GMT"
+          "Value": "Sat, 29 Mar 2025 18:38:57 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -14234,7 +14234,7 @@
       "EndpointProperties": [
         {
           "Name": "integrity",
-          "Value": "sha256-QyOkUubZbfUutDcnrUivT1/23kPNIZNi9IhcjKKopRo="
+          "Value": "sha256-uuSoKJpv7Roz3h0eds4TwERVx0OWMlWjhdfcM0F02nE="
         }
       ]
     },

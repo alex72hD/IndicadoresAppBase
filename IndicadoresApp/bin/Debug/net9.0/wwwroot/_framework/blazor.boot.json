@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "IndicadoresApp",
   "resources": {
-    "hash": "sha256-TH+oAES6yXlA6kV2la6vrmP+ZSBnwCfOIRJwZ80PSMs=",
+    "hash": "sha256-jDISZG56aeJrJ+tedDrX80qNOrptPLRAviu0Jcc3MNA=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Authorization.qe23mgxr71.wasm": "Microsoft.AspNetCore.Authorization.wasm",
       "Microsoft.AspNetCore.Components.flveird317.wasm": "Microsoft.AspNetCore.Components.wasm",
@@ -201,8 +201,8 @@
       "icudt_CJK.tjcz0u77k5.dat": "icudt_CJK.dat",
       "icudt_EFIGS.tptq2av103.dat": "icudt_EFIGS.dat",
       "icudt_no_CJK.lfu7j35m59.dat": "icudt_no_CJK.dat",
-      "IndicadoresApp.1ubr4aykui.wasm": "IndicadoresApp.wasm",
-      "IndicadoresApp.scypv5focm.pdb": "IndicadoresApp.pdb"
+      "IndicadoresApp.2zsvbod8jv.wasm": "IndicadoresApp.wasm",
+      "IndicadoresApp.9vd2uo07vo.pdb": "IndicadoresApp.pdb"
     },
     "jsModuleNative": {
       "dotnet.native.1p93gcv9fh.js": "sha256-1UPiprzN3JhPftx3be7XEMaYlUN+chRF41CuttiWVtQ="
@@ -412,10 +412,10 @@
       "WindowsBase.ag32297siy.wasm": "sha256-BgyZxTgdU9rIYlNC9ZMiMjnvBAJSL0eQH8Y87o1M+q4=",
       "mscorlib.vt9pwshhot.wasm": "sha256-/aFxOaPc1iTNlJw0z4/RGEMD0nzl4qVE3SF4wMsLgp0=",
       "netstandard.or41gtprh3.wasm": "sha256-nD1KqAI5YYz+YohqHaZ5EmXi7Eq9Uy9sUknnI8sj1AM=",
-      "IndicadoresApp.1ubr4aykui.wasm": "sha256-V3/Igurg6KnZB5AJZOlEzPP1QzMMYcckQFoiey1IxD8="
+      "IndicadoresApp.2zsvbod8jv.wasm": "sha256-kkCb3+sDxG+0IUqhn8oKhkTsHnW3nVCfnVdKed9bcGg="
     },
     "pdb": {
-      "IndicadoresApp.scypv5focm.pdb": "sha256-1OIxlxYxq4S/i2EcvVdBP/dn46XyEMyaIuT9CRjz2Rg="
+      "IndicadoresApp.9vd2uo07vo.pdb": "sha256-tbAkFWKq8T9JLEOEL8o1C9gWH2hnEKA9GKijislNYLU="
     }
   },
   "cacheBootResources": true,

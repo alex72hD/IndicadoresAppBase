@@ -100,6 +100,7 @@ else
     private bool ModoEdicion { get; set; } = false;
     private UnidadMedicionModel UnidadActual { get; set; } = new();
     private ModalGenerico? modalFormulario;
+    //operador ternario para usar alguna de las dos opciones tanto en crear como en editar
     private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Unidad de Medición";
 
     // Variables para confirmación de eliminación
