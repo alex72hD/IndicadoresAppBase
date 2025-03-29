@@ -1,0 +1,310 @@
+@page "/Usuario"  
+@using System.Collections.Generic  
+@using System.Text.Json  
+@using Services  
+@inject ServicioEntidad servicioEntidad  
+@inject NavigationManager navegacionManager  
+
+
+<PageTitle>Lista de tipos de Usuarios</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+
+<h1>Usuarios</h1>  
+
+<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
+    <button class="btn btn-primary"@onclick="MostrarFormularioCrear">Crear Nuevo</button> 
+</div>
+
+<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
+<!-- Si no está cargando pero no hay Usuarios o la lista es nula, muestra un mensaje informativo -->
+<!-- Si hay Usuarios para mostrar, muestra la tabla -->
+@if (cargando)
+{
+    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+}
+else if (usuarios == null || usuarios.Count == 0)
+{
+    <p>No hay usuarios disponible</p>  
+}
+else
+{
+    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
+        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
+            <thead>  <!-- Encabezado de la tabla -->
+                <tr>  <!-- Fila del encabezado -->
+                    <th>email</th>  <!-- Columna para el código de la usuario -->
+                    <th>contrasena</th>  <!-- Columna para el nombre de la usuario -->
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
+                <!-- Bucle foreach que itera sobre cada usuario en la lista -->
+                @foreach (var usuario in usuarios)
+                {
+                    <tr>  <!-- Fila para cada usuario -->
+                        <td>@ObtenerValor(usuario, "email")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
+                        <td>@ObtenerValor(usuario, "contrasena")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                         <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(usuario)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(usuario)">Eliminar</button>
+                         </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (mostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(modoEdicion ? "Editar" : "Crear") usuario</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">nombre</label>
+                        <input type="text" class="form-control" id="nombre" @bind="usuarioActual.nombre" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="Guardarusuario">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (mostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar la usuario: @usuarioEliminar?.nombre?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="Eliminarusuario">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (errorMensaje != null)
+{
+    <div class="alert alert-danger">
+        Error: @errorMensaje
+    </div>
+}
+
+@if (exitoMensaje != null)
+{
+    <div class="alert alert-success">
+        @exitoMensaje
+    </div>
+}
+
+@code {
+    // Lista para almacenar los usuarios que se obtienen de la API
+    private List<Dictionary<string, object>> usuarios = new List<Dictionary<string, object>>();
+    
+   private bool cargando = true;
+    private string? errorMensaje = null;
+    private string? exitoMensaje = null;
+    private const string TABLA = "usuario";
+
+    // Variables para el formulario
+    private bool mostrarFormulario = false;
+    private bool modoEdicion = false;
+    private usuarioModel usuarioActual = new usuarioModel();
+
+    // Variables para confirmación de eliminación
+    private bool mostrarConfirmacion = false;
+    private usuarioModel usuarioEliminar = new usuarioModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargarunidadmedicion();
+    }
+
+    private async Task Cargarunidadmedicion()
+    {
+        cargando = true;
+        errorMensaje = null;
+        
+        try
+        {
+            var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            
+            if (resultado != null)
+            {
+                usuarios = resultado;
+            }
+            else
+            {
+                usuarios = new List<Dictionary<string, object>>();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al cargar el usuario: {ex.Message}";
+            usuarios = new List<Dictionary<string, object>>();
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        if (diccionario == null)
+            return string.Empty;
+            
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        
+        return string.Empty;
+    }
+    private void MostrarFormularioCrear()
+    {
+        usuarioActual = new usuarioModel();
+        modoEdicion = false;
+        mostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> usuario)
+    {
+        usuarioActual = new usuarioModel
+        {
+            email = ObtenerValor(usuario, "email"),
+            contrasena = ObtenerValor(usuario, "contrasena")
+        };
+        modoEdicion = true;
+        mostrarFormulario = true;
+    }
+
+    private void CerrarFormulario()
+    {
+        mostrarFormulario = false;
+    }
+
+    private async Task Guardarusuario()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var usuarioDict = new Dictionary<string, object>
+            {
+                ["contrasena"] = usuarioActual.contrasena,
+                ["email"] = usuarioActual.email
+            };
+
+            bool resultado;
+
+            if (modoEdicion)
+            {
+                resultado = await servicioEntidad.ActualizarAsync(
+                    TABLA,
+                    "id",
+                    usuarioActual.id,
+                    usuarioDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "usuario actualizado correctamente.";
+                }
+            }
+            else
+            {
+                resultado = await servicioEntidad.CrearAsync(
+                    TABLA,
+                    usuarioDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "usuario creado correctamente.";
+                }
+            }
+
+            if (resultado)
+            {
+                await Cargarunidadmedicion();
+                mostrarFormulario = false;
+            }
+            else
+            {
+                errorMensaje = "No se pudo guardar el usauraio.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al guardar el usuario: {ex.Message}";
+        }
+    }
+    private void ConfirmarEliminar(Dictionary<string, object> usuario)
+    {
+        usuarioEliminar = new usuarioModel
+        {
+            email = ObtenerValor(usuario, "email"),
+            contrasena = ObtenerValor(usuario, "contrasena")
+        };
+        mostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        mostrarConfirmacion = false;
+    }
+
+    private async Task Eliminarusuario()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var resultado = await servicioEntidad.EliminarAsync(
+                TABLA,
+                "id",
+                usuarioEliminar.id
+            );
+
+            if (resultado)
+            {
+                exitoMensaje = "usuario eliminado correctamente.";
+                await Cargarunidadmedicion();
+            }
+            else
+            {
+                errorMensaje = "No se pudo eliminar el usuario.";
+            }
+
+            mostrarConfirmacion = false;
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al eliminar el usuario: {ex.Message}";
+        }
+    }
+    private class usuarioModel
+    {
+        public string email { get; set; } = string.Empty;
+        public string contrasena { get; set; } = string.Empty;
+    }
+}

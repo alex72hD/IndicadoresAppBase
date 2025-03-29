@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\proyectos\\ServiciosWeb2\\APP2\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{26926DB8-6DF6-D019-FDB7-A2A9D6227B65}|IndicadoresApp\\IndicadoresApp.csproj|c:\\proyectos\\serviciosweb2\\app2\\indicadoresapp\\pages\\tabalasintermedias\\resultadosindicador.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{26926DB8-6DF6-D019-FDB7-A2A9D6227B65}|IndicadoresApp\\IndicadoresApp.csproj|solutionrelative:indicadoresapp\\pages\\tabalasintermedias\\resultadosindicador.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{26926DB8-6DF6-D019-FDB7-A2A9D6227B65}|IndicadoresApp\\IndicadoresApp.csproj|c:\\proyectos\\serviciosweb2\\app2\\indicadoresapp\\pages\\tabalasintermedias\\indicador.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{26926DB8-6DF6-D019-FDB7-A2A9D6227B65}|IndicadoresApp\\IndicadoresApp.csproj|solutionrelative:indicadoresapp\\pages\\tabalasintermedias\\indicador.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{26926DB8-6DF6-D019-FDB7-A2A9D6227B65}|IndicadoresApp\\IndicadoresApp.csproj|c:\\proyectos\\serviciosweb2\\app2\\indicadoresapp\\pages\\tabalasintermedias\\fuentesindicador.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{26926DB8-6DF6-D019-FDB7-A2A9D6227B65}|IndicadoresApp\\IndicadoresApp.csproj|solutionrelative:indicadoresapp\\pages\\tabalasintermedias\\fuentesindicador.razor||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
@@ -35,19 +43,45 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "ResultadosIndicador.razor",
+              "DocumentMoniker": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\Pages\\TabalasIntermedias\\ResultadosIndicador.razor",
+              "RelativeDocumentMoniker": "IndicadoresApp\\Pages\\TabalasIntermedias\\ResultadosIndicador.razor",
+              "ToolTip": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\Pages\\TabalasIntermedias\\ResultadosIndicador.razor",
+              "RelativeToolTip": "IndicadoresApp\\Pages\\TabalasIntermedias\\ResultadosIndicador.razor",
+              "ViewState": "AgIAACsBAAAAAAAAAAAAAEoAAABWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-03-29T12:03:15.196Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Indicador.razor",
+              "DocumentMoniker": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\Pages\\TabalasIntermedias\\Indicador.razor",
+              "RelativeDocumentMoniker": "IndicadoresApp\\Pages\\TabalasIntermedias\\Indicador.razor",
+              "ToolTip": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\Pages\\TabalasIntermedias\\Indicador.razor",
+              "RelativeToolTip": "IndicadoresApp\\Pages\\TabalasIntermedias\\Indicador.razor",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-03-29T12:03:11.889Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "FuentesIndicador.razor",
               "DocumentMoniker": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\Pages\\TabalasIntermedias\\FuentesIndicador.razor",
               "RelativeDocumentMoniker": "IndicadoresApp\\Pages\\TabalasIntermedias\\FuentesIndicador.razor",
               "ToolTip": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\Pages\\TabalasIntermedias\\FuentesIndicador.razor",
               "RelativeToolTip": "IndicadoresApp\\Pages\\TabalasIntermedias\\FuentesIndicador.razor",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAKABAAAAAAAAAAAAAFoAAABKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-03-29T03:29:50.421Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "Actor.razor",
               "DocumentMoniker": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\Pages\\TabalasIntermedias\\Actor.razor",
               "RelativeDocumentMoniker": "IndicadoresApp\\Pages\\TabalasIntermedias\\Actor.razor",
@@ -55,12 +89,11 @@
               "RelativeToolTip": "IndicadoresApp\\Pages\\TabalasIntermedias\\Actor.razor",
               "ViewState": "AgIAAL0AAAAAAAAAAAAAAK8BAABDAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-03-29T01:51:20.57Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-29T01:51:20.57Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "StaticAssetsEndpointRouteBuilderExtensions.cs",
               "DocumentMoniker": "C:\\Users\\robin\\AppData\\Local\\Temp\\.vsdbgsrc\\d20021878b4dd5602f6a4ef2d20c4e750ce37888350855b8d653bca124c0e772\\StaticAssetsEndpointRouteBuilderExtensions.cs",
               "RelativeDocumentMoniker": "..\\..\\..\\Users\\robin\\AppData\\Local\\Temp\\.vsdbgsrc\\d20021878b4dd5602f6a4ef2d20c4e750ce37888350855b8d653bca124c0e772\\StaticAssetsEndpointRouteBuilderExtensions.cs",
@@ -73,7 +106,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Microsoft.NET.Sdk.StaticWebAssets.Publish.targets",
               "DocumentMoniker": "C:\\Program Files\\dotnet\\sdk\\9.0.100\\Sdks\\Microsoft.NET.Sdk.StaticWebAssets\\targets\\Microsoft.NET.Sdk.StaticWebAssets.Publish.targets",
               "RelativeDocumentMoniker": "..\\..\\..\\Program Files\\dotnet\\sdk\\9.0.100\\Sdks\\Microsoft.NET.Sdk.StaticWebAssets\\targets\\Microsoft.NET.Sdk.StaticWebAssets.Publish.targets",
@@ -81,12 +114,11 @@
               "RelativeToolTip": "..\\..\\..\\Program Files\\dotnet\\sdk\\9.0.100\\Sdks\\Microsoft.NET.Sdk.StaticWebAssets\\targets\\Microsoft.NET.Sdk.StaticWebAssets.Publish.targets",
               "ViewState": "AgIAAEIAAAAAAAAAAAApwE8AAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003801|",
-              "WhenOpened": "2025-03-28T02:25:26.263Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-03-28T02:25:26.263Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "Microsoft.Common.CurrentVersion.targets",
               "DocumentMoniker": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
               "RelativeDocumentMoniker": "..\\..\\..\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\amd64\\Microsoft.Common.CurrentVersion.targets",
@@ -98,7 +130,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "PhysicalFileProvider.cs",
               "DocumentMoniker": "C:\\Users\\robin\\AppData\\Local\\Temp\\.vsdbgsrc\\198bf116f7049a2e3e03f29a33fa5180331819d2741ad4116d0479027e6bf834\\PhysicalFileProvider.cs",
               "RelativeDocumentMoniker": "..\\..\\..\\Users\\robin\\AppData\\Local\\Temp\\.vsdbgsrc\\198bf116f7049a2e3e03f29a33fa5180331819d2741ad4116d0479027e6bf834\\PhysicalFileProvider.cs",

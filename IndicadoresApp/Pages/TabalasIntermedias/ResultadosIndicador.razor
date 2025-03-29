@@ -1,0 +1,430 @@
+@page "/resultadoindicador"
+@using System.Collections.Generic
+@using Services
+@inject ServicioEntidad servicioEntidad
+@inject NavigationManager navegacionManager
+
+<PageTitle>Resultados de Indicadores</PageTitle>
+
+<h1>Resultados de Indicadores</h1>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+</div>
+
+@if (cargando)
+{
+    <p><em>Cargando...</em></p>
+}
+else if (resultados == null || resultados.Count == 0)
+{
+    <p>No hay resultados disponibles.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Resultado</th>
+                    <th>Fecha de Cálculo</th>
+                    <th>Indicador</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var resultado in resultados)
+                {
+                    <tr>
+                        <td>@ObtenerValor(resultado, "resultado")</td>
+                        <td>@ObtenerValor(resultado, "fechacalculo")</td>
+                        <td>@ObtenerNombreIndicador(ObtenerValor(resultado, "fkidindicador"))</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(resultado)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(resultado)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (mostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(modoEdicion ? "Editar" : "Crear") Resultado</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="resultado" class="form-label">Resultado</label>
+                        <input type="text" class="form-control" id="resultado" @bind="resultadoActual.Valor" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="fechacalculo" class="form-label">Fecha de Cálculo</label>
+                        <input type="date" class="form-control" id="fechacalculo" @bind="resultadoActual.FechaCalculo" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Indicador</label>
+                        <select class="form-select" @bind="resultadoActual.IndicadorId">
+                            <option value="">Seleccione un indicador</option>
+                            @if (cargandoIndicadores)
+                            {
+                                <option>Cargando indicadores...</option>
+                            }
+                            else
+                            {
+                                @foreach (var indicador in indicadoresDisponibles)
+                                {
+                                    <option value="@indicador.Id">@indicador.Nombre</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    
+                    @if (modoEdicion)
+                    {
+                        <input type="hidden" @bind="resultadoActual.Id" />
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarResultado">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (mostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar este resultado?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="EliminarResultado">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (errorMensaje != null)
+{
+    <div class="alert alert-danger mt-3">
+        @errorMensaje
+        <button type="button" class="btn-close float-end" @onclick="() => errorMensaje = null"></button>
+    </div>
+}
+
+@if (exitoMensaje != null)
+{
+    <div class="alert alert-success mt-3">
+        @exitoMensaje
+        <button type="button" class="btn-close float-end" @onclick="() => exitoMensaje = null"></button>
+    </div>
+}
+
+@code {
+    private const string TABLA = "resultadoindicador";
+    
+    private List<Dictionary<string, object>> resultados = new List<Dictionary<string, object>>();
+    private bool cargando = true;
+    private bool cargandoIndicadores = true;
+    private string? errorMensaje = null;
+    private string? exitoMensaje = null;
+
+    // Lista para los indicadores
+    private List<IndicadorModel> indicadoresDisponibles = new List<IndicadorModel>();
+
+    // Variables para el formulario
+    private bool mostrarFormulario = false;
+    private bool modoEdicion = false;
+    private ResultadoModel resultadoActual = new ResultadoModel();
+
+    // Variables para confirmación de eliminación
+    private bool mostrarConfirmacion = false;
+    private ResultadoModel resultadoEliminar = new ResultadoModel();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarIndicadores();
+        await CargarResultados();
+    }
+
+    private async Task CargarResultados()
+    {
+        cargando = true;
+        errorMensaje = null;
+        
+        try
+        {
+            var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            
+            if (resultado != null)
+            {
+                resultados = resultado;
+            }
+            else
+            {
+                resultados = new List<Dictionary<string, object>>();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al cargar los resultados: {ex.Message}";
+            resultados = new List<Dictionary<string, object>>();
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task CargarIndicadores()
+    {
+        cargandoIndicadores = true;
+        errorMensaje = null;
+        
+        try
+        {
+            var indicadores = await servicioEntidad.ObtenerTodosAsync("indicador");
+            
+            if (indicadores != null)
+            {
+                indicadoresDisponibles = indicadores.Select(i => new IndicadorModel
+                {
+                    Id = ObtenerValor(i, "id"),
+                    Nombre = ObtenerValor(i, "nombre")
+                }).ToList();
+            }
+            else
+            {
+                indicadoresDisponibles = new List<IndicadorModel>();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al cargar los indicadores: {ex.Message}";
+            indicadoresDisponibles = new List<IndicadorModel>();
+        }
+        finally
+        {
+            cargandoIndicadores = false;
+        }
+    }
+
+    private string ObtenerNombreIndicador(string id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return "No asignado";
+            
+        var indicador = indicadoresDisponibles.FirstOrDefault(i => i.Id == id);
+        return indicador != null ? indicador.Nombre : "Desconocido";
+    }
+
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        if (diccionario == null)
+            return string.Empty;
+            
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        
+        return string.Empty;
+    }
+
+    private void MostrarFormularioCrear()
+    {
+        resultadoActual = new ResultadoModel();
+        modoEdicion = false;
+        mostrarFormulario = true;
+    }
+
+    private void MostrarFormularioEditar(Dictionary<string, object> resultado)
+    {
+        // Extracción de los valores del diccionario
+        string id = ObtenerValor(resultado, "id");
+        string valor = ObtenerValor(resultado, "resultado");
+        string indicadorId = ObtenerValor(resultado, "fkidindicador");
+        
+        // Manejo de la fecha
+        DateTime fechaCalculo = DateTime.Now;
+        if (DateTime.TryParse(ObtenerValor(resultado, "fechacalculo"), out DateTime fecha))
+        {
+            fechaCalculo = fecha;
+        }
+        
+        // Crear el modelo para edición
+        resultadoActual = new ResultadoModel
+        {
+            Id = id,
+            Valor = valor,
+            FechaCalculo = fechaCalculo,
+            IndicadorId = indicadorId
+        };
+        
+        modoEdicion = true;
+        mostrarFormulario = true;
+    }
+
+    private void CerrarFormulario()
+    {
+        mostrarFormulario = false;
+    }
+
+    private async Task GuardarResultado()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            // Validaciones básicas
+            if (string.IsNullOrWhiteSpace(resultadoActual.Valor))
+            {
+                errorMensaje = "El valor del resultado es obligatorio.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(resultadoActual.IndicadorId))
+            {
+                errorMensaje = "Debe seleccionar un indicador.";
+                return;
+            }
+
+            // Preparar los datos para guardar
+            var resultadoDict = new Dictionary<string, object>
+            {
+                ["resultado"] = resultadoActual.Valor,
+                ["fechacalculo"] = resultadoActual.FechaCalculo.ToString("yyyy-MM-dd"),
+                ["fkidindicador"] = resultadoActual.IndicadorId
+            };
+
+            bool resultado;
+
+            if (modoEdicion)
+            {
+                resultado = await servicioEntidad.ActualizarAsync(
+                    TABLA,
+                    "id",
+                    resultadoActual.Id,
+                    resultadoDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "Resultado actualizado correctamente.";
+                }
+                else
+                {
+                    errorMensaje = "No se pudo actualizar el resultado.";
+                    return;
+                }
+            }
+            else
+            {
+                resultado = await servicioEntidad.CrearAsync(
+                    TABLA,
+                    resultadoDict
+                );
+
+                if (resultado)
+                {
+                    exitoMensaje = "Resultado creado correctamente.";
+                }
+                else
+                {
+                    errorMensaje = "No se pudo crear el resultado.";
+                    return;
+                }
+            }
+
+            // Si todo salió bien, actualizamos y cerramos
+            await CargarResultados();
+            mostrarFormulario = false;
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al guardar el resultado: {ex.Message}";
+        }
+    }
+
+    private void ConfirmarEliminar(Dictionary<string, object> resultado)
+    {
+        resultadoEliminar = new ResultadoModel
+        {
+            Id = ObtenerValor(resultado, "id"),
+            Valor = ObtenerValor(resultado, "resultado")
+        };
+        mostrarConfirmacion = true;
+    }
+
+    private void CancelarEliminar()
+    {
+        mostrarConfirmacion = false;
+    }
+
+    private async Task EliminarResultado()
+    {
+        errorMensaje = null;
+        exitoMensaje = null;
+
+        try
+        {
+            var resultado = await servicioEntidad.EliminarAsync(
+                TABLA,
+                "id",
+                resultadoEliminar.Id
+            );
+
+            if (resultado)
+            {
+                exitoMensaje = "Resultado eliminado correctamente.";
+                await CargarResultados();
+            }
+            else
+            {
+                errorMensaje = "No se pudo eliminar el resultado.";
+            }
+
+            mostrarConfirmacion = false;
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al eliminar el resultado: {ex.Message}";
+            mostrarConfirmacion = false;
+        }
+    }
+
+    // Modelos de datos
+    private class ResultadoModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Valor { get; set; } = string.Empty;
+        public DateTime FechaCalculo { get; set; } = DateTime.Now;
+        public string IndicadorId { get; set; } = string.Empty;
+    }
+
+    private class IndicadorModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
+    }
+}
