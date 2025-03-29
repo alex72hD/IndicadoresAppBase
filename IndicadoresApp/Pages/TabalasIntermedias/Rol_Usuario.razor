@@ -1,0 +1,194 @@
+@page "/rolUsuario"  
+@using System.Collections.Generic  
+@using System.Text.Json  
+@using Services  
+@using IndicadoresApp.ModalGenerico
+@inject ServicioEntidad ServicioEntidad  
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Roles de Usuario</PageTitle>
+
+<h1>Roles de Usuario</h1>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
+</div>
+
+@if (EstamosCargando)
+{
+    <p><em>Cargando...</em></p>
+}
+else if (RolesUsuario == null || RolesUsuario.Count == 0)
+{
+    <p>No hay roles de usuario registrados.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var rol in RolesUsuario)
+                {
+                    <tr>
+                        <td>@ObtenerValor(rol, "fkemail")</td>
+                        <td>@ObtenerValor(rol, "fkidrol")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(rol)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(rol)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- Modal para crear/editar rol de usuario -->
+<ModalGenerico @ref="modalFormulario" 
+              Id="formModal" 
+              Title="@TituloModal" 
+              OnSave="GuardarRol">
+    <BodyContent>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" @bind="RolActual.FkEmail" />
+        </div>
+        <div class="mb-3">
+            <label for="idrol" class="form-label">ID Rol</label>
+            <input type="text" class="form-control" id="idrol" @bind="RolActual.FkIdRol" />
+        </div>
+    </BodyContent>
+</ModalGenerico>
+
+<!-- Modal para confirmar eliminación -->
+<ModalGenerico @ref="modalConfirmacion" 
+              Id="confirmModal" 
+              Title="Confirmar eliminación" 
+              OnSave="EliminarRol">
+    <BodyContent>
+        <p>¿Está seguro que desea eliminar el rol de usuario con email: @RolAEliminar.FkEmail?</p>
+    </BodyContent>
+</ModalGenerico>
+
+@if (!string.IsNullOrEmpty(MensajeError))
+{
+    <div class="alert alert-danger">
+        Error: @MensajeError
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(MensajeExito))
+{
+    <div class="alert alert-success">
+        @MensajeExito
+    </div>
+}
+
+@code {
+    private const string NOMBRE_TABLA = "rol_usuario";
+    
+    private List<Dictionary<string, object>> RolesUsuario { get; set; } = new();
+    private bool EstamosCargando { get; set; } = true;
+    private string? MensajeError { get; set; }
+    private string? MensajeExito { get; set; }
+
+    // Variables para el formulario
+    private bool ModoEdicion { get; set; } = false;
+    private RolUsuarioModel RolActual { get; set; } = new();
+    private ModalGenerico? modalFormulario;
+    private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Rol de Usuario";
+
+    // Variables para confirmación de eliminación
+    private RolUsuarioModel RolAEliminar { get; set; } = new();
+    private ModalGenerico? modalConfirmacion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarRolesUsuario();
+    }
+
+    private async Task CargarRolesUsuario()
+    {
+        EstamosCargando = true;
+        MensajeError = null;
+        
+        try
+        {
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
+            
+            RolesUsuario = resultado ?? new List<Dictionary<string, object>>();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al cargar roles de usuario: {ex.Message}";
+            RolesUsuario = new List<Dictionary<string, object>>();
+        }
+        finally
+        {
+            EstamosCargando = false;
+        }
+    }
+
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        if (diccionario == null)
+            return string.Empty;
+            
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        
+        return string.Empty;
+    }
+
+    private async Task MostrarFormularioCrear()
+    {
+        RolActual = new RolUsuarioModel();
+        ModoEdicion = false;
+        await InvokeAsync(StateHasChanged);
+        await modalFormulario.ShowModalAsync();
+    }
+
+    private async Task MostrarFormularioEditar(Dictionary<string, object> rol)
+    {
+        RolActual = new RolUsuarioModel
+        {
+            FkEmail = ObtenerValor(rol, "fkemail"),
+            FkIdRol = ObtenerValor(rol, "fkidrol")
+        };
+        ModoEdicion = true;
+        await InvokeAsync(StateHasChanged);
+        await modalFormulario.ShowModalAsync();
+    }
+
+    private async Task ConfirmarEliminar(Dictionary<string, object> rol)
+    {
+        RolAEliminar = new RolUsuarioModel
+        {
+            FkEmail = ObtenerValor(rol, "fkemail"),
+            FkIdRol = ObtenerValor(rol, "fkidrol")
+        };
+        await InvokeAsync(StateHasChanged);
+        await modalConfirmacion.ShowModalAsync();
+    }
+    private async Task GuardarRol()
+    {}
+    private async Task EliminarRol()
+    {}
+
+
+    private class RolUsuarioModel
+    {
+        public string FkEmail { get; set; } = string.Empty;
+        public string FkIdRol { get; set; } = string.Empty;
+    }
+}

@@ -1,4 +1,4 @@
-@page "/VariablePorIndicador"
+@page "/Variable"
 @using System.Collections.Generic
 @using System.Text.Json
 @using Services
@@ -7,7 +7,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 
-<PageTitle>Variables por indicador</PageTitle>
+<PageTitle>Variables</PageTitle>
 
 <h1>Variables</h1>
 
@@ -29,11 +29,9 @@ else
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>IdVariable</th>
-                    <th>IdIndicador</th>
-                    <th>Dato</th>
+                    <th>Nombre</th>
+                    <th>Fecha</th>
                     <th>Email</th>
-                    <th>FechaDato</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -41,11 +39,9 @@ else
                 @foreach (var variable in Variables)
                 {
                     <tr>
-                        <td>@ObtenerValor(variable, "fkidvariable")</td>
-                        <td>@ObtenerValor(variable, "fkidindicador")</td>
-                        <td>@ObtenerValor(variable, "dato")</td>
+                        <td>@ObtenerValor(variable, "nombre")</td>
+                        <td>@ObtenerValor(variable, "fechacreacion")</td>
                         <td>@ObtenerValor(variable, "fkemailusuario")</td>
-                        <td>@ObtenerValor(variable, "fechadato")</td>
                         <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(variable)">Eliminar</button>
@@ -99,7 +95,7 @@ else
 }
 
 @code {
-    private const string NOMBRE_TABLA = "variablesporindicador";
+    private const string NOMBRE_TABLA = "variable";
     
     private List<Dictionary<string, object>> Variables { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;

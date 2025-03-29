@@ -9,76 +9,118 @@
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     <nav class="nav flex-column">
-       <div class="nav-item px-3">
+        <!-- Home -->
+        <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill"></span> Home
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="frecuencia">
-                <span class="bi-clock" aria-hidden="true"></span> Frecuencia
-            </NavLink>
+
+        <!-- Grupo de metricas-->
+        <div class="nav-item px-3 dropdown">
+            <div class="nav-link dropdown-toggle" @onclick:stopPropagation @onclick="() => ToggleDropdown(0)">
+                <span class="bi bi-gear"></span> Metricas
+            </div>
+            <div class="dropdown-menu @(dropdownStates[0] ? "show" : "")">
+                <NavLink class="dropdown-item" href="tipoindicador">
+                    <span class="bi bi-graph-up"></span> Tipo de indicador
+                </NavLink>
+                <NavLink class="dropdown-item" href="sentido">
+                    <span class="bi bi-arrow-left-right"></span> Sentidos
+                </NavLink>
+            </div>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="unidadmedicion">
-                <span class="bi bi-rulers" aria-hidden="true"></span> Unidad de Medición
-            </NavLink>
+
+        <!-- Grupo Personas -->
+        <div class="nav-item px-3 dropdown">
+            <div class="nav-link dropdown-toggle" @onclick:stopPropagation @onclick="() => ToggleDropdown(1)">
+                <span class="bi bi-people-fill"></span> Personas
+            </div>
+            <div class="dropdown-menu @(dropdownStates[1] ? "show" : "")">
+                <NavLink class="dropdown-item" href="Actor">
+                    <span class="bi bi-folder"></span> Actor
+                </NavLink>
+                <NavLink class="dropdown-item" href="tipoactor">
+                    <span class="bi bi-person-lines-fill"></span> Tipo de actor
+                </NavLink>
+                <NavLink class="nav-link" href="rol">
+                <span class="bi bi-person-badge"></span> Rol
+                </NavLink>
+                <NavLink class="nav-link" href="rolUsuario"></NavLink>
+                <span class="bi bi-person-badge"></span> Rol de usuario
+                </NavLink>
+                
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="Actor">
-                <span class="bi bi-folder" aria-hidden="true"></span> Actor
-            </NavLink>
+            </div>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="fuentesporindicador">
-                <span class="bi bi-folder-symlink" aria-hidden="true"></span> fuentesporindicador
-            </NavLink>
+
+        <!-- Grupo Fuentes -->
+        <div class="nav-item px-3 dropdown">
+            <div class="nav-link dropdown-toggle" @onclick:stopPropagation @onclick="() => ToggleDropdown(2)">
+                <span class="bi bi-database"></span> Fuentes
+            </div>
+            <div class="dropdown-menu @(dropdownStates[2] ? "show" : "")">
+                <NavLink class="dropdown-item" href="fuente">
+                    <span class="bi bi-archive"></span> Fuentes
+                </NavLink>
+                <NavLink class="dropdown-item" href="fuentesporindicador">
+                    <span class="bi bi-diagram-3"></span> Relación Indicadores
+                </NavLink>
+            </div>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="tipoactor">
-                <span class="bi bi-people-fill" aria-hidden="true"></span> Tipo de actor
-            </NavLink>
+
+        <!-- Grupo Parámetros -->
+        <div class="nav-item px-3 dropdown">
+            <div class="nav-link dropdown-toggle" @onclick:stopPropagation @onclick="() => ToggleDropdown(3)">
+                <span class="bi bi-sliders"></span> Parámetros
+            </div>
+            <div class="dropdown-menu @(dropdownStates[3] ? "show" : "")">
+                <NavLink class="dropdown-item" href="frecuencia">
+                    <span class="bi bi-clock"></span> Frecuencia
+                </NavLink>
+                <NavLink class="dropdown-item" href="unidadmedicion">
+                    <span class="bi bi-rulers"></span> Unidad de Medición
+                </NavLink>
+            </div>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="sentido">
-                <span class="bi bi-arrow-left-right" aria-hidden="true"></span> Sentidos
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="tipoindicador">
-                <span class="bi bi-graph-up" aria-hidden="true"></span> Tipo de indicador
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="rol">
-                <span class="bi bi-person-badge" aria-hidden="true"></span> Rol
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="representante">
-                <span class="bi bi-palette" aria-hidden="true"></span> Representante visual
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="fuente">
-                <span class="bi bi-database" aria-hidden="true"></span> Fuentes
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="resultadoindicador">
-                <span class="bi bi-bar-chart-line" aria-hidden="true"></span> resultadoindicador
-            </NavLink>
+
+        <!-- Grupo Visualización -->
+        <div class="nav-item px-3 dropdown">
+            <div class="nav-link dropdown-toggle" @onclick:stopPropagation @onclick="() => ToggleDropdown(4)">
+                <span class="bi bi-bar-chart-line"></span> Visualización
+            </div>
+            <div class="dropdown-menu @(dropdownStates[4] ? "show" : "")">
+                <NavLink class="dropdown-item" href="representante">
+                    <span class="bi bi-palette"></span> Representante visual
+                </NavLink>
+                <NavLink class="dropdown-item" href="resultadoindicador">
+                    <span class="bi bi-clipboard-data"></span> Resultados
+                </NavLink>
+                <NavLink class="dropdown-item" href="responsableporindicador">
+                    <span class="bi bi-person-check"></span> Responsable por indicador
+                </NavLink>
+                
+            </div>
         </div>
     </nav>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
+    private bool[] dropdownStates = new bool[5]; // Controla los 5 dropdowns
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
-    private void ToggleNavMenu()
+    private void ToggleNavMenu() => collapseNavMenu = !collapseNavMenu;
+
+    private void ToggleDropdown(int index)
     {
-        collapseNavMenu = !collapseNavMenu;
+        dropdownStates[index] = !dropdownStates[index];
+        
+        // Opcional: Comportamiento de acordeón (solo un dropdown abierto)
+        for (int i = 0; i < dropdownStates.Length; i++)
+        {
+            if(i != index) dropdownStates[i] = false;
+        }
     }
 }

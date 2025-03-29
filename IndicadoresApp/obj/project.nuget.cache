@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "/UOidUkMpHU=",
+  "dgSpecHash": "T4qLdsU+8Ks=",
   "success": true,
   "projectFilePath": "C:\\proyectos\\ServiciosWeb2\\APP2\\IndicadoresApp\\IndicadoresApp.csproj",
   "expectedPackageFiles": [
@@ -30,7 +30,6 @@
     "C:\\Users\\robin\\.nuget\\packages\\microsoft.jsinterop.webassembly\\9.0.0\\microsoft.jsinterop.webassembly.9.0.0.nupkg.sha512",
     "C:\\Users\\robin\\.nuget\\packages\\microsoft.net.illink.tasks\\9.0.3\\microsoft.net.illink.tasks.9.0.3.nupkg.sha512",
     "C:\\Users\\robin\\.nuget\\packages\\microsoft.net.sdk.webassembly.pack\\9.0.3\\microsoft.net.sdk.webassembly.pack.9.0.3.nupkg.sha512",
-    "C:\\Users\\robin\\.nuget\\packages\\microsoft.net.sdk.compilers.toolset\\9.0.202\\microsoft.net.sdk.compilers.toolset.9.0.202.nupkg.sha512",
     "C:\\Users\\robin\\.nuget\\packages\\microsoft.netcore.app.runtime.mono.browser-wasm\\9.0.3\\microsoft.netcore.app.runtime.mono.browser-wasm.9.0.3.nupkg.sha512"
   ],
   "logs": []

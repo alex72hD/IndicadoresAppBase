@@ -43,7 +43,7 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "all"
+          "auditMode": "direct"
         },
         "SdkAnalysisLevel": "9.0.200"
       },
@@ -85,10 +85,6 @@
           "assetTargetFallback": true,
           "warn": true,
           "downloadDependencies": [
-            {
-              "name": "Microsoft.Net.Sdk.Compilers.Toolset",
-              "version": "[9.0.202, 9.0.202]"
-            },
             {
               "name": "Microsoft.NETCore.App.Runtime.Mono.browser-wasm",
               "version": "[9.0.3, 9.0.3]"

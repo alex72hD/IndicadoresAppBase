@@ -64,8 +64,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFiYWxhc0ludGVybWVkaWFzXFJvbF9Vc3VhcmlvLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TabalasIntermedias/Variabale.razor]
-build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFiYWxhc0ludGVybWVkaWFzXFZhcmlhYmFsZS5yYXpvcg==
+[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TabalasIntermedias/Variable.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGFiYWxhc0ludGVybWVkaWFzXFZhcmlhYmxlLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TabalasIntermedias/VariablesPorIndicador.razor]

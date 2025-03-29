@@ -1,0 +1,184 @@
+@page "/RepresentanteVisuales"
+@using System.Collections.Generic
+@using System.Text.Json
+@using Services
+@using IndicadoresApp.ModalGenerico
+@inject ServicioEntidad ServicioEntidad  
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>RepresentanteVisuales</PageTitle>
+
+<h1>RepresentanteVisuales</h1>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
+</div>
+
+@if (EstamosCargando)
+{
+    <p><em>Cargando...</em></p>
+}
+else if (Representantes == null || Representantes.Count == 0)
+{
+    <p>No hay Representantes registrados.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>IdIndicador</th>
+                    <th>IdRepresentanteVisual</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var variable in Representantes)
+                {
+                    <tr>
+                        <td>@ObtenerValor(variable, "fkidindicador")</td>
+                        <td>@ObtenerValor(variable, "fkidrepresenvisual")</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(variable)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- Modal para crear/editar variable -->
+<ModalGenerico @ref="modalFormulario" 
+              Id="formModal" 
+              Title="@TituloModal" 
+              OnSave="GuardarVariable">
+    <BodyContent>
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" @bind="VariableActual.Nombre" />
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" @bind="VariableActual.FkEmail" />
+        </div>
+    </BodyContent>
+</ModalGenerico>
+
+<!-- Modal para confirmar eliminación -->
+<ModalGenerico @ref="modalConfirmacion" 
+              Id="confirmModal" 
+              Title="Confirmar eliminación" 
+              OnSave="EliminarVariable">
+    <BodyContent>
+        <p>¿Está seguro que desea eliminar la variable @VariableAEliminar.Nombre?</p>
+    </BodyContent>
+</ModalGenerico>
+
+@if (!string.IsNullOrEmpty(MensajeError))
+{
+    <div class="alert alert-danger">
+        Error: @MensajeError
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(MensajeExito))
+{
+    <div class="alert alert-success">
+        @MensajeExito
+    </div>
+}
+
+@code {
+    private const string NOMBRE_TABLA = "represenvisualporindicador";
+    
+    private List<Dictionary<string, object>> Representantes { get; set; } = new();
+    private bool EstamosCargando { get; set; } = true;
+    private string? MensajeError { get; set; }
+    private string? MensajeExito { get; set; }
+
+    private bool ModoEdicion { get; set; } = false;
+    private VariableModel VariableActual { get; set; } = new();
+    private ModalGenerico? modalFormulario;
+    private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Variable";
+
+    private VariableModel VariableAEliminar { get; set; } = new();
+    private ModalGenerico? modalConfirmacion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarRepresentantes();
+    }
+
+    private async Task CargarRepresentantes()
+    {
+        EstamosCargando = true;
+        MensajeError = null;
+        
+        try
+        {
+            Representantes = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al cargar Representantes: {ex.Message}";
+            Representantes = new List<Dictionary<string, object>>();
+        }
+        finally
+        {
+            EstamosCargando = false;
+        }
+    }
+
+    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    {
+        return diccionario.TryGetValue(clave, out var valor) ? valor?.ToString() ?? string.Empty : string.Empty;
+    }
+
+    private async Task MostrarFormularioCrear()
+    {
+        VariableActual = new VariableModel();
+        ModoEdicion = false;
+        await modalFormulario.ShowModalAsync();
+    }
+
+    private async Task MostrarFormularioEditar(Dictionary<string, object> variable)
+    {
+        VariableActual = new VariableModel
+        {
+            Id = Convert.ToInt32(ObtenerValor(variable, "id")),
+            Nombre = ObtenerValor(variable, "Nombre"),
+            FkEmail = ObtenerValor(variable, "fkemail")
+        };
+        ModoEdicion = true;
+        await modalFormulario.ShowModalAsync();
+    }
+
+    private async Task ConfirmarEliminar(Dictionary<string, object> variable)
+    {
+        VariableAEliminar = new VariableModel
+        {
+            Id = Convert.ToInt32(ObtenerValor(variable, "id")),
+            Nombre = ObtenerValor(variable, "Nombre")
+        };
+        await modalConfirmacion.ShowModalAsync();
+    }
+
+    private async Task GuardarVariable()
+    {
+    }
+
+    private async Task EliminarVariable()
+    {
+    }
+
+    private class VariableModel
+    {
+        public int Id { get; set; }
+        public string FechaCreacion { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        public string Nombre { get; set; } = string.Empty;
+        public string FkEmail { get; set; } = string.Empty;
+    }
+}
