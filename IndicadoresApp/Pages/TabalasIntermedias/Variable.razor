@@ -1,6 +1,5 @@
 @page "/Variable"
 @using System.Collections.Generic
-@using System.Text.Json
 @using Services
 @using IndicadoresApp.ModalGenerico
 @inject ServicioEntidad ServicioEntidad  
@@ -12,7 +11,7 @@
 <h1>Variables</h1>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
 </div>
 
 @if (EstamosCargando)
@@ -152,8 +151,8 @@ else
         VariableActual = new VariableModel
         {
             Id = Convert.ToInt32(ObtenerValor(variable, "id")),
-            Nombre = ObtenerValor(variable, "Nombre"),
-            FkEmail = ObtenerValor(variable, "fkemail")
+            Nombre = ObtenerValor(variable, "nombre"),
+            FkEmail = ObtenerValor(variable, "fkemailusuario")
         };
         ModoEdicion = true;
         await modalFormulario.ShowModalAsync();
@@ -164,23 +163,109 @@ else
         VariableAEliminar = new VariableModel
         {
             Id = Convert.ToInt32(ObtenerValor(variable, "id")),
-            Nombre = ObtenerValor(variable, "Nombre")
+            Nombre = ObtenerValor(variable, "nombre")
         };
         await modalConfirmacion.ShowModalAsync();
     }
 
     private async Task GuardarVariable()
     {
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(VariableActual.Nombre))
+            {
+                MensajeError = "El nombre es obligatorio";
+                return;
+            }
+
+            var variableData = new Dictionary<string, object>
+            {
+                ["nombre"] = VariableActual.Nombre,
+                ["fkemailusuario"] = VariableActual.FkEmail,
+                ["fechacreacion"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+            };
+
+            bool resultado;
+
+            if (ModoEdicion)
+            {
+                resultado = await ServicioEntidad.ActualizarAsync(
+                    NOMBRE_TABLA,
+                    "id",
+                    VariableActual.Id.ToString(),
+                    variableData
+                );
+
+                if (resultado)
+                {
+                    MensajeExito = "Variable actualizada correctamente";
+                }
+            }
+            else
+            {
+                resultado = await ServicioEntidad.CrearAsync(
+                    NOMBRE_TABLA,
+                    variableData
+                );
+
+                if (resultado)
+                {
+                    MensajeExito = "Variable creada correctamente";
+                }
+            }
+
+            if (resultado)
+            {
+                await CargarVariables();
+                await modalFormulario.HideModalAsync();
+            }
+            else
+            {
+                MensajeError = "Error al guardar la variable";
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error: {ex.Message}";
+        }
     }
 
     private async Task EliminarVariable()
     {
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            var resultado = await ServicioEntidad.EliminarAsync(
+                NOMBRE_TABLA,
+                "id",
+                VariableAEliminar.Id.ToString()
+            );
+
+            if (resultado)
+            {
+                MensajeExito = "Variable eliminada correctamente";
+                await CargarVariables();
+                await modalConfirmacion.HideModalAsync();
+            }
+            else
+            {
+                MensajeError = "Error al eliminar la variable";
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error: {ex.Message}";
+        }
     }
 
     private class VariableModel
     {
         public int Id { get; set; }
-        public string FechaCreacion { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         public string Nombre { get; set; } = string.Empty;
         public string FkEmail { get; set; } = string.Empty;
     }

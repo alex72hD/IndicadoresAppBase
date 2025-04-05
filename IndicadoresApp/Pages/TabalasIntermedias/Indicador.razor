@@ -6,34 +6,33 @@
 
 <PageTitle>Indicadores</PageTitle>
 
-<h1>Gestión de Indicadores</h1>
+<h1>Indicadores</h1>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Nuevo Indicador</button>
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
 </div>
 
 @if (EstamosCargando)
 {
-    <div class="alert alert-info">Cargando indicadores...</div>
+    <p><em>Cargando indicadores...</em></p>
 }
-else if (Indicadores?.Any() != true)
+else if (Indicadores == null || Indicadores.Count == 0)
 {
-    <div class="alert alert-warning">No se encontraron indicadores registrados</div>
+    <p>No hay indicadores disponibles.</p>
 }
 else
 {
     <div class="table-responsive">
-        <table class="table table-hover table-bordered">
-            <thead class="table-dark">
+        <table class="table table-striped">
+            <thead>
                 <tr>
                     <th>Código</th>
                     <th>Nombre</th>
-                    <th>Objetivo</th>
-                    <th>Fórmula</th>
-                    <th>Unidad</th>
-                    <th>Meta</th>
+                    <th>Tipo</th>
+                    <th>Unidad de Medición</th>
+                    <th>Sentido</th>
                     <th>Frecuencia</th>
-                    <th class="text-center">Acciones</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -42,22 +41,13 @@ else
                     <tr>
                         <td>@ObtenerValor(indicador, "codigo")</td>
                         <td>@ObtenerValor(indicador, "nombre")</td>
-                        <td>@ObtenerValor(indicador, "objetivo")</td>
-                        <td>@ObtenerValor(indicador, "formula")</td>
-                        <td>@ObtenerNombreUnidad(ObtenerValor(indicador, "fkidunidadmedicion"))</td>
-                        <td>@ObtenerValor(indicador, "meta")</td>
-                        <td>@ObtenerNombreFrecuencia(ObtenerValor(indicador, "fkidfrecuencia"))</td>
-                        <td class="text-center">
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-outline-warning" 
-                                        @onclick="() => MostrarFormularioEditar(indicador)">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" 
-                                        @onclick="() => ConfirmarEliminar(indicador)">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
+                        <td>@ObtenerNombreRelacionado(ObtenerValor(indicador, "fkidtipoindicador"), TiposIndicadores)</td>
+                        <td>@ObtenerdescripcionRelacionado(ObtenerValor(indicador, "fkidunidadmedicion"), UnidadesMedicion)</td>
+                        <td>@ObtenerNombreRelacionado(ObtenerValor(indicador, "fkidsentido"), Sentidos)</td>
+                        <td>@ObtenerNombreRelacionado(ObtenerValor(indicador, "fkidfrecuencia"), Frecuencias)</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(indicador)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(indicador)">Eliminar</button>
                         </td>
                     </tr>
                 }
@@ -66,419 +56,730 @@ else
     </div>
 }
 
-<!-- Modal Formulario -->
-<div class="modal @(MostrarFormulario ? "d-block" : "d-none")" style="background-color: rgba(0,0,0,0.5)">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">@(ModoEdicion ? "Editar" : "Nuevo") Indicador</h5>
-                <button type="button" class="btn-close btn-close-white" @onclick="CerrarFormulario"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Código *</label>
-                            <input type="text" class="form-control" 
-                                   @bind="IndicadorActual.Codigo" 
-                                   required />
+@if (MostrarFormulario)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(ModoEdicion ? "Editar" : "Crear") Indicador</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="codigo" class="form-label">Código</label>
+                                <input type="text" class="form-control" id="codigo" @bind="IndicadorActual.Codigo" maxlength="50" />
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Nombre *</label>
-                            <input type="text" class="form-control" 
-                                   @bind="IndicadorActual.Nombre" 
-                                   required />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Unidad de Medición *</label>
-                            <select class="form-select" @bind="IndicadorActual.UnidadMedicionId">
-                                <option value="">Seleccionar...</option>
-                                @foreach (var unidad in UnidadesMedicion)
-                                {
-                                    <option value="@unidad.Id">@unidad.Nombre</option>
-                                }
-                            </select>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="nombre" @bind="IndicadorActual.Nombre" maxlength="100" />
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Fórmula</label>
-                            <input type="text" class="form-control" 
-                                   @bind="IndicadorActual.Formula" />
+
+                    <div class="mb-3">
+                        <label for="objetivo" class="form-label">Objetivo</label>
+                        <textarea class="form-control" id="objetivo" @bind="IndicadorActual.Objetivo" rows="3" maxlength="4000"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="alcance" class="form-label">Alcance</label>
+                                <textarea class="form-control" id="alcance" @bind="IndicadorActual.Alcance" rows="2" maxlength="1000"></textarea>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Meta</label>
-                            <input type="text" class="form-control" 
-                                   @bind="IndicadorActual.Meta" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Frecuencia *</label>
-                            <select class="form-select" @bind="IndicadorActual.FrecuenciaId">
-                                <option value="">Seleccionar...</option>
-                                @foreach (var freq in Frecuencias)
-                                {
-                                    <option value="@freq.Id">@freq.Nombre</option>
-                                }
-                            </select>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="formula" class="form-label">Fórmula</label>
+                                <textarea class="form-control" id="formula" @bind="IndicadorActual.Formula" rows="2" maxlength="1000"></textarea>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label class="form-label">Objetivo</label>
-                            <textarea class="form-control" rows="3" 
-                                      @bind="IndicadorActual.Objetivo"></textarea>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="meta" class="form-label">Meta</label>
+                                <textarea class="form-control" id="meta" @bind="IndicadorActual.Meta" rows="2" maxlength="1000"></textarea>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Alcance</label>
-                            <textarea class="form-control" rows="3" 
-                                      @bind="IndicadorActual.Alcance"></textarea>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de Indicador</label>
+                                <select class="form-select" @bind="IndicadorActual.TipoIndicadorId">
+                                    <option value="">Seleccione un tipo</option>
+                                    @foreach (var tipo in TiposIndicadores)
+                                    {
+                                        <option value="@tipo.Id">@tipo.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Unidad de Medición</label>
+                                <select class="form-select" @bind="IndicadorActual.UnidadMedicionId">
+                                    <option value="">Seleccione una unidad</option>
+                                    @foreach (var unidad in UnidadesMedicion)
+                                    {
+                                        <option value="@unidad.Id">@unidad.descripcion</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Sentido</label>
+                                <select class="form-select" @bind="IndicadorActual.SentidoId">
+                                    <option value="">Seleccione un sentido</option>
+                                    @foreach (var sentido in Sentidos)
+                                    {
+                                        <option value="@sentido.Id">@sentido.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Frecuencia</label>
+                                <select class="form-select" @bind="IndicadorActual.FrecuenciaId">
+                                    <option value="">Seleccione una frecuencia</option>
+                                    @foreach (var frecuencia in Frecuencias)
+                                    {
+                                        <option value="@frecuencia.Id">@frecuencia.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6>Referencia normativa</h6>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Artículo</label>
+                                <select class="form-select" @bind="IndicadorActual.ArticuloId">
+                                    <option value="">Seleccione</option>
+                                    @foreach (var articulo in Articulos)
+                                    {
+                                        <option value="@articulo.Id">@articulo.Nombre</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Literal</label>
+                                <select class="form-select" @bind="IndicadorActual.LiteralId">
+                                    <option value="">Seleccione</option>
+                                    @foreach (var literal in Literales)
+                                    {
+                                        <option value="@literal.Id">@literal.descripcion</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Numeral</label>
+                                <select class="form-select" @bind="IndicadorActual.NumeralId">
+                                    <option value="">Seleccione</option>
+                                    @foreach (var numeral in Numerales)
+                                    {
+                                        <option value="@numeral.Id">@numeral.descripcion</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label class="form-label">Parágrafo</label>
+                                <select class="form-select" @bind="IndicadorActual.ParagrafoId">
+                                    <option value="">Seleccione</option>
+                                    @foreach (var paragrafo in Paragrafos)
+                                    {
+                                        <option value="@paragrafo.Id">@paragrafo.descripcion</option>
+                                    }
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" 
-                        @onclick="CerrarFormulario">Cancelar</button>
-                <button type="button" class="btn btn-primary" 
-                        @onclick="GuardarIndicador">
-                    @(ModoEdicion ? "Actualizar" : "Guardar")
-                </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarIndicador">Guardar</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+}
 
-<!-- Modal Confirmación -->
-<div class="modal @(MostrarConfirmacion ? "d-block" : "d-none")" style="background-color: rgba(0,0,0,0.5)">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Confirmar Eliminación</h5>
-                <button type="button" class="btn-close btn-close-white" 
-                        @onclick="CancelarEliminar"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Está seguro de eliminar el indicador <strong>@IndicadorEliminar.Nombre</strong>?</p>
-                <p class="text-danger small">Esta acción eliminará todas las relaciones asociadas y no se puede deshacer.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" 
-                        @onclick="CancelarEliminar">Cancelar</button>
-                <button type="button" class="btn btn-danger" 
-                        @onclick="EliminarIndicador">Confirmar Eliminación</button>
+@if (MostrarConfirmacion)
+{
+    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar el indicador: @IndicadorEliminar.Nombre?</p>
+                    <p class="text-danger">Esto también eliminará todas las relaciones asociadas.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="EliminarIndicador">Eliminar</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+}
 
 @if (!string.IsNullOrEmpty(MensajeError))
 {
-    <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+    <div class="alert alert-danger mt-3">
         @MensajeError
-        <button type="button" class="btn-close" 
-                @onclick="() => MensajeError = null"></button>
+        <button type="button" class="btn-close float-end" @onclick="() => MensajeError = null"></button>
     </div>
 }
 
 @if (!string.IsNullOrEmpty(MensajeExito))
 {
-    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+    <div class="alert alert-success mt-3">
         @MensajeExito
-        <button type="button" class="btn-close" 
-                @onclick="() => MensajeExito = null"></button>
+        <button type="button" class="btn-close float-end" @onclick="() => MensajeExito = null"></button>
     </div>
 }
+@if (MensajeError != null && MensajeError.Contains("entidades relacionadas"))
+{
+    <div class="alert alert-warning mt-3">
+        <p>Algunos datos no se cargaron correctamente.</p>
+        <button class="btn btn-primary" @onclick="RecargarTodo">Intentar cargar de nuevo</button>
+    </div>
+}
+
 
 @code {
     private const string NOMBRE_TABLA = "indicador";
     private const string TABLA_RELACIONES = "responsablesporindicador";
-    private const string CAMPO_INDICADOR_RELACION = "fkidindicador";
+    private const string CAMPO_INDICADOR_EN_RELACIONES = "fkidindicador";
     
-    private List<Dictionary<string, object>> Indicadores = new();
-    private bool EstamosCargando = true;
-    private string MensajeError;
-    private string MensajeExito;
+    private List<Dictionary<string, object>> Indicadores { get; set; } = new();
+    private bool EstamosCargando { get; set; } = true;
+    private string? MensajeError { get; set; }
+    private string? MensajeExito { get; set; }
 
-    // Entidades relacionadas
-    private List<EntidadSelect> UnidadesMedicion = new();
-    private List<EntidadSelect> Frecuencias = new();
+    // Para los selectores de entidades relacionadas
+    private List<EntidadSelectModel> TiposIndicadores { get; set; } = new();
+    private List<RelacionModel> UnidadesMedicion { get; set; } = new();
+    private List<EntidadSelectModel> Sentidos { get; set; } = new();
+    private List<EntidadSelectModel> Frecuencias { get; set; } = new();
+    private List<EntidadSelectModel> Articulos { get; set; } = new();
+    private List<RelacionModel> Literales { get; set; } = new();
+    private List<RelacionModel> Numerales { get; set; } = new();
+    private List<RelacionModel> Paragrafos { get; set; } = new();
 
-    // Control de UI
-    private bool MostrarFormulario = false;
-    private bool ModoEdicion = false;
-    private bool MostrarConfirmacion = false;
-    
-    // Modelos
-    private IndicadorModel IndicadorActual = new();
-    private IndicadorModel IndicadorEliminar = new();
+    // Variables para el formulario
+    private bool MostrarFormulario { get; set; } = false;
+    private bool ModoEdicion { get; set; } = false;
+    private IndicadorModel IndicadorActual { get; set; } = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        await CargarDatosIniciales();
+    private bool MostrarConfirmacion { get; set; } = false;
+    private IndicadorModel IndicadorEliminar { get; set; } = new();
+
+   protected override async Task OnInitializedAsync()
+{
+    try {
+        EstamosCargando = true;
+        StateHasChanged(); // Actualizar UI para mostrar el indicador de carga
+        
+        // Primero cargar todas las entidades relacionadas
         await CargarEntidadesRelacionadas();
+        
+        // Solo cargar los indicadores si las entidades relacionadas se cargaron correctamente
+        if (string.IsNullOrEmpty(MensajeError)) {
+            await CargarIndicadores();
+        }
     }
+    catch (Exception ex) {
+        MensajeError = $"Error cargando datos iniciales: {ex.Message}";
+        Console.WriteLine($"Excepción en OnInitializedAsync: {ex}");
+    }
+    finally {
+        EstamosCargando = false;
+        StateHasChanged(); // Asegurar que la UI se actualice con el estado final
+    }
+}
 
     private async Task CargarDatosIniciales()
     {
+        try {
+            // Cargar todas las entidades relacionadas
+            await CargarEntidadesRelacionadas();
+            // Luego cargar los indicadores
+            await CargarIndicadores();
+        }
+        catch (Exception ex) {
+            MensajeError = $"Error cargando datos iniciales: {ex.Message}";
+        }
+    }
+     private async Task RecargarTodo()
+    {
+        MensajeError = null;
+        MensajeExito = null;
+        await CargarDatosIniciales();
+    }
+
+    private async Task CargarIndicadores()
+    {
+        EstamosCargando = true;
         try
         {
-            EstamosCargando = true;
             var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
-            Indicadores = resultado?.ToList() ?? new();
-            MensajeError = null;
+            Indicadores = resultado ?? new List<Dictionary<string, object>>();
+            
+            // Para debug: mostrar las claves disponibles en el primer indicador
+            if (Indicadores.Count > 0)
+            {
+                Console.WriteLine("Claves disponibles en indicador: " + string.Join(", ", Indicadores[0].Keys));
+            }
         }
         catch (Exception ex)
         {
-            ManejarError($"Error cargando indicadores: {ex.Message}");
+            MensajeError = $"Error cargando indicadores: {ex.Message}";
         }
         finally
         {
             EstamosCargando = false;
+            StateHasChanged(); // Forzar actualización del UI
+        }
+    }
+
+  private async Task CargarEntidadesRelacionadas()
+{
+    try
+    {
+        // Usar una variable para rastrear si todo se cargó correctamente
+        bool todosCargados = false;
+        
+        // Cargar todas las entidades relacionadas en paralelo
+        var resultados = await Task.WhenAll(
+            ServicioEntidad.ObtenerTodosAsync("tipoindicador"),
+            ServicioEntidad.ObtenerTodosAsync("unidadmedicion"),
+            ServicioEntidad.ObtenerTodosAsync("sentido"),
+            ServicioEntidad.ObtenerTodosAsync("frecuencia"),
+            ServicioEntidad.ObtenerTodosAsync("articulo"),
+            ServicioEntidad.ObtenerTodosAsync("literal"),
+            ServicioEntidad.ObtenerTodosAsync("numeral"),
+            ServicioEntidad.ObtenerTodosAsync("paragrafo")
+        );
+        
+        // Verificar que todos los resultados tengan datos
+        if (resultados.All(r => r != null))
+        {
+            // Procesar los resultados en el orden correcto
+            TiposIndicadores = ConvertirAModelo(resultados[0]);
+            UnidadesMedicion = ConvertirAModelo2(resultados[1]);
+            Sentidos = ConvertirAModelo(resultados[2]);
+            Frecuencias = ConvertirAModelo(resultados[3]);
+            Articulos = ConvertirAModelo(resultados[4]);
+            Literales = ConvertirAModelo2(resultados[5]);
+            Numerales = ConvertirAModelo2(resultados[6]);
+            Paragrafos = ConvertirAModelo2(resultados[7]);
+            
+            todosCargados = true;
+            
+            // Log para depuración
+            Console.WriteLine($"Entidades cargadas: TiposIndicadores={TiposIndicadores.Count}, UnidadesMedicion={UnidadesMedicion.Count}, etc.");
+        }
+        else
+        {
+            MensajeError = "No se pudieron cargar todas las entidades relacionadas.";
+            Console.WriteLine("Algunas entidades relacionadas no se cargaron correctamente.");
+        }
+        
+        // Solo si todo se cargó correctamente, actualiza la UI
+        if (todosCargados)
+        {
             StateHasChanged();
         }
     }
-
-    private async Task CargarEntidadesRelacionadas()
+    catch (Exception ex)
     {
-        try
+        MensajeError = $"Error cargando entidades relacionadas: {ex.Message}";
+        Console.WriteLine($"Excepción en CargarEntidadesRelacionadas: {ex}");
+    }
+}
+
+    private List<EntidadSelectModel> ConvertirAModelo(List<Dictionary<string, object>> entidades)
+    {
+        return entidades?.Select(e => new EntidadSelectModel
         {
-            var cargarUnidades = CargarOpcionesFK("unidadmedicion");
-            var cargarFrecuencias = CargarOpcionesFK("frecuencia");
-            
-            await Task.WhenAll(cargarUnidades, cargarFrecuencias);
-            
-            UnidadesMedicion = await cargarUnidades;
-            Frecuencias = await cargarFrecuencias;
-        }
-        catch (Exception ex)
+            Id = ObtenerValor(e, "id"),
+            Nombre = ObtenerValor(e, "nombre")
+        }).ToList() ?? new List<EntidadSelectModel>();
+    }
+    private List<RelacionModel> ConvertirAModelo2(List<Dictionary<string, object>> entidades)
+    {
+        return entidades?.Select(e => new RelacionModel
         {
-            ManejarError($"Error cargando datos relacionados: {ex.Message}");
+            Id = ObtenerValor(e, "id"),
+            descripcion = ObtenerValor(e, "descripcion")
+        }).ToList() ?? new List<RelacionModel>();
+    }
+      private string ObtenerdescripcionRelacionado(string id, List<RelacionModel> listaEntidades)
+    {
+        if (string.IsNullOrEmpty(id))
+        {
+            return "No asignado";
         }
+        
+        // Intentar buscar por ID exacto
+        var entidadEncontrada = listaEntidades.FirstOrDefault(t => t.Id == id);
+        
+        // Si no lo encuentra, intenta conversión numérica (por si hay diferencia de formato)
+        if (entidadEncontrada == null && int.TryParse(id, out int idNumerico))
+        {
+            entidadEncontrada = listaEntidades.FirstOrDefault(t => 
+                int.TryParse(t.Id, out int tId) && tId == idNumerico);
+        }
+        
+        if (entidadEncontrada == null)
+        {
+            return "Desconocido";
+        }
+        
+        return entidadEncontrada.descripcion;
     }
 
-    private async Task<List<EntidadSelect>> CargarOpcionesFK(string tabla)
+    private string ObtenerNombreRelacionado(string id, List<EntidadSelectModel> listaEntidades)
     {
-        try
+        if (string.IsNullOrEmpty(id))
         {
-            var datos = await ServicioEntidad.ObtenerTodosAsync(tabla);
-            return datos?
-                .Select(d => new EntidadSelect {
-                    Id = ObtenerValor(d, "id"),
-                    Nombre = ObtenerValor(d, "nombre") })
-                .ToList() ?? new();
+            return "No asignado";
         }
-        catch
+        
+        // Intentar buscar por ID exacto
+        var entidadEncontrada = listaEntidades.FirstOrDefault(t => t.Id == id);
+        
+        // Si no lo encuentra, intenta conversión numérica (por si hay diferencia de formato)
+        if (entidadEncontrada == null && int.TryParse(id, out int idNumerico))
         {
-            return new List<EntidadSelect>();
+            entidadEncontrada = listaEntidades.FirstOrDefault(t => 
+                int.TryParse(t.Id, out int tId) && tId == idNumerico);
         }
+        
+        if (entidadEncontrada == null)
+        {
+            return "Desconocido";
+        }
+        
+        return entidadEncontrada.Nombre;
     }
 
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        return diccionario?.TryGetValue(clave, out var valor) == true 
-            ? valor?.ToString() ?? string.Empty 
-            : string.Empty;
-    }
+        if (diccionario == null)
+        {
+            return "";
+        }
 
-    private string ObtenerNombreUnidad(string id)
-    {
-        return UnidadesMedicion.FirstOrDefault(u => u.Id == id)?.Nombre ?? "N/A";
-    }
-
-    private string ObtenerNombreFrecuencia(string id)
-    {
-        return Frecuencias.FirstOrDefault(f => f.Id == id)?.Nombre ?? "N/A";
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? "";
+        }
+        else
+        {
+            return "";
+        }
     }
 
     private void MostrarFormularioCrear()
     {
-        IndicadorActual = new();
+        IndicadorActual = new IndicadorModel();
         ModoEdicion = false;
         MostrarFormulario = true;
     }
 
-    private void MostrarFormularioEditar(Dictionary<string, object> indicador)
+    // Update the MostrarFormularioEditar method to capture the ID
+private void MostrarFormularioEditar(Dictionary<string, object> indicador)
+{
+    try
     {
-        try
+        IndicadorActual = new IndicadorModel
         {
-            IndicadorActual = new()
-            {
-                Id = ObtenerValor(indicador, "id"),
-                Codigo = ObtenerValor(indicador, "codigo"),
-                Nombre = ObtenerValor(indicador, "nombre"),
-                Objetivo = ObtenerValor(indicador, "objetivo"),
-                Alcance = ObtenerValor(indicador, "alcance"),
-                Formula = ObtenerValor(indicador, "formula"),
-                Meta = ObtenerValor(indicador, "meta"),
-                UnidadMedicionId = ObtenerValor(indicador, "fkidunidadmedicion"),
-                FrecuenciaId = ObtenerValor(indicador, "fkidfrecuencia")
-            };
-            ModoEdicion = true;
-            MostrarFormulario = true;
-        }
-        catch (Exception ex)
-        {
-            ManejarError($"Error preparando edición: {ex.Message}");
-        }
+            Id = ObtenerValor(indicador, "id"),  // Capture the database ID
+            Codigo = ObtenerValor(indicador, "codigo"),
+            Nombre = ObtenerValor(indicador, "nombre"),
+            Objetivo = ObtenerValor(indicador, "objetivo"),
+            Alcance = ObtenerValor(indicador, "alcance"),
+            Formula = ObtenerValor(indicador, "formula"),
+            Meta = ObtenerValor(indicador, "meta"),
+            TipoIndicadorId = ObtenerValor(indicador, "fkidtipoindicador"),
+            UnidadMedicionId = ObtenerValor(indicador, "fkidunidadmedicion"),
+            SentidoId = ObtenerValor(indicador, "fkidsentido"),
+            FrecuenciaId = ObtenerValor(indicador, "fkidfrecuencia"),
+            ArticuloId = ObtenerValor(indicador, "fkidarticulo"),
+            LiteralId = ObtenerValor(indicador, "fkidliteral"),
+            NumeralId = ObtenerValor(indicador, "fkidnumeral"),
+            ParagrafoId = ObtenerValor(indicador, "fkidparagrafo")
+        };
+        
+        ModoEdicion = true;
+        MostrarFormulario = true;
+        StateHasChanged(); // Forzar actualización del UI
     }
-
-    private async Task GuardarIndicador()
+    catch (Exception ex)
     {
-        MensajeError = null;
-        MensajeExito = null;
+        MensajeError = $"Error al preparar el formulario de edición: {ex.Message}";
+    }
+}
 
-        if (!ValidarFormulario()) return;
+// Update the GuardarIndicador method to use the ID for updates
+private async Task GuardarIndicador()
+{
+    MensajeError = null;
+    MensajeExito = null;
 
-        var datos = new Dictionary<string, object>
+    try
+    {
+        if (string.IsNullOrWhiteSpace(IndicadorActual.Codigo))
+        {
+            MensajeError = "El código del indicador es obligatorio.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(IndicadorActual.Nombre))
+        {
+            MensajeError = "El nombre del indicador es obligatorio.";
+            return;
+        }
+
+        // Crear el diccionario con los campos para la API
+        var indicadorData = new Dictionary<string, object>
         {
             ["codigo"] = IndicadorActual.Codigo,
             ["nombre"] = IndicadorActual.Nombre,
-            ["objetivo"] = IndicadorActual.Objetivo,
-            ["alcance"] = IndicadorActual.Alcance,
-            ["formula"] = IndicadorActual.Formula,
-            ["meta"] = IndicadorActual.Meta,
-            ["fkidunidadmedicion"] = IndicadorActual.UnidadMedicionId,
-            ["fkidfrecuencia"] = IndicadorActual.FrecuenciaId
+            ["objetivo"] = IndicadorActual.Objetivo ?? "",
+            ["alcance"] = IndicadorActual.Alcance ?? "",
+            ["formula"] = IndicadorActual.Formula ?? "",
+            ["meta"] = IndicadorActual.Meta ?? "",
+            ["fkidtipoindicador"] = string.IsNullOrEmpty(IndicadorActual.TipoIndicadorId) ? null : IndicadorActual.TipoIndicadorId,
+            ["fkidunidadmedicion"] = string.IsNullOrEmpty(IndicadorActual.UnidadMedicionId) ? null : IndicadorActual.UnidadMedicionId,
+            ["fkidsentido"] = string.IsNullOrEmpty(IndicadorActual.SentidoId) ? null : IndicadorActual.SentidoId,
+            ["fkidfrecuencia"] = string.IsNullOrEmpty(IndicadorActual.FrecuenciaId) ? null : IndicadorActual.FrecuenciaId,
+            ["fkidarticulo"] = string.IsNullOrEmpty(IndicadorActual.ArticuloId) ? null : IndicadorActual.ArticuloId,
+            ["fkidliteral"] = string.IsNullOrEmpty(IndicadorActual.LiteralId) ? null : IndicadorActual.LiteralId,
+            ["fkidnumeral"] = string.IsNullOrEmpty(IndicadorActual.NumeralId) ? null : IndicadorActual.NumeralId,
+            ["fkidparagrafo"] = string.IsNullOrEmpty(IndicadorActual.ParagrafoId) ? null : IndicadorActual.ParagrafoId
         };
 
+        bool resultado;
+
+        if (ModoEdicion)
+        {
+            Console.WriteLine($"Actualizando indicador: ID={IndicadorActual.Id}, Código={IndicadorActual.Codigo}, Nombre={IndicadorActual.Nombre}");
+            
+            // Use ID for updates instead of codigo
+            resultado = await ServicioEntidad.ActualizarAsync(
+                NOMBRE_TABLA,
+                "id",  // Use "id" as key field name
+                IndicadorActual.Id,  // Use ID as key value
+                indicadorData  // Data to update
+            );
+            
+            if (resultado) 
+            {
+                MensajeExito = "Indicador actualizado correctamente.";
+            }
+            else
+            {
+                MensajeError = "No se pudo actualizar el indicador.";
+            }
+        }
+        else
+        {
+            Console.WriteLine($"Creando nuevo indicador: Código={IndicadorActual.Codigo}, Nombre={IndicadorActual.Nombre}");
+            
+            resultado = await ServicioEntidad.CrearAsync(
+                NOMBRE_TABLA,
+                indicadorData
+            );
+            
+            if (resultado) 
+            {
+                MensajeExito = $"Indicador creado correctamente con código: {IndicadorActual.Codigo}";
+            }
+            else
+            {
+                MensajeError = "No se pudo crear el indicador.";
+            }
+        }
+
+        if (resultado)
+        {
+            await CargarIndicadores();  // Recargar la lista de indicadores
+            MostrarFormulario = false;  // Cerrar el formulario
+        }
+    }
+    catch (Exception ex)
+    {
+        MensajeError = $"Error: {ex.Message}";
+        Console.WriteLine($"Excepción al guardar indicador: {ex}");
+    }
+}
+    private async Task<List<Dictionary<string, object>>> ObtenerEntidadConReintento(string tabla, int maxIntentos = 3)
+{
+    for (int intento = 1; intento <= maxIntentos; intento++)
+    {
         try
         {
-            bool exito;
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(tabla);
+            if (resultado != null && resultado.Count > 0)
+            {
+                Console.WriteLine($"Tabla {tabla} cargada con éxito en intento {intento}: {resultado.Count} registros");
+                return resultado;
+            }
             
-            if (ModoEdicion)
-            {
-                exito = await ServicioEntidad.ActualizarAsync(
-                    NOMBRE_TABLA,
-                    "id",
-                    IndicadorActual.Id,
-                    datos
-                );
-            }
-            else
-            {
-                exito = await ServicioEntidad.CrearAsync(NOMBRE_TABLA, datos);
-            }
-
-            if (exito)
-            {
-                MensajeExito = $"Indicador {(ModoEdicion ? "actualizado" : "creado")} correctamente";
-                await CargarDatosIniciales();
-                MostrarFormulario = false;
-            }
-            else
-            {
-                MensajeError = "Operación no realizada. Verifique los datos.";
-            }
+            Console.WriteLine($"Intento {intento}: No se encontraron datos para {tabla}");
+            
+            if (intento < maxIntentos)
+                await Task.Delay(500); // Esperar medio segundo antes de reintentar
         }
         catch (Exception ex)
         {
-            ManejarError($"Error guardando indicador: {ex.Message}");
+            Console.WriteLine($"Error en intento {intento} para {tabla}: {ex.Message}");
+            if (intento < maxIntentos)
+                await Task.Delay(500);
         }
     }
+    
+    // Si llegamos aquí, fallaron todos los intentos
+    Console.WriteLine($"Fallaron todos los intentos para cargar {tabla}");
+    return new List<Dictionary<string, object>>();
+}
 
-    private bool ValidarFormulario()
+    private void CerrarFormulario()
     {
-        var errores = new List<string>();
-        
-        if (string.IsNullOrWhiteSpace(IndicadorActual.Codigo))
-            errores.Add("Código es requerido");
-        
-        if (string.IsNullOrWhiteSpace(IndicadorActual.Nombre))
-            errores.Add("Nombre es requerido");
-        
-        if (string.IsNullOrWhiteSpace(IndicadorActual.UnidadMedicionId))
-            errores.Add("Debe seleccionar una unidad de medición");
-        
-        if (string.IsNullOrWhiteSpace(IndicadorActual.FrecuenciaId))
-            errores.Add("Debe seleccionar una frecuencia");
+        MostrarFormulario = false;
+    }
 
-        if (errores.Any())
+   private void ConfirmarEliminar(Dictionary<string, object> indicador)
+{
+    IndicadorEliminar = new IndicadorModel
+    {
+        Id = ObtenerValor(indicador, "id"),  
+        Codigo = ObtenerValor(indicador, "codigo"),
+        Nombre = ObtenerValor(indicador, "nombre")
+    };
+    MostrarConfirmacion = true;
+}
+
+    private void CancelarEliminar()
+    {
+        MostrarConfirmacion = false;
+    }
+
+   private async Task EliminarIndicador()
+{
+    MensajeError = null;
+    MensajeExito = null;
+
+    try
+    {
+        // First delete relations - still using code as foreign key
+        bool relacionesEliminadas = await EliminarRelacionesIndicador(IndicadorEliminar.Codigo);
+        
+        if (!relacionesEliminadas)
         {
-            MensajeError = string.Join(" • ", errores);
+            MensajeError = "No se pudieron eliminar las relaciones del indicador.";
+            MostrarConfirmacion = false;
+            return;
+        }
+
+        // Then delete the indicator using ID
+        var resultado = await ServicioEntidad.EliminarAsync(
+            NOMBRE_TABLA,
+            "id",  // Change to use ID
+            IndicadorEliminar.Id  // Use ID value
+        );
+
+        if (resultado)
+        {
+            MensajeExito = "Indicador y sus relaciones eliminados correctamente.";
+            await CargarIndicadores();
+        }
+        else
+        {
+            MensajeError = "No se pudo eliminar el indicador.";
+        }
+
+        MostrarConfirmacion = false;
+    }
+    catch (Exception ex)
+    {
+        MensajeError = $"Error al eliminar el indicador: {ex.Message}";
+        MostrarConfirmacion = false;
+    }
+}
+    private async Task<bool> EliminarRelacionesIndicador(string codigoIndicador)
+    {
+        try
+        {
+            return await ServicioEntidad.EliminarAsync(
+                TABLA_RELACIONES,
+                CAMPO_INDICADOR_EN_RELACIONES,
+                codigoIndicador
+            );
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al eliminar relaciones: {ex.Message}";
             return false;
         }
-        return true;
     }
 
-    private void ConfirmarEliminar(Dictionary<string, object> indicador)
-    {
-        IndicadorEliminar = new()
-        {
-            Id = ObtenerValor(indicador, "id"),
-            Nombre = ObtenerValor(indicador, "nombre")
-        };
-        MostrarConfirmacion = true;
-    }
-
-    private async Task EliminarIndicador()
-    {
-        try
-        {
-            // Eliminar relaciones primero
-            var exitoRelaciones = await ServicioEntidad.EliminarAsync(
-                TABLA_RELACIONES,
-                CAMPO_INDICADOR_RELACION,
-                IndicadorEliminar.Id
-            );
-
-            if (!exitoRelaciones)
-            {
-                ManejarError("No se pudieron eliminar las relaciones");
-                return;
-            }
-
-            // Eliminar indicador
-            var exito = await ServicioEntidad.EliminarAsync(
-                NOMBRE_TABLA,
-                "id",
-                IndicadorEliminar.Id
-            );
-
-            if (exito)
-            {
-                MensajeExito = "Indicador eliminado con éxito";
-                await CargarDatosIniciales();
-                MostrarConfirmacion = false;
-            }
-            else
-            {
-                ManejarError("No se pudo eliminar el indicador");
-            }
-        }
-        catch (Exception ex)
-        {
-            ManejarError($"Error eliminando: {ex.Message}");
-        }
-    }
-
-    private void CerrarFormulario() => MostrarFormulario = false;
-    private void CancelarEliminar() => MostrarConfirmacion = false;
-    
-    private void ManejarError(string mensaje)
-    {
-        MensajeError = mensaje;
-        MensajeExito = null;
-        StateHasChanged();
-    }
-
-    private class IndicadorModel
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Codigo { get; set; } = string.Empty;
-        public string Nombre { get; set; } = string.Empty;
-        public string Objetivo { get; set; } = string.Empty;
-        public string Alcance { get; set; } = string.Empty;
-        public string Formula { get; set; } = string.Empty;
-        public string Meta { get; set; } = string.Empty;
-        public string UnidadMedicionId { get; set; } = string.Empty;
-        public string FrecuenciaId { get; set; } = string.Empty;
-    }
-
-    private class EntidadSelect
+    // Modelos
+   private class IndicadorModel
+{
+    public string Id { get; set; } = string.Empty;  
+    public string Codigo { get; set; } = string.Empty;
+    public string Nombre { get; set; } = string.Empty;
+    public string? Objetivo { get; set; } = string.Empty;
+    public string? Alcance { get; set; } = string.Empty;
+    public string? Formula { get; set; } = string.Empty;
+    public string? Meta { get; set; } = string.Empty;
+    public string TipoIndicadorId { get; set; } = string.Empty;
+    public string UnidadMedicionId { get; set; } = string.Empty;
+    public string SentidoId { get; set; } = string.Empty;
+    public string FrecuenciaId { get; set; } = string.Empty;
+    public string? ArticuloId { get; set; } = string.Empty;
+    public string? LiteralId { get; set; } = string.Empty;
+    public string? NumeralId { get; set; } = string.Empty;
+    public string? ParagrafoId { get; set; } = string.Empty;
+}
+    private class EntidadSelectModel
     {
         public string Id { get; set; } = string.Empty;
         public string Nombre { get; set; } = string.Empty;
+    }
+    private class RelacionModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string descripcion { get; set; } = string.Empty;
     }
 }

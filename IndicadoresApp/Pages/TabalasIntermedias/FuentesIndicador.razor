@@ -30,7 +30,9 @@ else
             <thead>
                 <tr>
                     <th>ID Fuente</th>
+                    <th>Fuente</th>
                     <th>ID Indicador</th>
+                    <th>Indicador</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -39,7 +41,9 @@ else
                 {
                     <tr>
                         <td>@ObtenerValor(relacion, "fkidfuente")</td>
+                        <td>@ObtenerNombreFuente(ObtenerValor(relacion, "fkidfuente"))</td>
                         <td>@ObtenerValor(relacion, "fkidindicador")</td>
+                        <td>@ObtenerNombreIndicador(ObtenerValor(relacion, "fkidindicador"))</td>
                         <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(relacion)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(relacion)">Eliminar</button>
@@ -58,13 +62,36 @@ else
               OnSave="GuardarRelacion">
     <BodyContent>
         <div class="mb-3">
-            <label for="idFuente" class="form-label">ID Fuente</label>
-            <input type="number" class="form-control" id="idFuente" @bind="RelacionActual.IdFuente" />
+            <label for="idFuente" class="form-label">Fuente</label>
+            <select class="form-select" id="idFuente" @bind="RelacionActual.IdFuente">
+                <option value="0">Seleccione una fuente</option>
+                @if (FuentesDisponibles != null)
+                {
+                    @foreach (var fuente in FuentesDisponibles)
+                    {
+                        <option value="@fuente.Id">@fuente.Nombre</option>
+                    }
+                }
+            </select>
         </div>
         <div class="mb-3">
-            <label for="idIndicador" class="form-label">ID Indicador</label>
-            <input type="number" class="form-control" id="idIndicador" @bind="RelacionActual.IdIndicador" />
+            <label for="idIndicador" class="form-label">Indicador</label>
+            <select class="form-select" id="idIndicador" @bind="RelacionActual.IdIndicador">
+                <option value="0">Seleccione un indicador</option>
+                @if (IndicadoresDisponibles != null)
+                {
+                    @foreach (var indicador in IndicadoresDisponibles)
+                    {
+                        <option value="@indicador.Id">@indicador.Nombre</option>
+                    }
+                }
+            </select>
         </div>
+        @if (ModoEdicion)
+        {
+            <input type="hidden" @bind="RelacionOriginal.IdFuente" />
+            <input type="hidden" @bind="RelacionOriginal.IdIndicador" />
+        }
     </BodyContent>
 </ModalGenerico>
 
@@ -74,7 +101,7 @@ else
               Title="Confirmar eliminación" 
               OnSave="EliminarRelacion">
     <BodyContent>
-        <p>¿Está seguro que desea eliminar esta relación entre Fuente (ID: @RelacionAEliminar.IdFuente) e Indicador (ID: @RelacionAEliminar.IdIndicador)?</p>
+        <p>¿Está seguro que desea eliminar esta relación entre Fuente (@ObtenerNombreFuente(RelacionAEliminar.IdFuente.ToString())) e Indicador (@ObtenerNombreIndicador(RelacionAEliminar.IdIndicador.ToString()))?</p>
     </BodyContent>
 </ModalGenerico>
 
@@ -82,6 +109,7 @@ else
 {
     <div class="alert alert-danger">
         Error: @MensajeError
+        <button type="button" class="btn-close float-end" @onclick="() => MensajeError = null"></button>
     </div>
 }
 
@@ -89,11 +117,14 @@ else
 {
     <div class="alert alert-success">
         @MensajeExito
+        <button type="button" class="btn-close float-end" @onclick="() => MensajeExito = null"></button>
     </div>
 }
 
 @code {
     private const string NOMBRE_TABLA = "fuentesporindicador";
+    private const string TABLA_FUENTES = "fuente";
+    private const string TABLA_INDICADORES = "indicador";
     
     private List<Dictionary<string, object>> FuentesPorIndicador { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
@@ -102,15 +133,37 @@ else
 
     private bool ModoEdicion { get; set; } = false;
     private RelacionModel RelacionActual { get; set; } = new();
+    private RelacionModel RelacionOriginal { get; set; } = new(); // Para guardar el estado inicial en edición
     private ModalGenerico? modalFormulario;
     private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Relación Fuente-Indicador";
 
     private RelacionModel RelacionAEliminar { get; set; } = new();
     private ModalGenerico? modalConfirmacion;
 
+    // Datos para los selectores
+    private List<ItemSelectModel> FuentesDisponibles { get; set; } = new();
+    private List<ItemSelectModel> IndicadoresDisponibles { get; set; } = new();
+
+    // Para identificación única de relaciones
+    private string? IdRelacionSeleccionada { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        await CargarFuentesPorIndicador();
+        await CargarDatosIniciales();
+    }
+
+    private async Task CargarDatosIniciales()
+    {
+        try {
+            // Cargar las fuentes e indicadores para tener la referencia
+            await CargarFuentes();
+            await CargarIndicadores();
+            // Luego cargar las relaciones
+            await CargarFuentesPorIndicador();
+        }
+        catch (Exception ex) {
+            MensajeError = $"Error cargando datos iniciales: {ex.Message}";
+        }
     }
 
     private async Task CargarFuentesPorIndicador()
@@ -121,6 +174,12 @@ else
         try
         {
             FuentesPorIndicador = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
+            
+            // Para debug: mostrar las claves disponibles en la primera relación
+            if (FuentesPorIndicador.Count > 0)
+            {
+                Console.WriteLine("Claves disponibles en relación: " + string.Join(", ", FuentesPorIndicador[0].Keys));
+            }
         }
         catch (Exception ex)
         {
@@ -130,28 +189,110 @@ else
         finally
         {
             EstamosCargando = false;
+            StateHasChanged(); // Forzar actualización del UI
         }
+    }
+
+    private async Task CargarFuentes()
+    {
+        try
+        {
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA_FUENTES);
+            FuentesDisponibles = resultado.Select(f => new ItemSelectModel
+            {
+                Id = Convert.ToInt32(ObtenerValor(f, "id")),
+                Nombre = ObtenerValor(f, "nombre")
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error cargando fuentes: {ex.Message}";
+        }
+    }
+
+    private async Task CargarIndicadores()
+    {
+        try
+        {
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA_INDICADORES);
+            IndicadoresDisponibles = resultado.Select(i => new ItemSelectModel
+            {
+                Id = Convert.ToInt32(ObtenerValor(i, "id")),
+                Nombre = ObtenerValor(i, "nombre")
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error cargando indicadores: {ex.Message}";
+        }
+    }
+
+    private string ObtenerNombreFuente(string id)
+    {
+        if (string.IsNullOrEmpty(id) || !int.TryParse(id, out int idNumerico))
+        {
+            return "No asignado";
+        }
+        
+        var fuente = FuentesDisponibles.FirstOrDefault(f => f.Id == idNumerico);
+        return fuente?.Nombre ?? "Desconocido";
+    }
+
+    private string ObtenerNombreIndicador(string id)
+    {
+        if (string.IsNullOrEmpty(id) || !int.TryParse(id, out int idNumerico))
+        {
+            return "No asignado";
+        }
+        
+        var indicador = IndicadoresDisponibles.FirstOrDefault(i => i.Id == idNumerico);
+        return indicador?.Nombre ?? "Desconocido";
     }
 
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        return diccionario.TryGetValue(clave, out var valor) ? valor?.ToString() ?? string.Empty : string.Empty;
+        if (diccionario == null)
+        {
+            return string.Empty;
+        }
+
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        else
+        {
+            return string.Empty;
+        }
     }
 
     private async Task MostrarFormularioCrear()
     {
         RelacionActual = new RelacionModel();
+        RelacionOriginal = new RelacionModel();
         ModoEdicion = false;
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> relacion)
     {
-        RelacionActual = new RelacionModel
+        // Almacenar los valores originales para saber qué eliminar
+        RelacionOriginal = new RelacionModel
         {
             IdFuente = Convert.ToInt32(ObtenerValor(relacion, "fkidfuente")),
             IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador"))
         };
+        
+        // Establecer los valores actuales para la edición
+        RelacionActual = new RelacionModel
+        {
+            IdFuente = RelacionOriginal.IdFuente,
+            IdIndicador = RelacionOriginal.IdIndicador
+        };
+        
+        // Verificar si hay un ID de relación disponible
+        IdRelacionSeleccionada = ObtenerValor(relacion, "id");
+        
         ModoEdicion = true;
         await modalFormulario.ShowModalAsync();
     }
@@ -163,13 +304,109 @@ else
             IdFuente = Convert.ToInt32(ObtenerValor(relacion, "fkidfuente")),
             IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador"))
         };
+        
+        // Verificar si hay un ID de relación disponible
+        IdRelacionSeleccionada = ObtenerValor(relacion, "id");
+        
         await modalConfirmacion.ShowModalAsync();
     }
 
     private async Task GuardarRelacion()
-     {
-        
-     }
+    {
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            // Validaciones
+            if (RelacionActual.IdFuente <= 0)
+            {
+                MensajeError = "Debe seleccionar una fuente.";
+                return;
+            }
+
+            if (RelacionActual.IdIndicador <= 0)
+            {
+                MensajeError = "Debe seleccionar un indicador.";
+                return;
+            }
+
+            // Crear el diccionario con los campos correctos para la API
+            var relacionData = new Dictionary<string, object>
+            {
+                ["fkidfuente"] = RelacionActual.IdFuente,
+                ["fkidindicador"] = RelacionActual.IdIndicador
+            };
+
+            bool resultado;
+
+            if (ModoEdicion)
+            {
+                // Método 1: Si la tabla tiene un ID primario único
+                if (!string.IsNullOrEmpty(IdRelacionSeleccionada))
+                {
+                    resultado = await ServicioEntidad.ActualizarAsync(
+                        NOMBRE_TABLA,
+                        "id",  // Campo ID
+                        IdRelacionSeleccionada,  // Valor del ID
+                        relacionData
+                    );
+                }
+                // Método 2: Enfoque eliminar y crear de nuevo
+                else
+                {
+                    // Primero intentamos eliminar la relación original
+                    await EliminarRelacionExistente();
+                    
+                    // Luego creamos la nueva relación
+                    resultado = await ServicioEntidad.CrearAsync(
+                        NOMBRE_TABLA,
+                        relacionData
+                    );
+                }
+                
+                if (resultado) 
+                {
+                    MensajeExito = "Relación actualizada correctamente.";
+                }
+                else
+                {
+                    MensajeError = "No se pudo actualizar la relación.";
+                }
+            }
+            else
+            {
+                resultado = await ServicioEntidad.CrearAsync(
+                    NOMBRE_TABLA,
+                    relacionData
+                );
+                
+                if (resultado) 
+                {
+                    MensajeExito = "Relación creada correctamente.";
+                }
+                else
+                {
+                    MensajeError = "No se pudo crear la relación.";
+                }
+            }
+
+            if (resultado)
+            {
+                await CargarFuentesPorIndicador();
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error: {ex.Message}";
+            Console.WriteLine($"Excepción al guardar relación: {ex}");
+        }
+    }
+
+    private async Task EliminarRelacionExistente()
+    {
+       
+    }
 
     private async Task EliminarRelacion()
     {
@@ -180,5 +417,11 @@ else
     {
         public int IdFuente { get; set; }
         public int IdIndicador { get; set; }
+    }
+
+    private class ItemSelectModel
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
     }
 }

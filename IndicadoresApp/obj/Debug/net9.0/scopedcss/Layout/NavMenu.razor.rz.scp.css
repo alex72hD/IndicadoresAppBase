@@ -19,6 +19,13 @@
     margin-right: 0.75rem;
     top: -1px;
     background-size: cover;
+    color: #adb5bd; /* Color más tenue para los iconos */
+    transition: color 0.3s ease;
+}
+
+.nav-item[b-5p22zz90aw]  a:hover .bi,
+.nav-item[b-5p22zz90aw]  a.active .bi {
+    color: #ffffff; /* Iconos blancos al pasar el ratón o estar activo */
 }
 
 .bi-house-door-fill-nav-menu[b-5p22zz90aw] {
@@ -53,11 +60,13 @@
         display: flex;
         align-items: center;
         line-height: 3rem;
+        transition: background-color 0.3s ease, color 0.3s ease; /* Transiciones suaves */
     }
 
 .nav-item[b-5p22zz90aw]  a.active {
     background-color: rgba(255,255,255,0.37);
     color: white;
+    font-weight: 500; /* Ligeramente más grueso el texto activo */
 }
 
 .nav-item[b-5p22zz90aw]  a:hover {
@@ -79,5 +88,73 @@
         /* Allow sidebar to scroll for tall menus */
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
+        background-color: #343a40; /* Un fondo oscuro para el menú */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Una sutil sombra */
+    }
+}
+
+/* Estilos para los dropdowns */
+.dropdown-toggle[b-5p22zz90aw]::after {
+    display: inline-block;
+    margin-left: 0.5em;
+    vertical-align: 0.255em;
+    content: "";
+    border-top: 0.3em solid;
+    border-right: 0.3em solid transparent;
+    border-bottom: 0;
+    border-left: 0.3em solid transparent;
+    transition: transform 0.2s ease-in-out; /* Animación para la flecha */
+}
+
+.dropdown-toggle.show[b-5p22zz90aw]::after {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu[b-5p22zz90aw] {
+    background-color: #495057; /* Fondo oscuro para el dropdown */
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada */
+    padding: 0.5rem 0;
+}
+
+.dropdown-item[b-5p22zz90aw] {
+    color: #e9ecef;
+    padding: 0.75rem 1.5rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dropdown-item:hover[b-5p22zz90aw] {
+    background-color: #343a40; /* Oscurecer el item al pasar el ratón */
+    color: #ffffff;
+}
+
+.dropdown-item.active[b-5p22zz90aw] {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+/* Ajustes para pantallas más grandes (opcional, si quieres más espacio) */
+@media (min-width: 992px) {
+    .nav-item[b-5p22zz90aw] {
+        padding-bottom: 0.75rem;
+    }
+
+    .nav-item:first-of-type[b-5p22zz90aw] {
+        padding-top: 1.5rem;
+    }
+
+    .nav-item:last-of-type[b-5p22zz90aw] {
+        padding-bottom: 1.5rem;
+    }
+
+    .nav-item[b-5p22zz90aw]  a {
+        font-size: 1rem;
+        height: 3.5rem;
+        line-height: 3.5rem;
+    }
+
+    .bi[b-5p22zz90aw] {
+        font-size: 1.3rem;
+        margin-right: 1rem;
     }
 }

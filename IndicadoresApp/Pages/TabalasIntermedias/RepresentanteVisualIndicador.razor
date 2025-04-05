@@ -29,19 +29,24 @@ else
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>IdIndicador</th>
-                    <th>IdRepresentanteVisual</th>
+                    <th>ID Indicador</th>
+                    <th>Indicador</th>
+                    <th>ID Representante Visual</th>
+                    <th>Representante Visual</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var variable in Representantes)
+                @foreach (var relacion in Representantes)
                 {
                     <tr>
-                        <td>@ObtenerValor(variable, "fkidindicador")</td>
-                        <td>@ObtenerValor(variable, "fkidrepresenvisual")</td>
+                        <td>@ObtenerValor(relacion, "fkidindicador")</td>
+                        <td>@ObtenerNombreIndicador(ObtenerValor(relacion, "fkidindicador"))</td>
+                        <td>@ObtenerValor(relacion, "fkidrepresenvisual")</td>
+                        <td>@ObtenerNombreRepresentante(ObtenerValor(relacion, "fkidrepresenvisual"))</td>
                         <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(variable)">Eliminar</button>
+                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(relacion)">Editar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(relacion)">Eliminar</button>
                         </td>
                     </tr>
                 }
@@ -50,20 +55,43 @@ else
     </div>
 }
 
-<!-- Modal para crear/editar variable -->
+<!-- Modal para crear/editar relación -->
 <ModalGenerico @ref="modalFormulario" 
               Id="formModal" 
               Title="@TituloModal" 
-              OnSave="GuardarVariable">
+              OnSave="GuardarRelacion">
     <BodyContent>
         <div class="mb-3">
-            <label for="nombre" class="form-label">Nombre</label>
-            <input type="text" class="form-control" id="nombre" @bind="VariableActual.Nombre" />
+            <label for="idIndicador" class="form-label">Indicador</label>
+            <select class="form-select" id="idIndicador" @bind="RelacionActual.IdIndicador">
+                <option value="0">Seleccione un indicador</option>
+                @if (IndicadoresDisponibles != null)
+                {
+                    @foreach (var indicador in IndicadoresDisponibles)
+                    {
+                        <option value="@indicador.Id">@indicador.Nombre</option>
+                    }
+                }
+            </select>
         </div>
         <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" @bind="VariableActual.FkEmail" />
+            <label for="idRepresentante" class="form-label">Representante Visual</label>
+            <select class="form-select" id="idRepresentante" @bind="RelacionActual.IdRepresentanteVisual">
+                <option value="0">Seleccione un representante visual</option>
+                @if (RepresentantesDisponibles != null)
+                {
+                    @foreach (var representante in RepresentantesDisponibles)
+                    {
+                        <option value="@representante.Id">@representante.Nombre</option>
+                    }
+                }
+            </select>
         </div>
+        @if (ModoEdicion)
+        {
+            <input type="hidden" @bind="RelacionOriginal.IdIndicador" />
+            <input type="hidden" @bind="RelacionOriginal.IdRepresentanteVisual" />
+        }
     </BodyContent>
 </ModalGenerico>
 
@@ -71,9 +99,9 @@ else
 <ModalGenerico @ref="modalConfirmacion" 
               Id="confirmModal" 
               Title="Confirmar eliminación" 
-              OnSave="EliminarVariable">
+              OnSave="EliminarRelacion">
     <BodyContent>
-        <p>¿Está seguro que desea eliminar la variable @VariableAEliminar.Nombre?</p>
+        <p>¿Está seguro que desea eliminar esta relación entre Indicador (@ObtenerNombreIndicador(RelacionAEliminar.IdIndicador.ToString())) y Representante Visual (@ObtenerNombreRepresentante(RelacionAEliminar.IdRepresentanteVisual.ToString()))?</p>
     </BodyContent>
 </ModalGenerico>
 
@@ -81,6 +109,7 @@ else
 {
     <div class="alert alert-danger">
         Error: @MensajeError
+        <button type="button" class="btn-close float-end" @onclick="() => MensajeError = null"></button>
     </div>
 }
 
@@ -88,11 +117,14 @@ else
 {
     <div class="alert alert-success">
         @MensajeExito
+        <button type="button" class="btn-close float-end" @onclick="() => MensajeExito = null"></button>
     </div>
 }
 
 @code {
     private const string NOMBRE_TABLA = "represenvisualporindicador";
+    private const string TABLA_INDICADORES = "indicador";
+    private const string TABLA_REPRESENTANTES = "represenvisual";
     
     private List<Dictionary<string, object>> Representantes { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
@@ -100,19 +132,41 @@ else
     private string? MensajeExito { get; set; }
 
     private bool ModoEdicion { get; set; } = false;
-    private VariableModel VariableActual { get; set; } = new();
+    private RelacionModel RelacionActual { get; set; } = new();
+    private RelacionModel RelacionOriginal { get; set; } = new(); // Para guardar el estado inicial en edición
     private ModalGenerico? modalFormulario;
-    private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Variable";
+    private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Relación Indicador-Representante Visual";
 
-    private VariableModel VariableAEliminar { get; set; } = new();
+    private RelacionModel RelacionAEliminar { get; set; } = new();
     private ModalGenerico? modalConfirmacion;
+
+    // Datos para los selectores
+    private List<ItemSelectModel> IndicadoresDisponibles { get; set; } = new();
+    private List<ItemSelectModel> RepresentantesDisponibles { get; set; } = new();
+
+    // Para identificación única de relaciones
+    private string? IdRelacionSeleccionada { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarRepresentantes();
+        await CargarDatosIniciales();
     }
 
-    private async Task CargarRepresentantes()
+    private async Task CargarDatosIniciales()
+    {
+        try {
+            // Cargar los indicadores y representantes para tener la referencia
+            await CargarIndicadores();
+            await CargarRepresentantes();
+            // Luego cargar las relaciones
+            await CargarRelaciones();
+        }
+        catch (Exception ex) {
+            MensajeError = $"Error cargando datos iniciales: {ex.Message}";
+        }
+    }
+
+    private async Task CargarRelaciones()
     {
         EstamosCargando = true;
         MensajeError = null;
@@ -120,65 +174,252 @@ else
         try
         {
             Representantes = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
+            
+            // Para debug: mostrar las claves disponibles en la primera relación
+            if (Representantes.Count > 0)
+            {
+                Console.WriteLine("Claves disponibles en relación: " + string.Join(", ", Representantes[0].Keys));
+            }
         }
         catch (Exception ex)
         {
-            MensajeError = $"Error al cargar Representantes: {ex.Message}";
+            MensajeError = $"Error al cargar relaciones: {ex.Message}";
             Representantes = new List<Dictionary<string, object>>();
         }
         finally
         {
             EstamosCargando = false;
+            StateHasChanged(); // Forzar actualización del UI
         }
+    }
+
+    private async Task CargarIndicadores()
+    {
+        try
+        {
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA_INDICADORES);
+            IndicadoresDisponibles = resultado.Select(i => new ItemSelectModel
+            {
+                Id = Convert.ToInt32(ObtenerValor(i, "id")),
+                Nombre = ObtenerValor(i, "nombre")
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error cargando indicadores: {ex.Message}";
+        }
+    }
+
+    private async Task CargarRepresentantes()
+    {
+        try
+        {
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA_REPRESENTANTES);
+            RepresentantesDisponibles = resultado.Select(r => new ItemSelectModel
+            {
+                Id = Convert.ToInt32(ObtenerValor(r, "id")),
+                Nombre = ObtenerValor(r, "nombre")
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error cargando representantes visuales: {ex.Message}";
+        }
+    }
+
+    private string ObtenerNombreIndicador(string id)
+    {
+        if (string.IsNullOrEmpty(id) || !int.TryParse(id, out int idNumerico))
+        {
+            return "No asignado";
+        }
+        
+        var indicador = IndicadoresDisponibles.FirstOrDefault(i => i.Id == idNumerico);
+        return indicador?.Nombre ?? "Desconocido";
+    }
+
+    private string ObtenerNombreRepresentante(string id)
+    {
+        if (string.IsNullOrEmpty(id) || !int.TryParse(id, out int idNumerico))
+        {
+            return "No asignado";
+        }
+        
+        var representante = RepresentantesDisponibles.FirstOrDefault(r => r.Id == idNumerico);
+        return representante?.Nombre ?? "Desconocido";
     }
 
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        return diccionario.TryGetValue(clave, out var valor) ? valor?.ToString() ?? string.Empty : string.Empty;
+        if (diccionario == null)
+        {
+            return string.Empty;
+        }
+
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        else
+        {
+            return string.Empty;
+        }
     }
 
     private async Task MostrarFormularioCrear()
     {
-        VariableActual = new VariableModel();
+        RelacionActual = new RelacionModel();
+        RelacionOriginal = new RelacionModel();
         ModoEdicion = false;
         await modalFormulario.ShowModalAsync();
     }
 
-    private async Task MostrarFormularioEditar(Dictionary<string, object> variable)
+    private async Task MostrarFormularioEditar(Dictionary<string, object> relacion)
     {
-        VariableActual = new VariableModel
+        // Almacenar los valores originales para saber qué eliminar
+        RelacionOriginal = new RelacionModel
         {
-            Id = Convert.ToInt32(ObtenerValor(variable, "id")),
-            Nombre = ObtenerValor(variable, "Nombre"),
-            FkEmail = ObtenerValor(variable, "fkemail")
+            IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
+            IdRepresentanteVisual = Convert.ToInt32(ObtenerValor(relacion, "fkidrepresenvisual"))
         };
+        
+        // Establecer los valores actuales para la edición
+        RelacionActual = new RelacionModel
+        {
+            IdIndicador = RelacionOriginal.IdIndicador,
+            IdRepresentanteVisual = RelacionOriginal.IdRepresentanteVisual
+        };
+        
+        // Verificar si hay un ID de relación disponible
+        IdRelacionSeleccionada = ObtenerValor(relacion, "id");
+        
         ModoEdicion = true;
         await modalFormulario.ShowModalAsync();
     }
 
-    private async Task ConfirmarEliminar(Dictionary<string, object> variable)
+    private async Task ConfirmarEliminar(Dictionary<string, object> relacion)
     {
-        VariableAEliminar = new VariableModel
+        RelacionAEliminar = new RelacionModel
         {
-            Id = Convert.ToInt32(ObtenerValor(variable, "id")),
-            Nombre = ObtenerValor(variable, "Nombre")
+            IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
+            IdRepresentanteVisual = Convert.ToInt32(ObtenerValor(relacion, "fkidrepresenvisual"))
         };
+        
+        // Verificar si hay un ID de relación disponible
+        IdRelacionSeleccionada = ObtenerValor(relacion, "id");
+        
         await modalConfirmacion.ShowModalAsync();
     }
 
-    private async Task GuardarVariable()
+    private async Task GuardarRelacion()
+    {
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            // Validaciones
+            if (RelacionActual.IdIndicador <= 0)
+            {
+                MensajeError = "Debe seleccionar un indicador.";
+                return;
+            }
+
+            if (RelacionActual.IdRepresentanteVisual <= 0)
+            {
+                MensajeError = "Debe seleccionar un representante visual.";
+                return;
+            }
+
+            // Crear el diccionario con los campos correctos para la API
+            var relacionData = new Dictionary<string, object>
+            {
+                ["fkidindicador"] = RelacionActual.IdIndicador,
+                ["fkidrepresenvisual"] = RelacionActual.IdRepresentanteVisual
+            };
+
+            bool resultado;
+
+            if (ModoEdicion)
+            {
+                // Método 1: Si la tabla tiene un ID primario único
+                if (!string.IsNullOrEmpty(IdRelacionSeleccionada))
+                {
+                    resultado = await ServicioEntidad.ActualizarAsync(
+                        NOMBRE_TABLA,
+                        "id",  // Campo ID
+                        IdRelacionSeleccionada,  // Valor del ID
+                        relacionData
+                    );
+                }
+                // Método 2: Enfoque eliminar y crear de nuevo
+                else
+                {
+                    // Primero intentamos eliminar la relación original
+                    await EliminarRelacionExistente();
+                    
+                    // Luego creamos la nueva relación
+                    resultado = await ServicioEntidad.CrearAsync(
+                        NOMBRE_TABLA,
+                        relacionData
+                    );
+                }
+                
+                if (resultado) 
+                {
+                    MensajeExito = "Relación actualizada correctamente.";
+                }
+                else
+                {
+                    MensajeError = "No se pudo actualizar la relación.";
+                }
+            }
+            else
+            {
+                resultado = await ServicioEntidad.CrearAsync(
+                    NOMBRE_TABLA,
+                    relacionData
+                );
+                
+                if (resultado) 
+                {
+                    MensajeExito = "Relación creada correctamente.";
+                }
+                else
+                {
+                    MensajeError = "No se pudo crear la relación.";
+                }
+            }
+
+            if (resultado)
+            {
+                await CargarRelaciones();
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error: {ex.Message}";
+            Console.WriteLine($"Excepción al guardar relación: {ex}");
+        }
+    }
+
+    private async Task EliminarRelacionExistente()
     {
     }
 
-    private async Task EliminarVariable()
+    private async Task EliminarRelacion()
     {
     }
 
-    private class VariableModel
+    private class RelacionModel
+    {
+        public int IdIndicador { get; set; }
+        public int IdRepresentanteVisual { get; set; }
+    }
+
+    private class ItemSelectModel
     {
         public int Id { get; set; }
-        public string FechaCreacion { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         public string Nombre { get; set; } = string.Empty;
-        public string FkEmail { get; set; } = string.Empty;
     }
 }

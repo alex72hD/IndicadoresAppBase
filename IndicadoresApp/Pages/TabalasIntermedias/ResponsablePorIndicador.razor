@@ -30,7 +30,9 @@ else
             <thead>
                 <tr>
                     <th>ID Responsable</th>
+                    <th>Responsable</th>
                     <th>ID Indicador</th>
+                    <th>Indicador</th>
                     <th>Fecha de Asignación</th>
                     <th>Acciones</th>
                 </tr>
@@ -40,7 +42,9 @@ else
                 {
                     <tr>
                         <td>@ObtenerValor(responsable, "fkidresponsable")</td>
+                        <td>@ObtenerNombreResponsable(ObtenerValor(responsable, "fkidresponsable"))</td>
                         <td>@ObtenerValor(responsable, "fkidindicador")</td>
+                        <td>@ObtenerNombreIndicador(ObtenerValor(responsable, "fkidindicador"))</td>
                         <td>@ObtenerValor(responsable, "fechaasignacion")</td>
                         <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(responsable)">Editar</button>
@@ -60,12 +64,30 @@ else
               OnSave="GuardarResponsable">
     <BodyContent>
         <div class="mb-3">
-            <label for="idResponsable" class="form-label">ID Responsable</label>
-            <input type="text" class="form-control" id="idResponsable" @bind="ResponsableActual.FkIdResponsable" />
+            <label for="idResponsable" class="form-label">Responsable</label>
+            <select class="form-select" id="idResponsable" @bind="ResponsableActual.IdResponsable">
+                <option value="0">Seleccione un responsable</option>
+                @if (ResponsablesDisponibles != null)
+                {
+                    @foreach (var responsable in ResponsablesDisponibles)
+                    {
+                        <option value="@responsable.Id">@responsable.Nombre</option>
+                    }
+                }
+            </select>
         </div>
         <div class="mb-3">
-            <label for="idIndicador" class="form-label">ID Indicador</label>
-            <input type="text" class="form-control" id="idIndicador" @bind="ResponsableActual.FkIdIndicador" />
+            <label for="idIndicador" class="form-label">Indicador</label>
+            <select class="form-select" id="idIndicador" @bind="ResponsableActual.IdIndicador">
+                <option value="0">Seleccione un indicador</option>
+                @if (IndicadoresDisponibles != null)
+                {
+                    @foreach (var indicador in IndicadoresDisponibles)
+                    {
+                        <option value="@indicador.Id">@indicador.Nombre</option>
+                    }
+                }
+            </select>
         </div>
         <div class="mb-3">
             <label for="fechaAsignacion" class="form-label">Fecha de Asignación</label>
@@ -73,6 +95,11 @@ else
                    @bind="ResponsableActual.FechaAsignacion" 
                    @bind:format="yyyy-MM-dd" />
         </div>
+        @if (ModoEdicion)
+        {
+            <input type="hidden" @bind="ResponsableOriginal.IdResponsable" />
+            <input type="hidden" @bind="ResponsableOriginal.IdIndicador" />
+        }
     </BodyContent>
 </ModalGenerico>
 
@@ -83,8 +110,8 @@ else
               OnSave="EliminarResponsable">
     <BodyContent>
         <p>¿Está seguro que desea eliminar la asignación del responsable 
-            @ResponsableAEliminar.FkIdResponsable al indicador 
-            @ResponsableAEliminar.FkIdIndicador?</p>
+            @ObtenerNombreResponsable(ResponsableAEliminar.IdResponsable.ToString()) al indicador 
+            @ObtenerNombreIndicador(ResponsableAEliminar.IdIndicador.ToString())?</p>
     </BodyContent>
 </ModalGenerico>
 
@@ -92,6 +119,7 @@ else
 {
     <div class="alert alert-danger">
         Error: @MensajeError
+        <button type="button" class="btn-close float-end" @onclick="() => MensajeError = null"></button>
     </div>
 }
 
@@ -99,140 +127,315 @@ else
 {
     <div class="alert alert-success">
         @MensajeExito
+        <button type="button" class="btn-close float-end" @onclick="() => MensajeExito = null"></button>
     </div>
 }
 
 @code {
     private const string NOMBRE_TABLA = "responsablesporindicador";
+    private const string TABLA_INDICADORES = "indicador";
+    private const string TABLA_RESPONSABLES = "actor";
     
     private List<Dictionary<string, object>> Responsables { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
-    private string MensajeError { get; set; }
-    private string MensajeExito { get; set; }
+    private string? MensajeError { get; set; }
+    private string? MensajeExito { get; set; }
 
-    private bool ModoEdicion { get; set; }
+    private bool ModoEdicion { get; set; } = false;
     private ResponsableModel ResponsableActual { get; set; } = new();
-    private ModalGenerico modalFormulario;
-    private string TituloModal => ModoEdicion ? "Editar Asignación" : "Nueva Asignación";
+    private ResponsableModel ResponsableOriginal { get; set; } = new(); // Para guardar el estado inicial en edición
+    private ModalGenerico? modalFormulario;
+    private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Asignación de Responsable";
 
     private ResponsableModel ResponsableAEliminar { get; set; } = new();
-    private ModalGenerico modalConfirmacion;
+    private ModalGenerico? modalConfirmacion;
+
+    // Datos para los selectores
+    private List<ItemSelectModel> IndicadoresDisponibles { get; set; } = new();
+    private List<ItemSelectModel> ResponsablesDisponibles { get; set; } = new();
+
+    // Para identificación única de relaciones
+    private string? IdAsignacionSeleccionada { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarResponsables();
+        await CargarDatosIniciales();
     }
 
-    private async Task CargarResponsables()
+    private async Task CargarDatosIniciales()
+    {
+        try {
+            // Cargar los indicadores y responsables para tener la referencia
+            await CargarIndicadores();
+            await CargarResponsables();
+            // Luego cargar las relaciones
+            await CargarAsignaciones();
+        }
+        catch (Exception ex) {
+            MensajeError = $"Error cargando datos iniciales: {ex.Message}";
+        }
+    }
+
+    private async Task CargarAsignaciones()
     {
         EstamosCargando = true;
+        MensajeError = null;
+        
         try
         {
-            Responsables = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new();
-            MensajeError = null;
+            Responsables = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
+            
+            // Para debug: mostrar las claves disponibles en la primera relación
+            if (Responsables.Count > 0)
+            {
+                Console.WriteLine("Claves disponibles en relación: " + string.Join(", ", Responsables[0].Keys));
+            }
         }
         catch (Exception ex)
         {
-            MensajeError = $"Error al cargar datos: {ex.Message}";
-            Responsables = new();
+            MensajeError = $"Error al cargar asignaciones: {ex.Message}";
+            Responsables = new List<Dictionary<string, object>>();
         }
         finally
         {
             EstamosCargando = false;
+            StateHasChanged(); // Forzar actualización del UI
         }
+    }
+
+    private async Task CargarIndicadores()
+    {
+        try
+        {
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA_INDICADORES);
+            IndicadoresDisponibles = resultado.Select(i => new ItemSelectModel
+            {
+                Id = Convert.ToInt32(ObtenerValor(i, "id")),
+                Nombre = ObtenerValor(i, "nombre")
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error cargando indicadores: {ex.Message}";
+        }
+    }
+
+    private async Task CargarResponsables()
+    {
+        try
+        {
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA_RESPONSABLES);
+            ResponsablesDisponibles = resultado.Select(r => new ItemSelectModel
+            {
+                Id = Convert.ToInt32(ObtenerValor(r, "id")),
+                Nombre = ObtenerValor(r, "nombre")
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error cargando responsables: {ex.Message}";
+        }
+    }
+
+    private string ObtenerNombreIndicador(string id)
+    {
+        if (string.IsNullOrEmpty(id) || !int.TryParse(id, out int idNumerico))
+        {
+            return "No asignado";
+        }
+        
+        var indicador = IndicadoresDisponibles.FirstOrDefault(i => i.Id == idNumerico);
+        return indicador?.Nombre ?? "Desconocido";
+    }
+
+    private string ObtenerNombreResponsable(string id)
+    {
+        if (string.IsNullOrEmpty(id) || !int.TryParse(id, out int idNumerico))
+        {
+            return "No asignado";
+        }
+        
+        var responsable = ResponsablesDisponibles.FirstOrDefault(r => r.Id == idNumerico);
+        return responsable?.Nombre ?? "Desconocido";
     }
 
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        return diccionario.TryGetValue(clave, out var valor) 
-            ? valor?.ToString() ?? string.Empty 
-            : string.Empty;
+        if (diccionario == null)
+        {
+            return string.Empty;
+        }
+
+        if (diccionario.TryGetValue(clave, out var valor))
+        {
+            return valor?.ToString() ?? string.Empty;
+        }
+        else
+        {
+            return string.Empty;
+        }
     }
 
     private async Task MostrarFormularioCrear()
     {
-        ResponsableActual = new();
+        ResponsableActual = new ResponsableModel();
+        ResponsableOriginal = new ResponsableModel();
         ModoEdicion = false;
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> responsable)
     {
-        ResponsableActual = new()
+        // Almacenar los valores originales para saber qué eliminar
+        ResponsableOriginal = new ResponsableModel
         {
-            FkIdResponsable = ObtenerValor(responsable, "fkidresponsable"),
-            FkIdIndicador = ObtenerValor(responsable, "fkidindicador"),
+            IdResponsable = Convert.ToInt32(ObtenerValor(responsable, "fkidresponsable")),
+            IdIndicador = Convert.ToInt32(ObtenerValor(responsable, "fkidindicador")),
             FechaAsignacion = DateTime.Parse(ObtenerValor(responsable, "fechaasignacion"))
         };
+        
+        // Establecer los valores actuales para la edición
+        ResponsableActual = new ResponsableModel
+        {
+            IdResponsable = ResponsableOriginal.IdResponsable,
+            IdIndicador = ResponsableOriginal.IdIndicador,
+            FechaAsignacion = ResponsableOriginal.FechaAsignacion
+        };
+        
+        // Verificar si hay un ID de relación disponible
+        IdAsignacionSeleccionada = ObtenerValor(responsable, "id");
+        
         ModoEdicion = true;
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task ConfirmarEliminar(Dictionary<string, object> responsable)
     {
-        ResponsableAEliminar = new()
+        ResponsableAEliminar = new ResponsableModel
         {
-            FkIdResponsable = ObtenerValor(responsable, "fkidresponsable"),
-            FkIdIndicador = ObtenerValor(responsable, "fkidindicador")
+            IdResponsable = Convert.ToInt32(ObtenerValor(responsable, "fkidresponsable")),
+            IdIndicador = Convert.ToInt32(ObtenerValor(responsable, "fkidindicador")),
+            FechaAsignacion = DateTime.Parse(ObtenerValor(responsable, "fechaasignacion"))
         };
+        
+        // Verificar si hay un ID de relación disponible
+        IdAsignacionSeleccionada = ObtenerValor(responsable, "id");
+        
         await modalConfirmacion.ShowModalAsync();
     }
 
     private async Task GuardarResponsable()
     {
+        MensajeError = null;
+        MensajeExito = null;
+
         try
         {
-            var datos = new Dictionary<string, object>
+            // Validaciones
+            if (ResponsableActual.IdResponsable <= 0)
             {
-                ["fkidresponsable"] = ResponsableActual.FkIdResponsable,
-                ["fkidindicador"] = ResponsableActual.FkIdIndicador,
+                MensajeError = "Debe seleccionar un responsable.";
+                return;
+            }
+
+            if (ResponsableActual.IdIndicador <= 0)
+            {
+                MensajeError = "Debe seleccionar un indicador.";
+                return;
+            }
+
+            // Crear el diccionario con los campos correctos para la API
+            var responsableData = new Dictionary<string, object>
+            {
+                ["fkidresponsable"] = ResponsableActual.IdResponsable,
+                ["fkidindicador"] = ResponsableActual.IdIndicador,
                 ["fechaasignacion"] = ResponsableActual.FechaAsignacion.ToString("yyyy-MM-dd")
             };
 
-            @* if (ModoEdicion)
+            bool resultado;
+
+            if (ModoEdicion)
             {
-                await ServicioEntidad.ActualizarAsync(NOMBRE_TABLA, datos);
+                // Método 1: Si la tabla tiene un ID primario único
+                if (!string.IsNullOrEmpty(IdAsignacionSeleccionada))
+                {
+                    resultado = await ServicioEntidad.ActualizarAsync(
+                        NOMBRE_TABLA,
+                        "id",  // Campo ID
+                        IdAsignacionSeleccionada,  // Valor del ID
+                        responsableData
+                    );
+                }
+                // Método 2: Enfoque eliminar y crear de nuevo
+                else
+                {
+                    // Primero intentamos eliminar la relación original
+                    await EliminarRelacionExistente();
+                    
+                    // Luego creamos la nueva relación
+                    resultado = await ServicioEntidad.CrearAsync(
+                        NOMBRE_TABLA,
+                        responsableData
+                    );
+                }
+                
+                if (resultado) 
+                {
+                    MensajeExito = "Asignación actualizada correctamente.";
+                }
+                else
+                {
+                    MensajeError = "No se pudo actualizar la asignación.";
+                }
             }
             else
             {
-                await ServicioEntidad.CrearAsync(NOMBRE_TABLA, datos);
-            } *@
+                resultado = await ServicioEntidad.CrearAsync(
+                    NOMBRE_TABLA,
+                    responsableData
+                );
+                
+                if (resultado) 
+                {
+                    MensajeExito = "Asignación creada correctamente.";
+                }
+                else
+                {
+                    MensajeError = "No se pudo crear la asignación.";
+                }
+            }
 
-            MensajeExito = "Operación realizada correctamente";
-            await modalFormulario.HideModalAsync();
-            await CargarResponsables();
+            if (resultado)
+            {
+                await CargarAsignaciones();
+            }
         }
         catch (Exception ex)
         {
             MensajeError = $"Error: {ex.Message}";
+            Console.WriteLine($"Excepción al guardar asignación: {ex}");
         }
+    }
+
+    private async Task EliminarRelacionExistente()
+    {
     }
 
     private async Task EliminarResponsable()
     {
-        try
-        {
-            var datos = new Dictionary<string, object>
-            {
-                ["fkidresponsable"] = ResponsableAEliminar.FkIdResponsable,
-                ["fkidindicador"] = ResponsableAEliminar.FkIdIndicador
-            };
-
-            @* await ServicioEntidad.EliminarAsync(NOMBRE_TABLA, datos); *@
-            MensajeExito = "Asignación eliminada correctamente";
-            await modalConfirmacion.HideModalAsync();
-            await CargarResponsables();
-        }
-        catch (Exception ex)
-        {
-            MensajeError = $"Error: {ex.Message}";
-        }
+       
     }
 
     private class ResponsableModel
     {
-        public string FkIdResponsable { get; set; } = string.Empty;
-        public string FkIdIndicador { get; set; } = string.Empty;
+        public int IdResponsable { get; set; }
+        public int IdIndicador { get; set; }
         public DateTime FechaAsignacion { get; set; } = DateTime.Today;
+    }
+
+    private class ItemSelectModel
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
     }
 }
