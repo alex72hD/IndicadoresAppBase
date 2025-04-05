@@ -1075,10 +1075,10 @@ C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\IndicadoresApp.p
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\ref\IndicadoresApp.dll
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\opxl28z7px-1sw9dpdrgl.gz
 C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\5lnszgwcsl-1sw9dpdrgl.gz
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.8sx57tl4ek.pdb
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.097trv28ri.wasm
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.097trv28ri.wasm.gz
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.8sx57tl4ek.pdb.gz
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\uf2t8xckiu-097trv28ri.gz
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\vwni4iy9um-8sx57tl4ek.gz
-C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\czf4ljc4f7-lcwedqwidw.gz
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.1u7i24dhpy.pdb
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.da6y9m209m.wasm
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.da6y9m209m.wasm.gz
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\bin\Debug\net9.0\wwwroot\_framework\IndicadoresApp.1u7i24dhpy.pdb.gz
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\uf2t8xckiu-da6y9m209m.gz
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\vwni4iy9um-1u7i24dhpy.gz
+C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\obj\Debug\net9.0\compressed\czf4ljc4f7-pd6nr0wpoz.gz

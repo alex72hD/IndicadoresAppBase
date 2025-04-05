@@ -331,62 +331,61 @@ else
                 return;
             }
 
-            // Crear el diccionario con los campos correctos para la API
-            var relacionData = new Dictionary<string, object>
-            {
-                ["fkidfuente"] = RelacionActual.IdFuente,
-                ["fkidindicador"] = RelacionActual.IdIndicador
-            };
-
             bool resultado;
 
             if (ModoEdicion)
             {
-                // Método 1: Si la tabla tiene un ID primario único
-                if (!string.IsNullOrEmpty(IdRelacionSeleccionada))
+                // Usando procedimiento almacenado para actualizar
+                var parametros = new Dictionary<string, object>
                 {
-                    resultado = await ServicioEntidad.ActualizarAsync(
-                        NOMBRE_TABLA,
-                        "id",  // Campo ID
-                        IdRelacionSeleccionada,  // Valor del ID
-                        relacionData
-                    );
-                }
-                // Método 2: Enfoque eliminar y crear de nuevo
-                else
+                    ["id_original"] = !string.IsNullOrEmpty(IdRelacionSeleccionada) ? 
+                                      Convert.ToInt32(IdRelacionSeleccionada) : 0,
+                    ["id_fuente_original"] = RelacionOriginal.IdFuente,
+                    ["id_indicador_original"] = RelacionOriginal.IdIndicador,
+                    ["id_fuente_nuevo"] = RelacionActual.IdFuente,
+                    ["id_indicador_nuevo"] = RelacionActual.IdIndicador
+                };
+
+                var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                    NOMBRE_TABLA,
+                    "actualizar_fuente_indicador",
+                    parametros
+                );
+
+                if (respuesta != null)
                 {
-                    // Primero intentamos eliminar la relación original
-                    await EliminarRelacionExistente();
-                    
-                    // Luego creamos la nueva relación
-                    resultado = await ServicioEntidad.CrearAsync(
-                        NOMBRE_TABLA,
-                        relacionData
-                    );
-                }
-                
-                if (resultado) 
-                {
+                    resultado = true;
                     MensajeExito = "Relación actualizada correctamente.";
                 }
                 else
                 {
+                    resultado = false;
                     MensajeError = "No se pudo actualizar la relación.";
                 }
             }
             else
             {
-                resultado = await ServicioEntidad.CrearAsync(
-                    NOMBRE_TABLA,
-                    relacionData
-                );
-                
-                if (resultado) 
+                // Usando procedimiento almacenado para crear
+                var parametros = new Dictionary<string, object>
                 {
+                    ["id_fuente"] = RelacionActual.IdFuente,
+                    ["id_indicador"] = RelacionActual.IdIndicador
+                };
+
+                var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                    NOMBRE_TABLA,
+                    "insertar_fuente_por_indicador2",
+                    parametros
+                );
+
+                if (respuesta != null)
+                {
+                    resultado = true;
                     MensajeExito = "Relación creada correctamente.";
                 }
                 else
                 {
+                    resultado = false;
                     MensajeError = "No se pudo crear la relación.";
                 }
             }
@@ -405,12 +404,104 @@ else
 
     private async Task EliminarRelacionExistente()
     {
-       
+        try
+        {
+            // Si tenemos un ID único para la relación, lo usamos
+            if (!string.IsNullOrEmpty(IdRelacionSeleccionada))
+            {
+                var parametros = new Dictionary<string, object>
+                {
+                    ["id"] = Convert.ToInt32(IdRelacionSeleccionada)
+                };
+
+                await ServicioEntidad.EjecutarProcedimientoAsync(
+                    NOMBRE_TABLA,
+                    "eliminar_fuente_indicador_por_id",
+                    parametros
+                );
+            }
+            else
+            {
+                // De lo contrario, eliminamos por la combinación fuente-indicador
+                var parametros = new Dictionary<string, object>
+                {
+                    ["id_fuente"] = RelacionOriginal.IdFuente,
+                    ["id_indicador"] = RelacionOriginal.IdIndicador
+                };
+
+                await ServicioEntidad.EjecutarProcedimientoAsync(
+                    NOMBRE_TABLA,
+                    "eliminar_fuente_indicador",
+                    parametros
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al eliminar relación existente: {ex.Message}";
+            throw; // Relanzar para que lo maneje el método llamador
+        }
     }
 
     private async Task EliminarRelacion()
     {
-       
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            // Usar procedimiento almacenado para eliminar
+            var parametros = new Dictionary<string, object>();
+            
+            // Si tenemos un ID único para la relación, lo usamos
+            if (!string.IsNullOrEmpty(IdRelacionSeleccionada))
+            {
+                parametros["id"] = Convert.ToInt32(IdRelacionSeleccionada);
+                
+                var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                    NOMBRE_TABLA,
+                    "eliminar_fuente_indicador_por_id",
+                    parametros
+                );
+                
+                if (respuesta != null)
+                {
+                    MensajeExito = "Relación eliminada correctamente.";
+                    await CargarFuentesPorIndicador();
+                }
+                else
+                {
+                    MensajeError = "No se pudo eliminar la relación.";
+                }
+            }
+            else
+            {
+                // De lo contrario, eliminamos por la combinación fuente-indicador
+                parametros["id_fuente"] = RelacionAEliminar.IdFuente;
+                parametros["id_indicador"] = RelacionAEliminar.IdIndicador;
+                
+                var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                    NOMBRE_TABLA,
+                    "eliminar_fuente_indicador",
+                    parametros
+                );
+                
+                if (respuesta != null)
+                {
+                    MensajeExito = "Relación eliminada correctamente.";
+                    await CargarFuentesPorIndicador();
+                }
+                else
+                {
+                    MensajeError = "No se pudo eliminar la relación.";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al eliminar la relación: {ex.Message}";
+            Console.WriteLine($"Excepción al eliminar relación: {ex}");
+        }
     }
 
     private class RelacionModel
