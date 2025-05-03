@@ -1,16 +1,91 @@
-﻿@inherits LayoutComponentBase
+﻿<!-- Indica que esta clase hereda de LayoutComponentBase -->
+<!-- LayoutComponentBase es la clase base para todos los componentes de diseño en Blazor -->
+<!-- Proporciona la propiedad Body para insertar el contenido de la página actual -->
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime  // Inyectar el servicio de JavaScript Runtime para interactuar con sessionStorage
+
+<!-- Contenedor principal que envuelve toda la página -->
 <div class="page">
+    <!-- Panel lateral (sidebar) que contiene el menú de navegación -->
     <div class="sidebar">
+        <!-- Componente NavMenu que define el menú de navegación principal -->
+        <!-- Este componente está definido en NavMenu.razor -->
         <NavMenu />
     </div>
 
+    <!-- Área principal del contenido -->
     <main>
+        <!-- Barra superior con padding horizontal (px-4) -->
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <!-- Enlace "About" que abre la documentación oficial de ASP.NET Core en una nueva pestaña -->
+            <a class="me-4" href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            
+            @if (string.IsNullOrEmpty(UserName))
+            {
+                <button class="btn btn-primary" @onclick="PageLogin">
+                    Iniciar Sesión
+                </button>
+            }
+            else
+            {
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" @onclick="ToggleDropdown">
+                        @UserName
+                    </button>
+                    @if (showDropdown)
+                    {
+                        <div class="dropdown-menu show">
+                            <button class="dropdown-item" @onclick="PageProfile">Perfil</button>
+                            <button class="dropdown-item" @onclick="PageLogout">Logout</button>
+                        </div>
+                    }
+                </div>
+            }
+
         </div>
 
+        <!-- Contenedor del contenido principal con padding horizontal (px-4) -->
         <article class="content px-4">
+            <!-- @Body es una propiedad especial que renderiza el contenido de la página actual -->
+            <!-- Este es el punto donde se inserta el contenido de cada página que usa este layout -->
             @Body
         </article>
     </main>
 </div>
+
+<!-- Etiqueta que define el estilo de usuario como "Normal" -->
+<!-- Esta es probablemente parte de un sistema de temas o personalización -->
+<!-- No es una característica estándar de Blazor, sino específica de este proyecto -->
+<userStyle>Normal</userStyle>
+
+@code{
+
+    private string? UserName;
+    private bool showDropdown = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        UserName = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "usuarioEmail");
+    }
+
+    private void ToggleDropdown()
+    {
+        showDropdown = !showDropdown;
+    }
+
+    void PageLogin()
+    {
+        Navigation.NavigateTo("/login");
+    }
+
+    void PageLogout()
+    {
+        Navigation.NavigateTo("/logout");
+    }
+
+    void PageProfile()
+    {
+        Navigation.NavigateTo("/prueba-roles-rutas");
+    }
+}
