@@ -3,7 +3,7 @@
 @inject HttpClient Http 
 @inject NavigationManager Navigation 
 @inject IJSRuntime JSRuntime 
-@inherits FrontBlazor.Services.ValidacionAcceso
+@inherits IndicadoresApp.Services.ValidacionAcceso
 
 
 <!-- Sección de diseño de la página de login -->
@@ -76,7 +76,7 @@
 
             // Realizar una solicitud POST al backend para verificar si el usuario y la contraseña son correctos
             var respuestaVerificar = await Http.PostAsJsonAsync(
-                "http://localhost:5178/api/proyecto/usuario/verificar-contrasena", // URL del endpoint de verificación
+                "http://localhost:3000/api/usuario/verificar-contrasena", // URL del endpoint de verificación
                 datosVerificar                                                    // Cuerpo de la solicitud
             );
 
@@ -99,7 +99,7 @@
 
                 // Realizar una solicitud POST para consultar los roles del usuario
                 var respuestaRoles = await Http.PostAsJsonAsync(
-                    "http://localhost:5178/api/proyecto/tabla/ejecutar-consulta-parametrizada", // URL del endpoint de consultas
+                    "http://localhost:3000/api/tabla/ejecutar-consulta-parametrizada", // URL del endpoint de consultas
                     jsonConsultaRoles                                                         // Cuerpo de la solicitud
                 );
 
@@ -138,7 +138,7 @@
 
                                     // Realizar una solicitud POST para consultar las rutas del rol
                                     var respuestaRutas = await Http.PostAsJsonAsync(
-                                        "http://localhost:5178/api/proyecto/tabla/ejecutar-consulta-parametrizada", 
+                                        "http://localhost:3000/api/tabla/ejecutar-consulta-parametrizada", 
                                         jsonConsultaRutas
                                     );
 

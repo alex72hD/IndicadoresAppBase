@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "IndicadoresApp",
   "resources": {
-    "hash": "sha256-9/Jn04KH4S/yMuBj6jpq+x+jgPaxl5oOpO7Z1YuDSII=",
+    "hash": "sha256-mOgC1ine8zM0vwvauJUDDSq4AgutjvjtZnXSJ0FXyMU=",
     "fingerprinting": {
       "Microsoft.AspNetCore.Authorization.qe23mgxr71.wasm": "Microsoft.AspNetCore.Authorization.wasm",
       "Microsoft.AspNetCore.Components.flveird317.wasm": "Microsoft.AspNetCore.Components.wasm",
@@ -195,23 +195,23 @@
       "netstandard.or41gtprh3.wasm": "netstandard.wasm",
       "System.Private.CoreLib.gdne0axslz.wasm": "System.Private.CoreLib.wasm",
       "dotnet.js": "dotnet.js",
-      "dotnet.native.1p93gcv9fh.js": "dotnet.native.js",
-      "dotnet.native.9msu8ucn2h.wasm": "dotnet.native.wasm",
-      "dotnet.runtime.qrl1fuqt3c.js": "dotnet.runtime.js",
+      "dotnet.native.hvg7u8bimp.js": "dotnet.native.js",
+      "dotnet.native.3c4wvb350q.wasm": "dotnet.native.wasm",
+      "dotnet.runtime.cymp1amu5g.js": "dotnet.runtime.js",
       "icudt_CJK.tjcz0u77k5.dat": "icudt_CJK.dat",
       "icudt_EFIGS.tptq2av103.dat": "icudt_EFIGS.dat",
       "icudt_no_CJK.lfu7j35m59.dat": "icudt_no_CJK.dat",
-      "IndicadoresApp.da6y9m209m.wasm": "IndicadoresApp.wasm",
-      "IndicadoresApp.1u7i24dhpy.pdb": "IndicadoresApp.pdb"
+      "IndicadoresApp.b1aj0fsqey.wasm": "IndicadoresApp.wasm",
+      "IndicadoresApp.m7fm5go2bs.pdb": "IndicadoresApp.pdb"
     },
     "jsModuleNative": {
-      "dotnet.native.1p93gcv9fh.js": "sha256-1UPiprzN3JhPftx3be7XEMaYlUN+chRF41CuttiWVtQ="
+      "dotnet.native.hvg7u8bimp.js": "sha256-LX9rFEWGVxhkOkAVPG0w5RxPwzPBlEUz6dQNjWS7M+M="
     },
     "jsModuleRuntime": {
-      "dotnet.runtime.qrl1fuqt3c.js": "sha256-ilTXrnUF4HKbIAFVIYlRmX3ryKNZpGUObkWMF0n2Kcg="
+      "dotnet.runtime.cymp1amu5g.js": "sha256-dCmS9Zx4egtLYSUgTI3R6gMS+Yg8MkzxW1CgEMJKAEw="
     },
     "wasmNative": {
-      "dotnet.native.9msu8ucn2h.wasm": "sha256-Yaw09m1FVxsROJ5Sa9f6SmuJebQT0b3hrKQIbo6qm5A="
+      "dotnet.native.3c4wvb350q.wasm": "sha256-89jyB8DlCnV2BPMV477jOe1Sm0WXwVf8RuoSPsj4Ym8="
     },
     "icu": {
       "icudt_CJK.tjcz0u77k5.dat": "sha256-SZLtQnRc0JkwqHab0VUVP7T3uBPSeYzxzDnpxPpUnHk=",
@@ -412,10 +412,10 @@
       "WindowsBase.ag32297siy.wasm": "sha256-BgyZxTgdU9rIYlNC9ZMiMjnvBAJSL0eQH8Y87o1M+q4=",
       "mscorlib.vt9pwshhot.wasm": "sha256-/aFxOaPc1iTNlJw0z4/RGEMD0nzl4qVE3SF4wMsLgp0=",
       "netstandard.or41gtprh3.wasm": "sha256-nD1KqAI5YYz+YohqHaZ5EmXi7Eq9Uy9sUknnI8sj1AM=",
-      "IndicadoresApp.da6y9m209m.wasm": "sha256-q8qX7vhp5Nq58ceUvRKKgUQHZs0ieHmaQISIuaaCesM="
+      "IndicadoresApp.b1aj0fsqey.wasm": "sha256-j5Wrub0gsV1yn+a/k0yAdoOJgmj6NuwPAYkqttBJT2s="
     },
     "pdb": {
-      "IndicadoresApp.1u7i24dhpy.pdb": "sha256-1yX+YS5YC/j8IvBUszSA7maF8aobc3+uOvZN81aXz9E="
+      "IndicadoresApp.m7fm5go2bs.pdb": "sha256-fqQkr/VGfPfWkhTjMfW8U7LsewI3v/zpyUhh2SadLLo="
     }
   },
   "cacheBootResources": true,

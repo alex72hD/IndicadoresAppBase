@@ -1,23 +1,14 @@
-<!--  Define la ruta URL para acceder a esta página (será accesible en /productos)-->
 @page "/indicador"  
-<!--  Importa el espacio de nombres para trabajar con listas y colecciones -->
-@using System.Collections.Generic  
-@using System.Text.Json  
-<!--  Importa el espacio de nombres para trabajar con JSON -->
 @using Services 
 @using System.Net.Http
 @using System.Net.Http.Json
 @using System.Linq 
 @using System.Text
-
-
-@inject NavigationManager Navigation
-<!--  Importa el espacio de nombres donde se encuentra el ServicioEntidad-->
-@inject ServicioEntidad servicioEntidad  
-<!--  Inyecta el servicio que se comunicará con la API ServicioEntidad -->
-@inject NavigationManager navegacionManager  
-<!--  Inyecta el servicio para manejar la navegación entre páginas ServicioEntidad-->
-
+@using System.Collections.Generic
+@using Services
+@inject ServicioEntidad ServicioEntidad
+@inject NavigationManager NavigationManager
+@inherits ValidacionAcceso
 
 <PageTitle>Indicador</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
 
@@ -307,35 +298,35 @@ else
     }
 
     private async Task CargarTipoIndicador(){
-        tipoIndicador = await servicioEntidad.ObtenerTodosAsync("proyecto", "tipoindicador") ?? new();
+        tipoIndicador = await ServicioEntidad.ObtenerTodosAsync("tipoindicador") ?? new();
     }
 
     private async Task CargarUnidadmedicion(){
-        unidadMedicion = await servicioEntidad.ObtenerTodosAsync("proyecto", "unidadmedicion") ?? new();
+        unidadMedicion = await ServicioEntidad.ObtenerTodosAsync("unidadmedicion") ?? new();
     }
 
     private async Task CargarSentido(){
-        sentido = await servicioEntidad.ObtenerTodosAsync("proyecto", "sentido") ?? new();
+        sentido = await ServicioEntidad.ObtenerTodosAsync("sentido") ?? new();
     }
 
     private async Task CargarFrecuencia(){
-        frecuencia = await servicioEntidad.ObtenerTodosAsync("proyecto", "frecuencia") ?? new();
+        frecuencia = await ServicioEntidad.ObtenerTodosAsync("frecuencia") ?? new();
     }
 
     private async Task CargarArticulo(){
-        articulo = await servicioEntidad.ObtenerTodosAsync("proyecto", "articulo") ?? new();
+        articulo = await ServicioEntidad.ObtenerTodosAsync( "articulo") ?? new();
     }
 
     private async Task CargarLiteral(){
-        literal = await servicioEntidad.ObtenerTodosAsync("proyecto", "literal") ?? new();
+        literal = await ServicioEntidad.ObtenerTodosAsync( "literal") ?? new();
     }
 
     private async Task CargarNumeral(){
-        numeral = await servicioEntidad.ObtenerTodosAsync("proyecto", "numeral") ?? new();
+        numeral = await ServicioEntidad.ObtenerTodosAsync("numeral") ?? new();
     }
 
     private async Task CargarParagrafo(){
-        paragrafo = await servicioEntidad.ObtenerTodosAsync("proyecto", "paragrafo") ?? new();
+        paragrafo = await ServicioEntidad.ObtenerTodosAsync("paragrafo") ?? new();
     }
 
     // Método asíncrono para cargar los productos desde la API
@@ -349,7 +340,7 @@ else
         try
         {
             // Obtener todos los productos usando el servicio de entidades
-            var resultado = await servicioEntidad.ObtenerTodosAsync(PROYECTO, TABLA);
+            var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA);
             
             // Si la lista no es null, asignarla a la variable productos
             if (resultado != null)
@@ -554,27 +545,25 @@ else
         {
             if(peticionSeleccionada == "Create")
             {
-                var respuesta = await servicioEntidad.CrearAsync(TABLA, body);
-                tempRespuesta = respuesta;
+                var respuesta = await ServicioEntidad.CrearAsync(TABLA, body);
+                tempRespuesta = new HttpResponseMessage(respuesta ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.BadRequest);
                 tipoMsg = "Creado";
             }
             else if(peticionSeleccionada == "Edit")
             {                
-                var respuesta = await servicioEntidad.ActualizarAsync( TABLA, "id", idSeleccionado ,body);
-                tempRespuesta = respuesta;
+                var respuesta = await ServicioEntidad.ActualizarAsync(TABLA, "id", idSeleccionado, body);
+                tempRespuesta = new HttpResponseMessage(respuesta ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.BadRequest);
                 tipoMsg = "Actualizado";
                 
             }
             else{
-
                 tipoAlerta = "warning";
                 mensaje = "Acción no permitida, seleccione una acción valida";
                 resetMensaje();
+                return;
             }
 
-
             var serverMessage = await tempRespuesta.Content.ReadAsStringAsync();
-
 
             if (!tempRespuesta.IsSuccessStatusCode)
             {
@@ -602,10 +591,9 @@ else
 
     private async Task EliminarRegistro(string id)
     {
-
         try
         {
-            var respuesta = await servicioEntidad.EliminarAsync(TABLA, "id", id);
+            var respuesta = await ServicioEntidad.EliminarAsync(TABLA, "id", id);
             
             if (respuesta)
             {
@@ -613,7 +601,6 @@ else
                 mensaje = $"Registro Eliminado Exitosamente!";
                 resetMensaje();
             }
-
         }
         catch (HttpRequestException ex)
         {
@@ -621,15 +608,12 @@ else
             mensaje = $"Error en la petición: {ex.Message}";
             Console.WriteLine($"Error en la petición: {ex.Message}");
         }
-        
     }
 
     private async void resetMensaje(){
-        
         await Task.Delay(2000);
         mensaje = null;
         tipoAlerta = "info";
-        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
-
 }
