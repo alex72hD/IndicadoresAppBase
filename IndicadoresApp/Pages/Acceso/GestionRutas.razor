@@ -1,0 +1,197 @@
+﻿@page "/gestion-rutas"
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<div class="container mt-4">
+    <h3>Gestión de Rutas para Usuario</h3>
+
+    <div class="mb-3">
+        <strong>Usuario:</strong> @usuarioEmail
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Agregar Nueva Ruta
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="nuevaRuta" class="form-label">Ruta:</label>
+                        <div class="input-group">
+                            <span class="input-group-text">/</span>
+                            <input type="text" class="form-control" id="nuevaRuta" @bind="nuevaRuta" placeholder="ejemplo-pagina" />
+                        </div>
+                        <small class="form-text text-muted">Ingrese la ruta sin el slash inicial</small>
+                    </div>
+                    <button class="btn btn-primary" @onclick="AgregarRuta">Agregar Ruta</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4>Rutas Actuales:</h4>
+    @if (rutas.Count == 0)
+    {
+        <p>El usuario no tiene rutas asignadas.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Ruta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ruta in rutas)
+                    {
+                        <tr>
+                            <td>@ruta</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" @onclick="() => EliminarRuta(ruta)">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div class="mt-4">
+        <button class="btn btn-secondary" @onclick="VolverAPerfil">Volver a Información de Usuario</button>
+    </div>
+</div>
+
+@code {
+    private string usuarioEmail = "";
+    private List<string> rutas = new List<string>();
+    private string nuevaRuta = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatosUsuario();
+    }
+
+    private async Task CargarDatosUsuario()
+    {
+        try
+        {
+            // Obtener el email del usuario
+            usuarioEmail = await JSRuntime.InvokeAsync<string>(
+                "sessionStorage.getItem",
+                "usuarioEmail"
+            );
+
+            // Si no hay usuario logueado, redirigir al login
+            if (string.IsNullOrEmpty(usuarioEmail))
+            {
+                NavigationManager.NavigateTo("/login", true);
+                return;
+            }
+
+            // Obtener las rutas actuales
+            var scriptRutas = @"
+                Object.keys(sessionStorage)
+                    .filter(key => key.startsWith('ruta_'))
+                    .map(key => sessionStorage.getItem(key))
+            ";
+
+            rutas = await JSRuntime.InvokeAsync<List<string>>(
+                "eval",
+                scriptRutas
+            );
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al cargar datos: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "Error al cargar los datos del usuario");
+        }
+    }
+
+    private async Task AgregarRuta()
+    {
+        if (string.IsNullOrWhiteSpace(nuevaRuta))
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Por favor ingrese una ruta válida");
+            return;
+        }
+
+        // Asegurar formato correcto
+        string rutaFormateada = nuevaRuta.Trim();
+        if (!rutaFormateada.StartsWith("/"))
+        {
+            rutaFormateada = "/" + rutaFormateada;
+        }
+
+        // Verificar si la ruta ya existe
+        if (rutas.Contains(rutaFormateada))
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Esta ruta ya está asignada al usuario");
+            return;
+        }
+
+        try
+        {
+            // Generar una clave única para la ruta
+            string claveRuta = $"ruta_{Guid.NewGuid().ToString("N")}";
+
+            // Guardar la nueva ruta en sessionStorage
+            await JSRuntime.InvokeVoidAsync(
+                "sessionStorage.setItem",
+                claveRuta,
+                rutaFormateada
+            );
+
+            // Actualizar la lista local
+            rutas.Add(rutaFormateada);
+            nuevaRuta = "";
+
+            await JSRuntime.InvokeVoidAsync("alert", "Ruta agregada correctamente");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al agregar ruta: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "Error al agregar la ruta");
+        }
+    }
+
+    private async Task EliminarRuta(string ruta)
+    {
+        try
+        {
+            // Encontrar la clave de la ruta
+            var scriptBuscarClave = $@"
+                Object.keys(sessionStorage)
+                    .find(key => key.startsWith('ruta_') && sessionStorage.getItem(key) === '{ruta}')
+            ";
+
+            var clave = await JSRuntime.InvokeAsync<string>("eval", scriptBuscarClave);
+
+            if (!string.IsNullOrEmpty(clave))
+            {
+                // Eliminar la ruta del sessionStorage
+                await JSRuntime.InvokeVoidAsync("sessionStorage.removeItem", clave);
+
+                // Actualizar la lista local
+                rutas.Remove(ruta);
+
+                await JSRuntime.InvokeVoidAsync("alert", "Ruta eliminada correctamente");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al eliminar ruta: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "Error al eliminar la ruta");
+        }
+    }
+
+    private void VolverAPerfil()
+    {
+        NavigationManager.NavigateTo("/prueba-roles-rutas");
+    }
+}

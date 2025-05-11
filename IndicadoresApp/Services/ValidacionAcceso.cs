@@ -51,12 +51,9 @@ namespace IndicadoresApp.Services
                     return;
                 }
 
-                // Obtener el email del usuario desde sessionStorage
+                // Obtener el email del usuario y rol desde sessionStorage
                 var correoUsuario = await InteropJS.InvokeAsync<string>("sessionStorage.getItem", "usuarioEmail");
                 var rolUsuario = await InteropJS.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
-
-                // Mejorable: en el futuro reemplazar sessionStorage por tokens JWT o autenticación basada en Claims
-                // Esto permitiría manejar sesiones de forma más segura y escalable
 
                 // Redirigir a login si no hay correo en sesión
                 if (string.IsNullOrEmpty(correoUsuario))
@@ -66,35 +63,36 @@ namespace IndicadoresApp.Services
                     return;
                 }
 
-                // Obtener todas las rutas permitidas desde sessionStorage
+                // Si el usuario es administrador, permitir acceso a todas las rutas
+                if (!string.IsNullOrEmpty(rolUsuario) && rolUsuario.Equals("admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    accesoPermitido = true;
+                    StateHasChanged();
+                    return;
+                }
+
+                // Para usuarios no administradores, verificar permisos específicos
                 var rutasPermitidas = await InteropJS.InvokeAsync<List<string>>("eval", @"
                     Object.keys(sessionStorage)
                           .filter(k => k.startsWith('ruta_'))
                           .map(k => sessionStorage.getItem(k))");
 
-                // Mejorable: evitar el uso de eval() en el futuro
-                // Alternativa: almacenar las rutas en un objeto JSON en sessionStorage y recuperarlo directamente
-
-                if(rolUsuario != "admin"){
-
-                    if (!rutasPermitidas.Contains(ruta))
-                    {
-                        await InteropJS.InvokeVoidAsync("alert", "No tiene permisos para acceder a esta página.");
-                        // Navegacion.NavigateTo("/", true);
-                        return;
-                    }
+                // Verificar si la ruta actual está permitida para el usuario
+                if (!rutasPermitidas.Contains(ruta))
+                {
+                    await InteropJS.InvokeVoidAsync("alert", "No tiene permisos para acceder a esta página.");
+                    Navegacion.NavigateTo("/", true);
+                    return;
                 }
-
-                // Verificar permiso para acceder a la ruta actual
 
                 // Permitir el acceso si todas las validaciones pasan
                 accesoPermitido = true;
                 StateHasChanged();
             }
-            catch
+            catch (Exception ex)
             {
-                // Manejar cualquier error durante la validación
-                // Mejorable: capturar el error con más detalle para registros o telemetría
+                // Mejorado: capturar el error con más detalle
+                Console.WriteLine($"Error en validación de acceso: {ex.Message}");
                 await InteropJS.InvokeVoidAsync("alert", "Error en la validación de acceso.");
                 Navegacion.NavigateTo("/", true);
             }
