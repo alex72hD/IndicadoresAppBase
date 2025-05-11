@@ -124,11 +124,11 @@ else
     // Variables para el formulario
     private bool mostrarFormulario = false;
     private bool modoEdicion = false;
-    private rolModel rolActual = new rolModel();
+    private RolModel rolActual = new RolModel();
 
     // Variables para confirmación de eliminación
     private bool mostrarConfirmacion = false;
-    private rolModel rolEliminar = new rolModel();
+    private RolModel rolEliminar = new RolModel();
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,14 +178,14 @@ else
     }
     private void MostrarFormularioCrear()
     {
-        rolActual = new rolModel();
+        rolActual = new RolModel();
         modoEdicion = false;
         mostrarFormulario = true;
     }
 
     private void MostrarFormularioEditar(Dictionary<string, object> rol)
     {
-        rolActual = new rolModel
+        rolActual = new RolModel
         {
             id = ObtenerValor(rol, "id"),
             nombre = ObtenerValor(rol, "nombre")
@@ -257,7 +257,7 @@ else
     }
     private void ConfirmarEliminar(Dictionary<string, object> rol)
     {
-        rolEliminar = new rolModel
+        rolEliminar = new RolModel
         {
             id = ObtenerValor(rol, "id"),
             nombre = ObtenerValor(rol, "nombre")
@@ -299,10 +299,5 @@ else
         {
             errorMensaje = $"Error al eliminar la rol: {ex.Message}";
         }
-    }
-    private class rolModel
-    {
-        public string id { get; set; } = string.Empty;
-        public string nombre { get; set; } = string.Empty;
     }
 }

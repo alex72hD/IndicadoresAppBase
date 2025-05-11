@@ -124,11 +124,11 @@ else
     // Variables para el formulario
     private bool mostrarFormulario = false;
     private bool modoEdicion = false;
-    private fuenteModel fuenteActual = new fuenteModel();
+    private FuenteModel fuenteActual = new FuenteModel();
 
     // Variables para confirmación de eliminación
     private bool mostrarConfirmacion = false;
-    private fuenteModel fuenteEliminar = new fuenteModel();
+    private FuenteModel fuenteEliminar = new FuenteModel();
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,14 +178,14 @@ else
     }
     private void MostrarFormularioCrear()
     {
-        fuenteActual = new fuenteModel();
+        fuenteActual = new FuenteModel();
         modoEdicion = false;
         mostrarFormulario = true;
     }
 
     private void MostrarFormularioEditar(Dictionary<string, object> fuente)
     {
-        fuenteActual = new fuenteModel
+        fuenteActual = new FuenteModel
         {
             id = ObtenerValor(fuente, "id"),
             nombre = ObtenerValor(fuente, "nombre")
@@ -257,7 +257,7 @@ else
     }
     private void ConfirmarEliminar(Dictionary<string, object> fuente)
     {
-        fuenteEliminar = new fuenteModel
+        fuenteEliminar = new FuenteModel
         {
             id = ObtenerValor(fuente, "id"),
             nombre = ObtenerValor(fuente, "nombre")
@@ -299,10 +299,5 @@ else
         {
             errorMensaje = $"Error al eliminar la fuente: {ex.Message}";
         }
-    }
-    private class fuenteModel
-    {
-        public string id { get; set; } = string.Empty;
-        public string nombre { get; set; } = string.Empty;
     }
 }

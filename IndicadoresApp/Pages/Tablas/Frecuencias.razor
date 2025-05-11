@@ -118,11 +118,11 @@ else
     // Variables para el formulario
     private bool mostrarFormulario = false;
     private bool modoEdicion = false;
-    private frecuenciaModel frecuenciaActual = new frecuenciaModel();
+    private FrecuenciaModel frecuenciaActual = new FrecuenciaModel();
 
     // Variables para confirmación de eliminación
     private bool mostrarConfirmacion = false;
-    private frecuenciaModel frecuenciaEliminar = new frecuenciaModel();
+    private FrecuenciaModel frecuenciaEliminar = new FrecuenciaModel();
 
     protected override async Task OnInitializedAsync()
     {
@@ -172,14 +172,14 @@ else
     }
     private void MostrarFormularioCrear()
     {
-        frecuenciaActual = new frecuenciaModel();
+        frecuenciaActual = new FrecuenciaModel();
         modoEdicion = false;
         mostrarFormulario = true;
     }
 
     private void MostrarFormularioEditar(Dictionary<string, object> frecuencia)
     {
-        frecuenciaActual = new frecuenciaModel
+        frecuenciaActual = new FrecuenciaModel
         {
             id = ObtenerValor(frecuencia, "id"),
             nombre = ObtenerValor(frecuencia, "nombre")
@@ -253,7 +253,7 @@ else
     // Funciones para eliminar
     private void ConfirmarEliminar(Dictionary<string, object> frecuencia)
     {
-        frecuenciaEliminar = new frecuenciaModel
+        frecuenciaEliminar = new FrecuenciaModel
         {
             id = ObtenerValor(frecuencia, "id"),
             nombre = ObtenerValor(frecuencia, "nombre")
@@ -295,10 +295,5 @@ else
         {
             errorMensaje = $"Error al eliminar el frecuencia: {ex.Message}";
         }
-    }
-    private class frecuenciaModel
-    {
-        public string id { get; set; } = string.Empty;
-        public string nombre { get; set; } = string.Empty;
     }
 }

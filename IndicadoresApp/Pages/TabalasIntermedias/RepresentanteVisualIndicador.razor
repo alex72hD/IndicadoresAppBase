@@ -57,9 +57,9 @@ else
 
 <!-- Modal para crear/editar relación -->
 <ModalGenerico @ref="modalFormulario" 
-              Id="formModal" 
-              Title="@TituloModal" 
-              OnSave="GuardarRelacion">
+Id="formModal" 
+Title="@TituloModal" 
+OnSave="GuardarRelacion">
     <BodyContent>
         <div class="mb-3">
             <label for="idIndicador" class="form-label">Indicador</label>
@@ -97,9 +97,9 @@ else
 
 <!-- Modal para confirmar eliminación -->
 <ModalGenerico @ref="modalConfirmacion" 
-              Id="confirmModal" 
-              Title="Confirmar eliminación" 
-              OnSave="EliminarRelacion">
+Id="confirmModal" 
+Title="Confirmar eliminación" 
+OnSave="EliminarRelacion">
     <BodyContent>
         <p>¿Está seguro que desea eliminar esta relación entre Indicador (@ObtenerNombreIndicador(RelacionAEliminar.IdIndicador.ToString())) y Representante Visual (@ObtenerNombreRepresentante(RelacionAEliminar.IdRepresentanteVisual.ToString()))?</p>
     </BodyContent>
@@ -125,7 +125,7 @@ else
     private const string NOMBRE_TABLA = "represenvisualporindicador";
     private const string TABLA_INDICADORES = "indicador";
     private const string TABLA_REPRESENTANTES = "represenvisual";
-    
+
     private List<Dictionary<string, object>> Representantes { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
@@ -170,11 +170,11 @@ else
     {
         EstamosCargando = true;
         MensajeError = null;
-        
+
         try
         {
             Representantes = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
-            
+
             // Para debug: mostrar las claves disponibles en la primera relación
             if (Representantes.Count > 0)
             {
@@ -233,7 +233,7 @@ else
         {
             return "No asignado";
         }
-        
+
         var indicador = IndicadoresDisponibles.FirstOrDefault(i => i.Id == idNumerico);
         return indicador?.Nombre ?? "Desconocido";
     }
@@ -244,7 +244,7 @@ else
         {
             return "No asignado";
         }
-        
+
         var representante = RepresentantesDisponibles.FirstOrDefault(r => r.Id == idNumerico);
         return representante?.Nombre ?? "Desconocido";
     }
@@ -282,17 +282,17 @@ else
             IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
             IdRepresentanteVisual = Convert.ToInt32(ObtenerValor(relacion, "fkidrepresenvisual"))
         };
-        
+
         // Establecer los valores actuales para la edición
         RelacionActual = new RelacionModel
         {
             IdIndicador = RelacionOriginal.IdIndicador,
             IdRepresentanteVisual = RelacionOriginal.IdRepresentanteVisual
         };
-        
+
         // Verificar si hay un ID de relación disponible
         IdRelacionSeleccionada = ObtenerValor(relacion, "id");
-        
+
         ModoEdicion = true;
         await modalFormulario.ShowModalAsync();
     }
@@ -304,10 +304,10 @@ else
             IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
             IdRepresentanteVisual = Convert.ToInt32(ObtenerValor(relacion, "fkidrepresenvisual"))
         };
-        
+
         // Verificar si hay un ID de relación disponible
         IdRelacionSeleccionada = ObtenerValor(relacion, "id");
-        
+
         await modalConfirmacion.ShowModalAsync();
     }
 
@@ -357,14 +357,14 @@ else
                 {
                     // Primero intentamos eliminar la relación original
                     await EliminarRelacionExistente();
-                    
+
                     // Luego creamos la nueva relación
                     resultado = await ServicioEntidad.CrearAsync(
                         NOMBRE_TABLA,
                         relacionData
                     );
                 }
-                
+
                 if (resultado) 
                 {
                     MensajeExito = "Relación actualizada correctamente.";
@@ -380,7 +380,7 @@ else
                     NOMBRE_TABLA,
                     relacionData
                 );
-                
+
                 if (resultado) 
                 {
                     MensajeExito = "Relación creada correctamente.";
@@ -405,10 +405,122 @@ else
 
     private async Task EliminarRelacionExistente()
     {
+        var body = new Dictionary<string, object>
+        {
+            { "fkidindicador", inidicadorSeleccionado },
+            { "fkidrepresenvisual", repreVisualSeleccionada }
+        };
+
+        HttpResponseMessage tempRespuesta = new HttpResponseMessage();
+        string tipoMsg = string.Empty;
+
+        try
+        {
+            if (peticionSeleccionada == "Create")
+            {
+                var respuesta = await ServicioEntidad.CrearAsync(TABLA, body);
+                tempRespuesta = respuesta;
+                tipoMsg = "Creado";
+            }
+            else if (peticionSeleccionada == "Edit")
+            {
+                body["accion"] = "edit";
+                body["indicadorInicial"] = inidicadorIncial;
+                body["repreInicial"] = repreInicial;
+
+                var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                    "tbl",
+                    "accion_reprevisual_por_indicador",
+                    body
+                );
+
+                tempRespuesta = respuesta;
+                tipoMsg = "Actualizado";
+
+            }
+            else
+            {
+
+                tipoAlerta = "warning";
+                mensaje = "Acción no permitida, seleccione una acción valida";
+                resetMensaje();
+            }
+
+
+            var serverMessage = await tempRespuesta.Content.ReadAsStringAsync();
+
+
+            if (!tempRespuesta.IsSuccessStatusCode)
+            {
+                tipoAlerta = "danger";
+
+                if (!string.IsNullOrWhiteSpace(serverMessage) && serverMessage.Length > 150)
+                {
+                    mensaje = "Internal error for duplicate key";
+                }
+                else
+                {
+                    mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : tempRespuesta.ReasonPhrase;
+                }
+            }
+            else
+            {
+                tipoAlerta = "success";
+                mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : $"Registro {tipoMsg} Exitosamente!";
+                resetMensaje();
+            }
+        }
     }
 
-    private async Task EliminarRelacion()
+    private async Task EliminarRelacion(int idindicador , int idRepre)
     {
+        try
+        {
+            var body = new Dictionary<string, object>
+            {
+                { "fkidindicador", idindicador },
+                { "fkidrepresenvisual", idRepre },
+                { "indicadorInicial", 0 },
+                { "repreInicial", 0 }
+            };
+
+            body["accion"] = "delete";
+
+            var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                "tbl",
+                "accion_reprevisual_por_indicador",
+                body
+            );
+
+            var serverMessage = await respuesta.Content.ReadAsStringAsync();
+
+            if (!respuesta.IsSuccessStatusCode)
+            {
+                tipoAlerta = "danger";
+
+                if (!string.IsNullOrWhiteSpace(serverMessage) && serverMessage.Length > 150)
+                {
+                    mensaje = "Error al intentar eliminar el registro, verifique sus dependencias";
+                }
+                else
+                {
+                    mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : respuesta.ReasonPhrase;
+                }
+            }
+            else
+            {
+                tipoAlerta = "success";
+                mensaje = "Registro Eliminado Exitosamente!";
+                resetMensaje();
+            }
+
+        }
+        catch (HttpRequestException ex)
+        {
+            tipoAlerta = "danger";
+            mensaje = $"Error en la petición: {ex.Message}";
+            Console.WriteLine($"Error en la petición: {ex.Message}");
+        }
     }
 
     private class RelacionModel

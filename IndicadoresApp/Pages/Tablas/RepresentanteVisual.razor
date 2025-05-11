@@ -124,11 +124,11 @@ else
     // Variables para el formulario
     private bool mostrarFormulario = false;
     private bool modoEdicion = false;
-    private representanteModel representanteActual = new representanteModel();
+    private RepresentanteModel representanteActual = new RepresentanteModel();
 
     // Variables para confirmación de eliminación
     private bool mostrarConfirmacion = false;
-    private representanteModel representanteEliminar = new representanteModel();
+    private RepresentanteModel representanteEliminar = new RepresentanteModel();
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,14 +178,14 @@ else
     }
     private void MostrarFormularioCrear()
     {
-        representanteActual = new representanteModel();
+        representanteActual = new RepresentanteModel();
         modoEdicion = false;
         mostrarFormulario = true;
     }
 
     private void MostrarFormularioEditar(Dictionary<string, object> representante)
     {
-        representanteActual = new representanteModel
+        representanteActual = new RepresentanteModel
         {
             id = ObtenerValor(representante, "id"),
             nombre = ObtenerValor(representante, "nombre")
@@ -257,7 +257,7 @@ else
     }
     private void ConfirmarEliminar(Dictionary<string, object> representante)
     {
-        representanteEliminar = new representanteModel
+        representanteEliminar = new RepresentanteModel
         {
             id = ObtenerValor(representante, "id"),
             nombre = ObtenerValor(representante, "nombre")
@@ -299,10 +299,5 @@ else
         {
             errorMensaje = $"Error al eliminar el representante: {ex.Message}";
         }
-    }
-    private class representanteModel
-    {
-        public string id { get; set; } = string.Empty;
-        public string nombre { get; set; } = string.Empty;
     }
 }

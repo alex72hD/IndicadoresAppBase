@@ -124,11 +124,11 @@ else
     // Variables para el formulario
     private bool mostrarFormulario = false;
     private bool modoEdicion = false;
-    private sentidoModel sentidoActual = new sentidoModel();
+    private SentidoModel sentidoActual = new SentidoModel();
 
     // Variables para confirmación de eliminación
     private bool mostrarConfirmacion = false;
-    private sentidoModel sentidoEliminar = new sentidoModel();
+    private SentidoModel sentidoEliminar = new SentidoModel();
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,14 +178,14 @@ else
     }
     private void MostrarFormularioCrear()
     {
-        sentidoActual = new sentidoModel();
+        sentidoActual = new SentidoModel();
         modoEdicion = false;
         mostrarFormulario = true;
     }
 
     private void MostrarFormularioEditar(Dictionary<string, object> sentido)
     {
-        sentidoActual = new sentidoModel
+        sentidoActual = new SentidoModel
         {
             id = ObtenerValor(sentido, "id"),
             nombre = ObtenerValor(sentido, "nombre")
@@ -257,7 +257,7 @@ else
     }
     private void ConfirmarEliminar(Dictionary<string, object> sentido)
     {
-        sentidoEliminar = new sentidoModel
+        sentidoEliminar = new SentidoModel
         {
             id = ObtenerValor(sentido, "id"),
             nombre = ObtenerValor(sentido, "nombre")
@@ -299,10 +299,5 @@ else
         {
             errorMensaje = $"Error al eliminar la sentido: {ex.Message}";
         }
-    }
-    private class sentidoModel
-    {
-        public string id { get; set; } = string.Empty;
-        public string nombre { get; set; } = string.Empty;
     }
 }

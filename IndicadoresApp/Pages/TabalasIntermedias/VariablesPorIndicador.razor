@@ -2,16 +2,16 @@
 @using System.Collections.Generic
 @using System.Text.Json
 @using IndicadoresApp.ModalGenerico
-@inject ServicioEntidad ServicioEntidad  
+@inject ServicioEntidad ServicioEntidad
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inherits ValidacionAcceso
 <PageTitle>Variables por indicador</PageTitle>
 
-<h1>Variables</h1>
+<h1>Variables por Indicador</h1>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
 </div>
 
 @if (EstamosCargando)
@@ -57,84 +57,142 @@ else
 }
 
 <!-- Modal para crear/editar variable -->
-<ModalGenerico @ref="modalFormulario" 
-              Id="formModal" 
-              Title="@TituloModal" 
-              OnSave="GuardarVariable">
+<ModalGenerico @ref="modalFormulario"
+               Id="variableFormModal"
+               Title="@TituloModal"
+               OnSave="GuardarVariable">
     <BodyContent>
         <div class="mb-3">
-            <label for="nombre" class="form-label">Nombre</label>
-            <input type="text" class="form-control" id="nombre" @bind="VariableActual.Nombre" />
+            <label for="variable" class="form-label">Variable</label>
+            <select class="form-select" id="variable" @bind="variableSeleccionada">
+                <option value="">Seleccione una variable</option>
+                @foreach (var variable in ListaVariables)
+                {
+                    <option value="@variable.Id">@variable.Nombre</option>
+                }
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="indicador" class="form-label">Indicador</label>
+            <select class="form-select" id="indicador" @bind="indicadorSeleccionado">
+                <option value="">Seleccione un indicador</option>
+                @foreach (var indicador in ListaIndicadores)
+                {
+                    <option value="@indicador.id">@indicador.nombre</option>
+                }
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="dato" class="form-label">Dato</label>
+            <input type="text" class="form-control" id="dato" @bind="datoSeleccionado" />
         </div>
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" @bind="VariableActual.FkEmail" />
+            <input type="email" class="form-control" id="email" @bind="emailSeleccionado" />
+        </div>
+        <div class="mb-3">
+            <label for="fecha" class="form-label">Fecha del Dato</label>
+            <input type="date" class="form-control" id="fecha" @bind="fechaSeleccionada" />
         </div>
     </BodyContent>
 </ModalGenerico>
 
 <!-- Modal para confirmar eliminación -->
-<ModalGenerico @ref="modalConfirmacion" 
-              Id="confirmModal" 
-              Title="Confirmar eliminación" 
-              OnSave="EliminarVariable">
+<ModalGenerico @ref="modalConfirmacion"
+               Id="confirmModal"
+               Title="Confirmar eliminación"
+               OnSave="EliminarVariable">
     <BodyContent>
-        <p>¿Está seguro que desea eliminar la variable @VariableAEliminar.Nombre?</p>
+        <p>¿Está seguro que desea eliminar esta variable por indicador?</p>
     </BodyContent>
 </ModalGenerico>
 
-@if (!string.IsNullOrEmpty(MensajeError))
+@if (!string.IsNullOrEmpty(mensaje))
 {
-    <div class="alert alert-danger">
-        Error: @MensajeError
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(MensajeExito))
-{
-    <div class="alert alert-success">
-        @MensajeExito
+    <div class="alert alert-@tipoAlerta alert-dismissible fade show mt-3" role="alert">
+        @mensaje
+        <button type="button" class="btn-close" @onclick="LimpiarMensaje"></button>
     </div>
 }
 
 @code {
-    private const string NOMBRE_TABLA = "variablesporindicador";
-    
+    private const string TABLA = "variablesporindicador";
+
+    // Propiedades para el listado de variables por indicador
     private List<Dictionary<string, object>> Variables { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
-    private string? MensajeError { get; set; }
-    private string? MensajeExito { get; set; }
+    private string? mensaje { get; set; }
+    private string tipoAlerta { get; set; } = "info";
 
-    private bool ModoEdicion { get; set; } = false;
-    private VariableModel VariableActual { get; set; } = new();
+    // Propiedades para el formulario
+    private int idSeleccionado { get; set; }
+    private int variableSeleccionada { get; set; }
+    private int indicadorSeleccionado { get; set; }
+    private string datoSeleccionado { get; set; } = string.Empty;
+    private string emailSeleccionado { get; set; } = string.Empty;
+    private DateTime fechaSeleccionada { get; set; } = DateTime.Today;
+    private string fechaFormat => fechaSeleccionada.ToString("yyyy-MM-dd");
+    private string peticionSeleccionada { get; set; } = "Create";
+
+    // Referencias modales
     private ModalGenerico? modalFormulario;
-    private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Variable";
-
-    private VariableModel VariableAEliminar { get; set; } = new();
     private ModalGenerico? modalConfirmacion;
+    private string TituloModal => $"{(peticionSeleccionada == "Edit" ? "Editar" : "Crear")} Variable por Indicador";
+
+    // Listas para dropdowns
+    private List<VariableModel> ListaVariables { get; set; } = new();
+    private List<IndicadorModel> ListaIndicadores { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
         await CargarVariables();
+        await CargarCatalogos();
     }
 
     private async Task CargarVariables()
     {
         EstamosCargando = true;
-        MensajeError = null;
-        
+        mensaje = null;
+
         try
         {
-            Variables = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
+            Variables = await ServicioEntidad.ObtenerTodosAsync(TABLA) ?? new List<Dictionary<string, object>>();
         }
         catch (Exception ex)
         {
-            MensajeError = $"Error al cargar variables: {ex.Message}";
+            mensaje = $"Error al cargar variables: {ex.Message}";
+            tipoAlerta = "danger";
             Variables = new List<Dictionary<string, object>>();
         }
         finally
         {
             EstamosCargando = false;
+        }
+    }
+
+    private async Task CargarCatalogos()
+    {
+        try
+        {
+            var variablesData = await ServicioEntidad.ObtenerTodosAsync("variables");
+            var indicadoresData = await ServicioEntidad.ObtenerTodosAsync("indicadores");
+
+            ListaVariables = variablesData?.Select(v => new VariableModel
+                {
+                    Id = Convert.ToInt32(ObtenerValor(v, "id")),
+                    Nombre = ObtenerValor(v, "nombre")
+                }).ToList() ?? new List<VariableModel>();
+
+            ListaIndicadores = indicadoresData?.Select(i => new IndicadorModel
+                {
+                    id = Convert.ToInt32(ObtenerValor(i, "id")),
+                    nombre = ObtenerValor(i, "nombre")
+                }).ToList() ?? new List<IndicadorModel>();
+        }
+        catch (Exception ex)
+        {
+            mensaje = $"Error al cargar catálogos: {ex.Message}";
+            tipoAlerta = "danger";
         }
     }
 
@@ -145,46 +203,150 @@ else
 
     private async Task MostrarFormularioCrear()
     {
-        VariableActual = new VariableModel();
-        ModoEdicion = false;
+        LimpiarFormulario();
+        peticionSeleccionada = "Create";
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> variable)
     {
-        VariableActual = new VariableModel
+        LimpiarFormulario();
+
+        idSeleccionado = Convert.ToInt32(ObtenerValor(variable, "id"));
+        variableSeleccionada = Convert.ToInt32(ObtenerValor(variable, "fkidvariable"));
+        indicadorSeleccionado = Convert.ToInt32(ObtenerValor(variable, "fkidindicador"));
+        datoSeleccionado = ObtenerValor(variable, "dato");
+        emailSeleccionado = ObtenerValor(variable, "fkemailusuario");
+
+        if (DateTime.TryParse(ObtenerValor(variable, "fechadato"), out DateTime fecha))
         {
-            Id = Convert.ToInt32(ObtenerValor(variable, "id")),
-            Nombre = ObtenerValor(variable, "Nombre"),
-            FkEmail = ObtenerValor(variable, "fkemail")
-        };
-        ModoEdicion = true;
+            fechaSeleccionada = fecha;
+        }
+
+        peticionSeleccionada = "Edit";
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task ConfirmarEliminar(Dictionary<string, object> variable)
     {
-        VariableAEliminar = new VariableModel
-        {
-            Id = Convert.ToInt32(ObtenerValor(variable, "id")),
-            Nombre = ObtenerValor(variable, "Nombre")
-        };
+        idSeleccionado = Convert.ToInt32(ObtenerValor(variable, "id"));
         await modalConfirmacion.ShowModalAsync();
+    }
+
+    private void LimpiarFormulario()
+    {
+        idSeleccionado = 0;
+        variableSeleccionada = 0;
+        indicadorSeleccionado = 0;
+        datoSeleccionado = string.Empty;
+        emailSeleccionado = string.Empty;
+        fechaSeleccionada = DateTime.Today;
     }
 
     private async Task GuardarVariable()
     {
+        if (variableSeleccionada == 0 || indicadorSeleccionado == 0 || string.IsNullOrEmpty(datoSeleccionado) || string.IsNullOrEmpty(emailSeleccionado))
+        {
+            mensaje = "Todos los campos son obligatorios";
+            tipoAlerta = "warning";
+            return;
+        }
+
+        var body = new Dictionary<string, object>
+        {
+            { "fkidvariable", variableSeleccionada },
+            { "fkidindicador", indicadorSeleccionado },
+            { "dato", datoSeleccionado },
+            { "fkemailusuario", emailSeleccionado },
+            { "fechadato", fechaFormat }
+        };
+
+        HttpResponseMessage tempRespuesta = new HttpResponseMessage();
+        string tipoMsg = string.Empty;
+
+        try
+        {
+            if (peticionSeleccionada == "Create")
+            {
+                tempRespuesta = await ServicioEntidad.CrearAsync(TABLA, body);
+                tipoMsg = "Creado";
+            }
+            else if (peticionSeleccionada == "Edit")
+            {
+                tempRespuesta = await ServicioEntidad.ActualizarAsync(TABLA, "id", idSeleccionado.ToString(), body);
+                tipoMsg = "Actualizado";
+            }
+            else
+            {
+                tipoAlerta = "warning";
+                mensaje = "Acción no permitida, seleccione una acción válida";
+                return;
+            }
+
+            var serverMessage = await tempRespuesta.Content.ReadAsStringAsync();
+
+            if (!tempRespuesta.IsSuccessStatusCode)
+            {
+                tipoAlerta = "danger";
+                mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : tempRespuesta.ReasonPhrase;
+            }
+            else
+            {
+                tipoAlerta = "success";
+                mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : $"Registro {tipoMsg} Exitosamente!";
+                await CargarVariables();
+                await modalFormulario.HideModalAsync();
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            tipoAlerta = "danger";
+            mensaje = $"Error en la petición: {ex.Message}";
+            Console.WriteLine($"Error en la petición: {ex.Message}");
+        }
     }
 
     private async Task EliminarVariable()
     {
+        try
+        {
+            var respuesta = await ServicioEntidad.EliminarAsync(TABLA, "id", idSeleccionado.ToString());
+
+            if (respuesta)
+            {
+                tipoAlerta = "success";
+                mensaje = "Registro Eliminado Exitosamente!";
+                await CargarVariables();
+                await modalConfirmacion.HideModalAsync();
+            }
+            else
+            {
+                tipoAlerta = "danger";
+                mensaje = "No se pudo eliminar el registro";
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            tipoAlerta = "danger";
+            mensaje = $"Error en la petición: {ex.Message}";
+            Console.WriteLine($"Error en la petición: {ex.Message}");
+        }
     }
 
-    private class VariableModel
+    private void LimpiarMensaje()
     {
-        public int Id { get; set; }
-        public string FechaCreacion { get; set; } = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        public string Nombre { get; set; } = string.Empty;
-        public string FkEmail { get; set; } = string.Empty;
+        mensaje = null;
+    }
+
+    private void resetMensaje()
+    {
+        Task.Delay(5000).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                mensaje = null;
+                StateHasChanged();
+            });
+        });
     }
 }

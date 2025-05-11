@@ -150,7 +150,7 @@ else
     private string? MensajeExito { get; set; }
 
     // Para el selector de tipos
-    private List<TipoActorSelectModel> TiposActoresDisponibles { get; set; } = new();
+    private List<TipoActorModel> TiposActoresDisponibles { get; set; } = new();
     private bool CargandoTipos { get; set; } = true;
 
     // Variables para el formulario
@@ -211,7 +211,7 @@ else
         try
         {
             var resultado = await ServicioEntidad.ObtenerTodosAsync("tipoactor");
-            TiposActoresDisponibles = resultado.Select(t => new TipoActorSelectModel
+            TiposActoresDisponibles = resultado.Select(t => new TipoActorModel
             {
                 Id = ObtenerValor(t, "id"),
                 Nombre = ObtenerValor(t, "nombre")
@@ -465,19 +465,5 @@ else
             MensajeError = $"Error al eliminar relaciones: {ex.Message}";
             return false;
         }
-    }
-
-    // Modelos
-    private class ActorModel
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Nombre { get; set; } = string.Empty;
-        public string TipoActorId { get; set; } = string.Empty;
-    }
-
-    private class TipoActorSelectModel
-    {
-        public string Id { get; set; } = string.Empty;
-        public string Nombre { get; set; } = string.Empty;
     }
 }

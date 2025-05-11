@@ -58,9 +58,9 @@ else
 
 <!-- Modal para crear/editar -->
 <ModalGenerico @ref="modalFormulario"
-              Id="formModal"
-              Title="@TituloModal"
-              OnSave="GuardarResponsable">
+               Id="formModal"
+               Title="@TituloModal"
+               OnSave="GuardarResponsable">
     <BodyContent>
         <div class="mb-3">
             <label for="idResponsable" class="form-label">Responsable</label>
@@ -90,8 +90,8 @@ else
         </div>
         <div class="mb-3">
             <label for="fechaAsignacion" class="form-label">Fecha de Asignación</label>
-            <input type="date" class="form-control" id="fechaAsignacion" 
-                   @bind="ResponsableActual.FechaAsignacion" 
+            <input type="date" class="form-control" id="fechaAsignacion"
+                   @bind="ResponsableActual.FechaAsignacion"
                    @bind:format="yyyy-MM-dd" />
         </div>
         @if (ModoEdicion)
@@ -104,29 +104,31 @@ else
 
 <!-- Modal de confirmación -->
 <ModalGenerico @ref="modalConfirmacion"
-              Id="confirmModal"
-              Title="Confirmar eliminación"
-              OnSave="EliminarResponsable">
+               Id="confirmModal"
+               Title="Confirmar eliminación"
+               OnSave="EliminarResponsable">
     <BodyContent>
-        <p>¿Está seguro que desea eliminar la asignación del responsable 
-            @ObtenerNombreResponsable(ResponsableAEliminar.IdResponsable.ToString()) al indicador 
-            @ObtenerNombreIndicador(ResponsableAEliminar.IdIndicador.ToString())?</p>
+        <p>
+            ¿Está seguro que desea eliminar la asignación del responsable
+            @ObtenerNombreResponsable(ResponsableAEliminar.IdResponsable.ToString()) al indicador
+            @ObtenerNombreIndicador(ResponsableAEliminar.IdIndicador.ToString())?
+        </p>
     </BodyContent>
 </ModalGenerico>
 
 @if (!string.IsNullOrEmpty(MensajeError))
 {
-    <div class="alert alert-danger">
-        Error: @MensajeError
-        <button type="button" class="btn-close float-end" @onclick="() => MensajeError = null"></button>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>Error:</strong> @MensajeError
+        <button type="button" class="btn-close" @onclick="() => MensajeError = null" aria-label="Close"></button>
     </div>
 }
 
 @if (!string.IsNullOrEmpty(MensajeExito))
 {
-    <div class="alert alert-success">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
         @MensajeExito
-        <button type="button" class="btn-close float-end" @onclick="() => MensajeExito = null"></button>
+        <button type="button" class="btn-close" @onclick="() => MensajeExito = null" aria-label="Close"></button>
     </div>
 }
 
@@ -134,7 +136,8 @@ else
     private const string NOMBRE_TABLA = "responsablesporindicador";
     private const string TABLA_INDICADORES = "indicador";
     private const string TABLA_RESPONSABLES = "actor";
-    
+    private const string PROCEDIMIENTO_ACCIONES = "accion_responsable_por_indicador";
+
     private List<Dictionary<string, object>> Responsables { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
@@ -163,14 +166,16 @@ else
 
     private async Task CargarDatosIniciales()
     {
-        try {
+        try
+        {
             // Cargar los indicadores y responsables para tener la referencia
             await CargarIndicadores();
             await CargarResponsables();
             // Luego cargar las relaciones
             await CargarAsignaciones();
         }
-        catch (Exception ex) {
+        catch (Exception ex)
+        {
             MensajeError = $"Error cargando datos iniciales: {ex.Message}";
         }
     }
@@ -179,20 +184,15 @@ else
     {
         EstamosCargando = true;
         MensajeError = null;
-        
+
         try
         {
             Responsables = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
-            
-            // Para debug: mostrar las claves disponibles en la primera relación
-            if (Responsables.Count > 0)
-            {
-                Console.WriteLine("Claves disponibles en relación: " + string.Join(", ", Responsables[0].Keys));
-            }
         }
         catch (Exception ex)
         {
             MensajeError = $"Error al cargar asignaciones: {ex.Message}";
+            Console.WriteLine($"Excepción al cargar asignaciones: {ex}");
             Responsables = new List<Dictionary<string, object>>();
         }
         finally
@@ -207,15 +207,19 @@ else
         try
         {
             var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA_INDICADORES);
-            IndicadoresDisponibles = resultado.Select(i => new ItemSelectModel
-            {
-                Id = Convert.ToInt32(ObtenerValor(i, "id")),
-                Nombre = ObtenerValor(i, "nombre")
-            }).ToList();
+            IndicadoresDisponibles = resultado
+                .Select(i => new ItemSelectModel
+                    {
+                        Id = Convert.ToInt32(ObtenerValor(i, "id")),
+                        Nombre = ObtenerValor(i, "nombre")
+                    })
+                .OrderBy(i => i.Nombre)
+                .ToList();
         }
         catch (Exception ex)
         {
             MensajeError = $"Error cargando indicadores: {ex.Message}";
+            Console.WriteLine($"Excepción al cargar indicadores: {ex}");
         }
     }
 
@@ -224,15 +228,19 @@ else
         try
         {
             var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA_RESPONSABLES);
-            ResponsablesDisponibles = resultado.Select(r => new ItemSelectModel
-            {
-                Id = Convert.ToInt32(ObtenerValor(r, "id")),
-                Nombre = ObtenerValor(r, "nombre")
-            }).ToList();
+            ResponsablesDisponibles = resultado
+                .Select(r => new ItemSelectModel
+                    {
+                        Id = Convert.ToInt32(ObtenerValor(r, "id")),
+                        Nombre = ObtenerValor(r, "nombre")
+                    })
+                .OrderBy(r => r.Nombre)
+                .ToList();
         }
         catch (Exception ex)
         {
             MensajeError = $"Error cargando responsables: {ex.Message}";
+            Console.WriteLine($"Excepción al cargar responsables: {ex}");
         }
     }
 
@@ -242,7 +250,7 @@ else
         {
             return "No asignado";
         }
-        
+
         var indicador = IndicadoresDisponibles.FirstOrDefault(i => i.Id == idNumerico);
         return indicador?.Nombre ?? "Desconocido";
     }
@@ -253,7 +261,7 @@ else
         {
             return "No asignado";
         }
-        
+
         var responsable = ResponsablesDisponibles.FirstOrDefault(r => r.Id == idNumerico);
         return responsable?.Nombre ?? "Desconocido";
     }
@@ -277,7 +285,10 @@ else
 
     private async Task MostrarFormularioCrear()
     {
-        ResponsableActual = new ResponsableModel();
+        ResponsableActual = new ResponsableModel
+            {
+                FechaAsignacion = DateTime.Today // Establecer fecha actual por defecto
+            };
         ResponsableOriginal = new ResponsableModel();
         ModoEdicion = false;
         await modalFormulario.ShowModalAsync();
@@ -285,42 +296,71 @@ else
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> responsable)
     {
-        // Almacenar los valores originales para saber qué eliminar
-        ResponsableOriginal = new ResponsableModel
+        try
         {
-            IdResponsable = Convert.ToInt32(ObtenerValor(responsable, "fkidresponsable")),
-            IdIndicador = Convert.ToInt32(ObtenerValor(responsable, "fkidindicador")),
-            FechaAsignacion = DateTime.Parse(ObtenerValor(responsable, "fechaasignacion"))
-        };
-        
-        // Establecer los valores actuales para la edición
-        ResponsableActual = new ResponsableModel
+            // Almacenar los valores originales para saber qué eliminar
+            ResponsableOriginal = new ResponsableModel
+                {
+                    IdResponsable = Convert.ToInt32(ObtenerValor(responsable, "fkidresponsable")),
+                    IdIndicador = Convert.ToInt32(ObtenerValor(responsable, "fkidindicador"))
+                };
+
+            // Intentar parsear la fecha
+            if (DateTime.TryParse(ObtenerValor(responsable, "fechaasignacion"), out DateTime fechaAsignacion))
+            {
+                ResponsableOriginal.FechaAsignacion = fechaAsignacion;
+            }
+            else
+            {
+                ResponsableOriginal.FechaAsignacion = DateTime.Today;
+            }
+
+            // Establecer los valores actuales para la edición (copia)
+            ResponsableActual = new ResponsableModel
+                {
+                    IdResponsable = ResponsableOriginal.IdResponsable,
+                    IdIndicador = ResponsableOriginal.IdIndicador,
+                    FechaAsignacion = ResponsableOriginal.FechaAsignacion
+                };
+
+            // Verificar si hay un ID de relación disponible
+            IdAsignacionSeleccionada = ObtenerValor(responsable, "id");
+
+            ModoEdicion = true;
+            await modalFormulario.ShowModalAsync();
+        }
+        catch (Exception ex)
         {
-            IdResponsable = ResponsableOriginal.IdResponsable,
-            IdIndicador = ResponsableOriginal.IdIndicador,
-            FechaAsignacion = ResponsableOriginal.FechaAsignacion
-        };
-        
-        // Verificar si hay un ID de relación disponible
-        IdAsignacionSeleccionada = ObtenerValor(responsable, "id");
-        
-        ModoEdicion = true;
-        await modalFormulario.ShowModalAsync();
+            MensajeError = $"Error al cargar datos para edición: {ex.Message}";
+            Console.WriteLine($"Excepción al cargar datos para edición: {ex}");
+        }
     }
 
     private async Task ConfirmarEliminar(Dictionary<string, object> responsable)
     {
-        ResponsableAEliminar = new ResponsableModel
+        try
         {
-            IdResponsable = Convert.ToInt32(ObtenerValor(responsable, "fkidresponsable")),
-            IdIndicador = Convert.ToInt32(ObtenerValor(responsable, "fkidindicador")),
-            FechaAsignacion = DateTime.Parse(ObtenerValor(responsable, "fechaasignacion"))
-        };
-        
-        // Verificar si hay un ID de relación disponible
-        IdAsignacionSeleccionada = ObtenerValor(responsable, "id");
-        
-        await modalConfirmacion.ShowModalAsync();
+            ResponsableAEliminar = new ResponsableModel
+                {
+                    IdResponsable = Convert.ToInt32(ObtenerValor(responsable, "fkidresponsable")),
+                    IdIndicador = Convert.ToInt32(ObtenerValor(responsable, "fkidindicador"))
+                };
+
+            // Intentar parsear la fecha
+            if (DateTime.TryParse(ObtenerValor(responsable, "fechaasignacion"), out DateTime fechaAsignacion))
+            {
+                ResponsableAEliminar.FechaAsignacion = fechaAsignacion;
+            }
+
+            // Verificar si hay un ID de relación disponible
+            IdAsignacionSeleccionada = ObtenerValor(responsable, "id");
+
+            await modalConfirmacion.ShowModalAsync();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al preparar eliminación: {ex.Message}";
+        }
     }
 
     private async Task GuardarResponsable()
@@ -345,68 +385,76 @@ else
 
             // Crear el diccionario con los campos correctos para la API
             var responsableData = new Dictionary<string, object>
-            {
-                ["fkidresponsable"] = ResponsableActual.IdResponsable,
-                ["fkidindicador"] = ResponsableActual.IdIndicador,
-                ["fechaasignacion"] = ResponsableActual.FechaAsignacion.ToString("yyyy-MM-dd")
-            };
+                {
+                    ["fkidresponsable"] = ResponsableActual.IdResponsable,
+                    ["fkidindicador"] = ResponsableActual.IdIndicador,
+                    ["fechaasignacion"] = ResponsableActual.FechaAsignacion.ToString("yyyy-MM-dd")
+                };
 
-            bool resultado;
+            bool resultado = false;
 
             if (ModoEdicion)
             {
-                // Método 1: Si la tabla tiene un ID primario único
-                if (!string.IsNullOrEmpty(IdAsignacionSeleccionada))
+                responsableData["accion"] = "edit";
+                responsableData["indicadorInicial"] = ResponsableOriginal.IdIndicador;
+                responsableData["responsableInicial"] = ResponsableOriginal.IdResponsable;
+
+                var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                    "tbl",
+                    PROCEDIMIENTO_ACCIONES,
+                    responsableData
+                );
+
+                var serverMessage = await respuesta.Content.ReadAsStringAsync();
+
+                if (respuesta.IsSuccessStatusCode)
                 {
-                    resultado = await ServicioEntidad.ActualizarAsync(
-                        NOMBRE_TABLA,
-                        "id",  // Campo ID
-                        IdAsignacionSeleccionada,  // Valor del ID
-                        responsableData
-                    );
-                }
-                // Método 2: Enfoque eliminar y crear de nuevo
-                else
-                {
-                    // Primero intentamos eliminar la relación original
-                    await EliminarRelacionExistente();
-                    
-                    // Luego creamos la nueva relación
-                    resultado = await ServicioEntidad.CrearAsync(
-                        NOMBRE_TABLA,
-                        responsableData
-                    );
-                }
-                
-                if (resultado) 
-                {
-                    MensajeExito = "Asignación actualizada correctamente.";
+                    MensajeExito = !string.IsNullOrWhiteSpace(serverMessage)
+                        ? serverMessage
+                        : "Asignación actualizada correctamente.";
+                    resultado = true;
                 }
                 else
                 {
-                    MensajeError = "No se pudo actualizar la asignación.";
+                    MensajeError = !string.IsNullOrWhiteSpace(serverMessage)
+                        ? serverMessage
+                        : "No se pudo actualizar la asignación.";
                 }
             }
             else
             {
-                resultado = await ServicioEntidad.CrearAsync(
-                    NOMBRE_TABLA,
+                // Para la creación
+                responsableData["accion"] = "create";
+                responsableData["indicadorInicial"] = 0;
+                responsableData["responsableInicial"] = 0;
+
+                var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                    "tbl",
+                    PROCEDIMIENTO_ACCIONES,
                     responsableData
                 );
-                
-                if (resultado) 
+
+                var serverMessage = await respuesta.Content.ReadAsStringAsync();
+
+                if (respuesta.IsSuccessStatusCode)
                 {
-                    MensajeExito = "Asignación creada correctamente.";
+                    MensajeExito = !string.IsNullOrWhiteSpace(serverMessage)
+                        ? serverMessage
+                        : "Asignación creada correctamente.";
+                    resultado = true;
                 }
                 else
                 {
-                    MensajeError = "No se pudo crear la asignación.";
+                    MensajeError = !string.IsNullOrWhiteSpace(serverMessage)
+                        ? serverMessage
+                        : "No se pudo crear la asignación.";
                 }
             }
 
             if (resultado)
             {
                 await CargarAsignaciones();
+                await modalFormulario.HideModalAsync();
             }
         }
         catch (Exception ex)
@@ -416,21 +464,62 @@ else
         }
     }
 
-    private async Task EliminarRelacionExistente()
-    {
-    }
-
     private async Task EliminarResponsable()
     {
-       
+        MensajeError = null;
+        MensajeExito = null;
+
+        try
+        {
+            var body = new Dictionary<string, object>
+            {
+                { "fkidindicador", ResponsableAEliminar.IdIndicador },
+                { "fkidresponsable", ResponsableAEliminar.IdResponsable },
+                { "accion", "delete" },
+                { "indicadorInicial", 0 },
+                { "responsableInicial", 0 }
+            };
+
+            var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                "tbl",
+                PROCEDIMIENTO_ACCIONES,
+                body
+            );
+
+            var serverMessage = await respuesta.Content.ReadAsStringAsync();
+
+            if (respuesta.IsSuccessStatusCode)
+            {
+                MensajeExito = !string.IsNullOrWhiteSpace(serverMessage)
+                    ? serverMessage
+                    : "Registro eliminado exitosamente.";
+                await CargarAsignaciones();
+                await modalConfirmacion.HideModalAsync();
+            }
+            else
+            {
+                MensajeError = !string.IsNullOrWhiteSpace(serverMessage) && serverMessage.Length <= 150
+                    ? serverMessage
+                    : "Error al intentar eliminar el registro, verifique sus dependencias.";
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error en la petición: {ex.Message}";
+            Console.WriteLine($"Error al eliminar registro: {ex}");
+        }
     }
 
-    private class ResponsableModel
+    // Método auxiliar para reiniciar los mensajes después de un tiempo
+    private async Task ResetMensajes(int milisegundos = 5000)
     {
-        public int IdResponsable { get; set; }
-        public int IdIndicador { get; set; }
-        public DateTime FechaAsignacion { get; set; } = DateTime.Today;
+        await Task.Delay(milisegundos);
+        MensajeExito = null;
+        MensajeError = null;
+        StateHasChanged();
     }
+
+    // Modelos de datos
 
     private class ItemSelectModel
     {
