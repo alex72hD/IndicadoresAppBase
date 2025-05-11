@@ -1,619 +1,1073 @@
-@page "/indicador"  
-@using Services 
-@using System.Net.Http
-@using System.Net.Http.Json
-@using System.Linq 
-@using System.Text
+@page "/indicador"
 @using System.Collections.Generic
-@using Services
-@inject ServicioEntidad ServicioEntidad
-@inject NavigationManager NavigationManager
+@using System.Text.Json
+@inject ServicioEntidad servicioEntidad
+@inject NavigationManager navegacionManager
+@inject IJSRuntime JSRuntime
 @inherits ValidacionAcceso
 
-<PageTitle>Indicador</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+<h3>Gestión de Indicadores</h3>
 
-<h1>Indicadores</h1>  <!-- Encabezado principal de la página -->
-
-<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" @onclick='() => AbrirModal("","","","","","","","","","","","","","","", "Create")'>Crear Nuevo</button>  <!-- Botón deshabilitado para crear nuevos productos -->
-</div>
-
-<style>
-
-    td {
-        vertical-align: middle;
-        padding: 10px;
-    }
-
-</style>
-
-<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
-<!-- Si no está cargando pero no hay productos o la lista es nula, muestra un mensaje informativo -->
-<!-- Si hay productos para mostrar, muestra la tabla -->
-@if (cargando)
+@if (!datosCargados)
 {
-    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+    <p class="text-muted">Cargando información...</p>
 }
-else if (indicadores == null || indicadores.Count == 0)
+else if (!string.IsNullOrEmpty(errorMensaje))
 {
-    <p>No hay información disponibles.</p>  <!-- Mensaje cuando no hay productos para mostrar -->
+    <div class="alert alert-danger">@errorMensaje</div>
 }
 else
 {
-    <div style="width: 100%; overflow-x: auto; max-width: 75vw;">
-        <div class="table-responsive" style="white-space: normal;;">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
-            <table class="table table-striped" style="table-layout: auto;">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
-                <thead>  
-                    <tr style="text-align: center;">  
-                        <th>Codigo</th>
-                        <th>Nombre</th>
-                        <th>Objetivo</th>
-                        <th>Alcance</th>
-                        <th>Formula</th>
-                        <th>Tipo Indicador</th>
-                        <th>Unidad de Medición</th>
-                        <th>Meta</th>
-                        <th>Sentido</th>
-                        <th>Frecuencia</th>
-                        <th>id Articulo</th>
-                        <th>id Literal</th>
-                        <th>id Numeral</th>
-                        <th>id Paragrafo</th>
-                        
-                    </tr>
-                </thead>
-                <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
-                    <!-- Bucle foreach que itera sobre cada producto en la lista -->
-                    @foreach (var tpIndi in indicadores)
-                    {
-                        string tempId = ObtenerValor(tpIndi, "id");
-                        string tempCode = ObtenerValor(tpIndi, "codigo");
-                        string tempNombre = ObtenerValor(tpIndi, "nombre");
-                        string tempObjetivo = ObtenerValor(tpIndi, "objetivo");
-                        string tempAlcance = ObtenerValor(tpIndi, "alcance");
-                        string tempFormula = ObtenerValor(tpIndi, "formula");
-                        string tempTipoIndi = ObtenerValor(tpIndi, "fkidtipoindicador");
-                        string tempUnidad = ObtenerValor(tpIndi, "fkidunidadmedicion");
-                        string tempMeta = ObtenerValor(tpIndi, "meta");
-                        string tempSentido = ObtenerValor(tpIndi, "fkidsentido");
-                        string tempFrec = ObtenerValor(tpIndi, "fkidfrecuencia");
-                        string tempArt = ObtenerValor(tpIndi, "fkidarticulo");
-                        string tempLiteral = ObtenerValor(tpIndi, "fkidliteral");
-                        string tempNumeral = ObtenerValor(tpIndi, "fkidnumeral");
-                        string tempPrgfo = ObtenerValor(tpIndi, "fkidparagrafo");
+    <div class="mb-3 row g-2">
+        <div class="col"><input @bind="nuevoCodigo" class="form-control" placeholder="Código" /></div>
+        <div class="col"><input @bind="nuevoNombre" class="form-control" placeholder="Nombre" /></div>
+        <div class="col"><input @bind="nuevoMeta" class="form-control" placeholder="Meta" /></div>
+        <div class="col"><textarea @bind="nuevoObjetivo" class="form-control" placeholder="Objetivo"></textarea></div>
+        <div class="col"><textarea @bind="nuevoAlcance" class="form-control" placeholder="Alcance"></textarea></div>
+        <div class="col"><textarea @bind="nuevoFormula" class="form-control" placeholder="Fórmula"></textarea></div>
 
-                        <tr>  
-                            <td style="min-width: 110px;">@tempCode</td> 
-                            <td style="min-width: 110px;">@tempNombre</td>
-                            <td style="min-width: 150px;">@tempObjetivo</td>
-                            <td style="min-width: 150px;">@tempAlcance</td>
-                            <td>@tempFormula</td>
-                            <td>@ObtenerNombrePorId(tpIndi,"fkidtipoindicador","nombre")</td>
-                            <td>@ObtenerNombrePorId(tpIndi,"fkidunidadmedicion","descripcion")</td>
-                            <td style="min-width: 150px;">@tempMeta</td>
-                            <td>@ObtenerNombrePorId(tpIndi,"fkidsentido","nombre")</td>
-                            <td>@ObtenerNombrePorId(tpIndi,"fkidfrecuencia","nombre")</td>
-                            <td>@ObtenerNombrePorId(tpIndi,"fkidarticulo","nombre")</td>
-                            <td style="min-width: 150px;">@ObtenerNombrePorId(tpIndi,"fkidliteral","descripcion")</td>
-                            <td style="min-width: 300px;">@ObtenerNombrePorId(tpIndi,"fkidnumeral","descripcion")</td>
-                            <td style="min-width: 500px;">@ObtenerNombrePorId(tpIndi,"fkidparagrafo","descripcion")</td>
+        <div class="col">
+            <select @bind="nuevoTipoIndicador" class="form-select">
+                <option value="">Tipo</option>
+                @foreach (var tipo in tiposIndicador)
+                {
+                    <option value="@tipo["id"]">@tipo["nombre"]</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <select @bind="nuevaUnidadMedicion" class="form-select">
+                <option value="">Unidad</option>
+                @foreach (var unidad in unidadesMedicion)
+                {
+                    <option value="@unidad["id"]">@unidad["descripcion"]</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <select @bind="nuevoSentido" class="form-select">
+                <option value="">Sentido</option>
+                @foreach (var sentido in sentidos)
+                {
+                    <option value="@sentido["id"]">@sentido["nombre"]</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <select @bind="nuevaFrecuencia" class="form-select">
+                <option value="">Frecuencia</option>
+                @foreach (var frecuencia in frecuencias)
+                {
+                    <option value="@frecuencia["id"]">@frecuencia["nombre"]</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <select @bind="nuevoArticulo" class="form-select">
+                <option value="">Artículo</option>
+                @foreach (var articulo in articulos)
+                {
+                    <option value="@articulo["id"]">@articulo["nombre"]</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <select @bind="nuevoLiteral" class="form-select">
+                <option value="">Literal</option>
+                @foreach (var literal in literales)
+                {
+                    <option value="@literal["id"]">@literal["descripcion"]</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <select @bind="nuevoNumeral" class="form-select">
+                <option value="">Numeral</option>
+                @foreach (var numeral in numerales)
+                {
+                    <option value="@numeral["id"]">@numeral["descripcion"]</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <select @bind="nuevoParagrafo" class="form-select">
+                <option value="">Parágrafo</option>
+                @foreach (var paragrafo in parrafos)
+                {
+                    <option value="@paragrafo["id"]">@paragrafo["descripcion"]</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <button class="btn btn-success w-100" @onclick="CrearIndicador">Crear</button>
+        </div>
+    </div>
+
+    @if (indicadores.Count == 0)
+    {
+        <p>No hay indicadores registrados.</p>
+    }
+    else
+    {
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Meta</th>
+                    <th>Objetivo</th>
+                    <th>Alcance</th>
+                    <th>Fórmula</th>
+                    <th>Tipo</th>
+                    <th>Unidad</th>
+                    <th>Sentido</th>
+                    <th>Frecuencia</th>
+                    <th>Artículo</th>
+                    <th>Literal</th>
+                    <th>Numeral</th>
+                    <th>Parágrafo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var indicador in indicadores)
+                {
+                    <tr>
+                        @if (indicadorEditarId == indicador["id"].ToString())
+                        {
+                            <td><input class="form-control" @bind="indicadorEditarCodigo" /></td>
+                            <td><input class="form-control" @bind="indicadorEditarNombre" /></td>
+                            <td><input class="form-control" @bind="indicadorEditarMeta" /></td>
+                            <td><textarea class="form-control" @bind="indicadorEditarObjetivo"></textarea></td>
+                            <td><textarea class="form-control" @bind="indicadorEditarAlcance"></textarea></td>
+                            <td><textarea class="form-control" @bind="indicadorEditarFormula"></textarea></td>
                             <td>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" 
-                                @onclick='() => 
-                                    AbrirModal(
-                                        tempId
-                                        ,tempCode
-                                        ,tempNombre
-                                        ,tempObjetivo
-                                        ,tempAlcance
-                                        ,tempFormula
-                                        ,tempTipoIndi
-                                        ,tempUnidad
-                                        ,tempMeta
-                                        ,tempSentido
-                                        ,tempFrec 
-                                        ,tempArt
-                                        ,tempLiteral
-                                        ,tempNumeral
-                                        ,tempPrgfo
-                                        ,"Edit")'>Editar</button>
+                                <select class="form-select" @bind="indicadorEditarTipo">
+                                    <option value="">Tipo</option>
+                                    @foreach (var tipo in tiposIndicador)
+                                    {
+                                        <option value="@tipo["id"]">@tipo["nombre"]</option>
+                                    }
+                                </select>
                             </td>
-                            <td><button id="" class="btn btn-danger" @onclick="() => EliminarRegistro(tempId)">Eliminar</button></td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+                            <td>
+                                <select class="form-select" @bind="indicadorEditarUnidad">
+                                    <option value="">Unidad</option>
+                                    @foreach (var unidad in unidadesMedicion)
+                                    {
+                                        <option value="@unidad["id"]">@unidad["descripcion"]</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select" @bind="indicadorEditarSentido">
+                                    <option value="">Sentido</option>
+                                    @foreach (var sentido in sentidos)
+                                    {
+                                        <option value="@sentido["id"]">@sentido["nombre"]</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select" @bind="indicadorEditarFrecuencia">
+                                    <option value="">Frecuencia</option>
+                                    @foreach (var frecuencia in frecuencias)
+                                    {
+                                        <option value="@frecuencia["id"]">@frecuencia["nombre"]</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select" @bind="indicadorEditarArticulo">
+                                    <option value="">Artículo</option>
+                                    @foreach (var articulo in articulos)
+                                    {
+                                        <option value="@articulo["id"]">@articulo["nombre"]</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select" @bind="indicadorEditarLiteral">
+                                    <option value="">Literal</option>
+                                    @foreach (var literal in literales)
+                                    {
+                                        <option value="@literal["id"]">@literal["descripcion"]</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select" @bind="indicadorEditarNumeral">
+                                    <option value="">Numeral</option>
+                                    @foreach (var numeral in numerales)
+                                    {
+                                        <option value="@numeral["id"]">@numeral["descripcion"]</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select" @bind="indicadorEditarParagrafo">
+                                    <option value="">Parágrafo</option>
+                                    @foreach (var paragrafo in parrafos)
+                                    {
+                                        <option value="@paragrafo["id"]">@paragrafo["descripcion"]</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-success" @onclick="GuardarEdicion">Guardar</button>
+                                <button class="btn btn-sm btn-secondary" @onclick="CancelarEdicion">Cancelar</button>
+                            </td>
+                        }
+                        else
+                        {
+                            <td>@indicador["codigo"]</td>
+                            <td>@indicador["nombre"]</td>
+                            <td>@indicador["meta"]</td>
+                            <td>@indicador["objetivo"]</td>
+                            <td>@indicador["alcance"]</td>
+                            <td>@indicador["formula"]</td>
+                            <td>@BuscarNombre(tiposIndicador, indicador["fkidtipoindicador"])</td>
+                            <td>@BuscarDescripcion(unidadesMedicion, indicador["fkidunidadmedicion"])</td>
+                            <td>@BuscarNombre(sentidos, indicador["fkidsentido"])</td>
+                            <td>@BuscarNombre(frecuencias, indicador["fkidfrecuencia"])</td>
+                            <td>@(BuscarNombre(articulos, indicador["fkidarticulo"]) ?? indicador["fkidarticulo"])</td>
+                            <td>@BuscarDescripcion(literales, indicador["fkidliteral"])</td>
+                            <td>@BuscarDescripcion(numerales, indicador["fkidnumeral"])</td>
+                            <td>@BuscarDescripcion(parrafos, indicador["fkidparagrafo"])</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-primary" @onclick="() => IniciarEdicion(indicador)">Editar</button>
+                                    <button class="btn btn-sm btn-danger" @onclick="() => EliminarIndicador(indicador)">Eliminar</button>
+                                    <button class="btn btn-sm btn-info" @onclick="() => AbrirModalResponsables(indicador)">Asignar Responsables</button>
+                                    <button class="btn btn-sm btn-secondary" @onclick="() => AbrirModalRepresenVisualPorIndicador(indicador)">Asignar Rep. Visuales</button>
+                                    <button class="btn btn-sm btn-info" @onclick="() => AbrirModalFuentesPorIndicador(indicador)">Asignar Fuentes</button>
+                                </div>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 }
 
-@if (mensaje != null)
+<!-- Modal para gestionar responsables por indicador -->
+@if (mostrarModalResponsables)
 {
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="liveToast" class="toast align-items-center text-white bg-@tipoAlerta border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    @mensaje
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close" @onclick="() => mensaje = null"></button>
-            </div>
-        </div>
-    </div>
-}
-
-
-    <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">PopUp</h5>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h5 class="modal-title">Responsables para Indicador: @(indicadorSeleccionado != null ? indicadorSeleccionado["nombre"] : "")</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModalResponsables"></button>
                 </div>
                 <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeModal))
+                    {
+                        <div class="alert alert-info">@mensajeModal</div>
+                    }
 
-                    <label for="codigo" class="form-label">Código:</label>
-                    <input type="text" id="codigo" class="form-control" @bind="codigoSeleccionado">
-                    <br>
-                    <label for="nombre" class="form-label">Nombre:</label>
-                    <input type="text" id="nombre" class="form-control" @bind="nombreSeleccionado">
-                    <br>
-                    <label for="objetivo" class="form-label">Objetivo:</label>
-                    <input type="text" id="objetivo" class="form-control" @bind="objetivoSeleccionado">
-                    <br>
-                    <label for="alcance" class="form-label">Alcance:</label>
-                    <input type="text" id="alcance" class="form-control" @bind="alcanceSeleccionado">
-                    <br>
-                    <label for="formula" class="form-label">Formula:</label>
-                    <input type="text" id="formula" class="form-control" @bind="formulaSeleccionada">
-                    <br>
-                    <label for="tpIndi" class="form-label">Tipo Indicador:</label>
-                    <select class="form-control" @bind="tipoIndiSeleccionado">
-                        <option value="">Seleccione un Tipo</option>
-                        @foreach (var tpIndi in tipoIndicador)
-                        {
-                            <option value='@ObtenerValor(tpIndi, "id")'>@ObtenerValor(tpIndi, "nombre")</option>
-                        }
-                    </select>
-                    <br>
-                    <label for="unidad" class="form-label">Unidad de Medición</label>
-                    <select class="form-control" @bind="unidadSeleccionada">
-                        <option value="">Seleccione una unidad</option>
-                        @foreach (var tpUni in unidadMedicion)
-                        {
-                            <option value='@ObtenerValor(tpUni, "id")'>@ObtenerValor(tpUni, "descripcion")</option>
-                        }
-                    </select>
-                    <br>
-                    <label for="meta" class="form-label">Meta:</label>
-                    <input type="text" id="meta" class="form-control" @bind="metaSeleccionada">
-                    <br>
-                    <label for="sentido" class="form-label">Sentido</label>
-                    <select class="form-control" @bind="sentidoSeleccionado">
-                        <option value="">Seleccione un sentido</option>
-                        @foreach (var tpSentido in sentido)
-                        {
-                            <option value='@ObtenerValor(tpSentido, "id")'>@ObtenerValor(tpSentido, "nombre")</option>
-                        }
-                    </select>
-                    <br>
-                    <label for="frecuencia" class="form-label">Frecuencia</label>
-                    <select class="form-control" @bind="frecuenciaSeleccionada">
-                        <option value="">Seleccione una frecuencia</option>
-                        @foreach (var tpFrec in frecuencia)
-                        {
-                            <option value='@ObtenerValor(tpFrec, "id")'>@ObtenerValor(tpFrec, "nombre")</option>
-                        }
-                    </select>
-                    <br>
-                    <label for="frecuencia" class="form-label">Articulo</label>
-                    <select class="form-control" @bind="articuloSeleccionado">
-                        <option value="">Seleccione un Articulo</option>
-                        @foreach (var tpArt in articulo)
-                        {
-                            <option value='@ObtenerValor(tpArt, "id")'>@ObtenerValor(tpArt, "nombre")</option>
-                        }
-                    </select>
-                    <br>
-                    <label for="frecuencia" class="form-label">Literal</label>
-                    <select class="form-control" @bind="literalSeleccionado">
-                        <option value="">Seleccione un Literal</option>
-                        @foreach (var tpLit in literal)
-                        {
-                            <option value='@ObtenerValor(tpLit, "id")'>@ObtenerValor(tpLit, "id")</option>
-                        }
-                    </select>
-                    <br>
-                    <label for="frecuencia" class="form-label">Numeral</label>
-                    <select class="form-control" @bind="numeralSeleccionado">
-                        <option value="">Seleccione un Numeral</option>
-                        @foreach (var tpNum in numeral)
-                        {
-                            <option value='@ObtenerValor(tpNum, "id")'>@ObtenerValor(tpNum, "id")</option>
-                        }
-                    </select>
-                    <br>
-                    <label for="frecuencia" class="form-label">Paragrafo</label>
-                    <select class="form-control" @bind="paragrafoSeleccionado">
-                        <option value="">Seleccione un Paragrafo</option>
-                        @foreach (var tpPrg in paragrafo)
-                        {
-                            <option value='@ObtenerValor(tpPrg, "id")'>@ObtenerValor(tpPrg, "id")</option>
-                        }
-                    </select>
+                    <div class="mb-3">
+                        <label>Responsable (Actor):</label>
+                        <select class="form-select mb-2" @bind="nuevoResponsable">
+                            <option value="">Seleccione un actor</option>
+                            @foreach (var actor in actores)
+                            {
+                                <option value="@actor["id"]">@actor["nombre"]</option>
+                            }
+                        </select>
 
-                    
+                        <label>Fecha Asignación:</label>
+                        <input type="date" class="form-control mb-3" @bind="nuevaFechaAsignacion" />
 
+                        <button class="btn btn-success" @onclick="CrearRelacion">Asignar</button>
+                    </div>
+
+                    <h4>Relaciones actuales</h4>
+                    @if (relaciones.Count == 0)
+                    {
+                        <p>No hay responsables asignados a este indicador.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group">
+                            @foreach (var relacion in relaciones)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        Actor: @actores.FirstOrDefault(a => a["id"].ToString() == relacion["fkidresponsable"].ToString())?["nombre"]
+                                        - Fecha: @FormatFecha(relacion["fechaasignacion"])
+                                    </span>
+                                    <span>
+                                        <button class="btn btn-danger btn-sm" @onclick="() => EliminarRelacion(relacion)">Eliminar</button>
+                                    </span>
+                                </li>
+                            }
+                        </ul>
+                    }
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="@GuardarCambios">Save changes</button>
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModalResponsables">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
+}
 
+<!-- Modal para gestionar representaciones visuales por indicador -->
+@if (mostrarModalRepresenVisualPorIndicador)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Representaciones Visuales para Indicador: @(indicadorSeleccionado != null ? indicadorSeleccionado["nombre"] : "")</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModalRepresenVisualPorIndicador"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeModalRepresenVisualPorIndicador))
+                    {
+                        <div class="alert alert-info">@mensajeModalRepresenVisualPorIndicador</div>
+                    }
 
+                    <div class="mb-3">
+                        <label>Representación Visual:</label>
+                        <select class="form-select mb-2" @bind="nuevoIdRepresenVisualPorIndicador">
+                            <option value="">Seleccione una representación visual</option>
+                            @foreach (var rep in represenvisuales)
+                            {
+                                <option value="@rep["id"]">@rep["nombre"]</option>
+                            }
+                        </select>
+
+                        <button class="btn btn-success" @onclick="AsignarRepresenVisualPorIndicador">Asignar</button>
+                    </div>
+
+                    <h4 class="mt-4">Relaciones existentes</h4>
+                    @if (relacionesRepresenVisual.Count == 0)
+                    {
+                        <p>No hay relaciones registradas para este indicador.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group">
+                            @foreach (var relacion in relacionesRepresenVisual)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        @represenvisuales.FirstOrDefault(r => r["id"].ToString() == relacion["fkidrepresenvisual"].ToString())?["nombre"]
+                                    </span>
+                                    <button class="btn btn-danger btn-sm" @onclick="() => EliminarRepresenVisualPorIndicador(relacion)">Eliminar</button>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModalRepresenVisualPorIndicador">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+<!-- Modal para gestionar fuentes por indicador -->
+@if (mostrarModalFuentesPorIndicador)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Fuentes para Indicador: @(indicadorSeleccionado != null ? indicadorSeleccionado["nombre"] : "")</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModalFuentesPorIndicador"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(mensajeModalFuentesPorIndicador))
+                    {
+                        <div class="alert alert-info">@mensajeModalFuentesPorIndicador</div>
+                    }
+
+                    <div class="mb-3">
+                        <label>Fuente:</label>
+                        <select class="form-select mb-2" @bind="nuevoIdFuente">
+                            <option value="">Seleccione una fuente</option>
+                            @foreach (var fuente in fuentes)
+                            {
+                                <option value="@fuente["id"]">@fuente["nombre"]</option>
+                            }
+                        </select>
+
+                        <button class="btn btn-success" @onclick="AsignarFuentePorIndicador">Asignar</button>
+                    </div>
+
+                    <h4 class="mt-4">Fuentes asignadas</h4>
+                    @if (relacionesFuentes.Count == 0)
+                    {
+                        <p>No hay fuentes asignadas a este indicador.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group">
+                            @foreach (var relacion in relacionesFuentes)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        @fuentes.FirstOrDefault(f => f["id"].ToString() == relacion["fkidfuente"].ToString())?["nombre"]
+                                    </span>
+                                    <button class="btn btn-danger btn-sm" @onclick="() => EliminarFuentePorIndicador(relacion)">Eliminar</button>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModalFuentesPorIndicador">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
-    // Lista para almacenar los productos que se obtienen de la API
-    private List<Dictionary<string, object>> indicadores = new List<Dictionary<string, object>>();
-    private List<Dictionary<string, object>> tipoIndicador = new List<Dictionary<string, object>>();
-    private List<Dictionary<string, object>> unidadMedicion = new List<Dictionary<string, object>>();
-    private List<Dictionary<string, object>> sentido = new List<Dictionary<string, object>>();
-    private List<Dictionary<string, object>> frecuencia = new List<Dictionary<string, object>>();
-    private List<Dictionary<string, object>> articulo = new List<Dictionary<string, object>>();
-    private List<Dictionary<string, object>> literal = new List<Dictionary<string, object>>();
-    private List<Dictionary<string, object>> numeral = new List<Dictionary<string, object>>();
-    private List<Dictionary<string, object>> paragrafo = new List<Dictionary<string, object>>();
-    
-    // Bandera para indicar si se están cargando los datos
-    private bool cargando = true;
-    
-    // Variable para almacenar mensajes de error
-    private string? mensaje = null;
-
-    //Variable para almacenar el tipo de alerta
-    private string? tipoAlerta = "info";
-    
-    // Constantes para los parámetros de la API
-    private const string PROYECTO = "pry";
+    private const string PROYECTO = "proyecto";
     private const string TABLA = "indicador";
+    private const string TABLA_RESPONSABLES = "responsablesporindicador";
 
-    // Método que se ejecuta cuando se inicializa el componente
+    private List<Dictionary<string, object>> indicadores = new();
+    private List<Dictionary<string, object>> tiposIndicador = new();
+    private List<Dictionary<string, object>> unidadesMedicion = new();
+    private List<Dictionary<string, object>> sentidos = new();
+    private List<Dictionary<string, object>> frecuencias = new();
+    private List<Dictionary<string, object>> articulos = new();
+    private List<Dictionary<string, object>> literales = new();
+    private List<Dictionary<string, object>> numerales = new();
+    private List<Dictionary<string, object>> parrafos = new();
+    private List<Dictionary<string, object>> actores = new();
+    private List<Dictionary<string, object>> relaciones = new();
+
+    private string nuevoCodigo = "";
+    private string nuevoNombre = "";
+    private string nuevoMeta = "";
+    private string nuevoObjetivo = "";
+    private string nuevoAlcance = "";
+    private string nuevoFormula = "";
+    private string nuevoTipoIndicador = "";
+    private string nuevaUnidadMedicion = "";
+    private string nuevoSentido = "";
+    private string nuevaFrecuencia = "";
+    private string nuevoArticulo = "";
+    private string nuevoLiteral = "";
+    private string nuevoNumeral = "";
+    private string nuevoParagrafo = "";
+    private string indicadorEditarId = "";
+    private string indicadorEditarCodigo = "";
+    private string indicadorEditarNombre = "";
+    private string indicadorEditarMeta = "";
+    private string indicadorEditarObjetivo = "";
+    private string indicadorEditarAlcance = "";
+    private string indicadorEditarFormula = "";
+    private string indicadorEditarTipo = "";
+    private string indicadorEditarUnidad = "";
+    private string indicadorEditarSentido = "";
+    private string indicadorEditarFrecuencia = "";
+    private string indicadorEditarArticulo = "";
+    private string indicadorEditarLiteral = "";
+    private string indicadorEditarNumeral = "";
+    private string indicadorEditarParagrafo = "";
+
+    // Variables para el modal de responsables
+    private bool mostrarModalResponsables = false;
+    private Dictionary<string, object>? indicadorSeleccionado = null;
+    private string nuevoResponsable = string.Empty;
+    private DateTime nuevaFechaAsignacion = DateTime.Today;
+    private string mensajeModal = string.Empty;
+    private Dictionary<string, object>? editandoRelacion = null;
+    private DateTime nuevaFechaEdicion = DateTime.Today;
+
+    private string mensaje = string.Empty;
+
+    private string? errorMensaje;
+    private bool datosCargados = false;
+
+    //Variables de Representación Visual
+    private const string TABLA_REPRESENVISUAL_INDICADOR = "represenvisualporindicador";
+    private bool mostrarModalRepresenVisualPorIndicador = false;
+    private List<Dictionary<string, object>> represenvisuales = new();
+    private List<Dictionary<string, object>> relacionesRepresenVisual = new();
+    private string nuevoIdRepresenVisualPorIndicador = string.Empty;
+    private string mensajeModalRepresenVisualPorIndicador = string.Empty;
+
+    // Variables for Fuentes modal
+    private const string TABLA_FUENTES_INDICADOR = "fuentesporindicador";
+    private bool mostrarModalFuentesPorIndicador = false;
+    private List<Dictionary<string, object>> fuentes = new();
+    private List<Dictionary<string, object>> relacionesFuentes = new();
+    private string nuevoIdFuente = string.Empty;
+    private string mensajeModalFuentesPorIndicador = string.Empty;
+
+
     protected override async Task OnInitializedAsync()
     {
-        // Llamar al método para cargar los productos
-        await CargarIndicadores();
-        await CargarTipoIndicador();
-        await CargarUnidadmedicion();
-        await CargarSentido();
-        await CargarFrecuencia();
-        await CargarArticulo();
-        await CargarLiteral();
-        await CargarNumeral();
-        await CargarParagrafo();
+        await CargarDatosIniciales();
     }
 
-    private async Task CargarTipoIndicador(){
-        tipoIndicador = await ServicioEntidad.ObtenerTodosAsync("tipoindicador") ?? new();
-    }
-
-    private async Task CargarUnidadmedicion(){
-        unidadMedicion = await ServicioEntidad.ObtenerTodosAsync("unidadmedicion") ?? new();
-    }
-
-    private async Task CargarSentido(){
-        sentido = await ServicioEntidad.ObtenerTodosAsync("sentido") ?? new();
-    }
-
-    private async Task CargarFrecuencia(){
-        frecuencia = await ServicioEntidad.ObtenerTodosAsync("frecuencia") ?? new();
-    }
-
-    private async Task CargarArticulo(){
-        articulo = await ServicioEntidad.ObtenerTodosAsync( "articulo") ?? new();
-    }
-
-    private async Task CargarLiteral(){
-        literal = await ServicioEntidad.ObtenerTodosAsync( "literal") ?? new();
-    }
-
-    private async Task CargarNumeral(){
-        numeral = await ServicioEntidad.ObtenerTodosAsync("numeral") ?? new();
-    }
-
-    private async Task CargarParagrafo(){
-        paragrafo = await ServicioEntidad.ObtenerTodosAsync("paragrafo") ?? new();
-    }
-
-    // Método asíncrono para cargar los productos desde la API
-    private async Task CargarIndicadores()
+    private async Task CargarDatosIniciales()
     {
-        // Establecer la bandera de carga en verdadero
-        cargando = true;
-        // Limpiar cualquier mensaje de error previo
-        mensaje = null;
-        
         try
         {
-            // Obtener todos los productos usando el servicio de entidades
-            var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA);
-            
-            // Si la lista no es null, asignarla a la variable productos
+            await CargarTabla("tipoindicador", tiposIndicador);
+            await CargarTabla("unidadmedicion", unidadesMedicion);
+            await CargarTabla("sentido", sentidos);
+            await CargarTabla("frecuencia", frecuencias);
+            await CargarTabla("articulo", articulos);
+            await CargarTabla("literal", literales);
+            await CargarTabla("numeral", numerales);
+            await CargarTabla("paragrafo", parrafos);
+            await CargarTabla("actor", actores);
+            await ObtenerIndicadores();
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al cargar datos: {ex.Message}";
+        }
+
+        datosCargados = true;
+    }
+
+    private async Task CargarTabla(string nombreTabla, List<Dictionary<string, object>> lista)
+    {
+        try
+        {
+            var resultado = await servicioEntidad.ObtenerTodosAsync( nombreTabla);
             if (resultado != null)
             {
-                indicadores = resultado;
-            }
-            else
-            {
-                // Si es null, inicializar como lista vacía para evitar errores
-                indicadores = new List<Dictionary<string, object>>();
+                lista.Clear();
+                lista.AddRange(resultado);
+                await JSRuntime.InvokeVoidAsync("console.log", $"{nombreTabla} desde API:", JsonSerializer.Serialize(resultado));
             }
         }
         catch (Exception ex)
         {
-            //Especificar tipo de alerta
-            tipoAlerta = "danger";
-
-            // En caso de error, guardar el mensaje y crear lista vacía
-            mensaje = $"Error al cargar tipo de actores: {ex.Message}";
-            indicadores = new List<Dictionary<string, object>>();
-        }
-        finally
-        {
-            // Establecer la bandera de carga en falso una vez finalizada la operación
-            cargando = false;
+            errorMensaje = $"Error en tabla {nombreTabla}: {ex.Message}";
         }
     }
 
-    // Método para obtener un valor específico de un diccionario de manera segura
-    private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
+    private async Task ObtenerIndicadores()
     {
-        // Verificar si el diccionario es null
-        if (diccionario == null)
-            return string.Empty;
-            
-        // Verificar si el diccionario contiene la clave
-        if (diccionario.TryGetValue(clave, out var valor))
-        {
-            // Devolver el valor como cadena, o cadena vacía si es null
-            return valor?.ToString() ?? string.Empty;
-        }
-        
-        // Si la clave no existe, devolver cadena vacía
-        return string.Empty;
+        var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+        indicadores = resultado ?? new();
+        await JSRuntime.InvokeVoidAsync("console.log", "Indicadores cargados:", JsonSerializer.Serialize(indicadores));
     }
 
-    // Método para formatear un valor como precio
-    private string FormatearPrecio(string valor)
+    private string BuscarNombre(List<Dictionary<string, object>> lista, object? id)
     {
-        // Verificar si la cadena está vacía
-        if (string.IsNullOrEmpty(valor))
-            return "$0.00";
-            
-        // Intentar convertir el valor a decimal
-        if (decimal.TryParse(valor, out decimal precio))
-        {
-            // Formatear como moneda con el símbolo $ y dos decimales
-            return precio.ToString("C");
-        }
-        
-        // Si no se puede convertir, devolver el valor original
-        return valor;
+        var sid = id?.ToString();
+        return lista.FirstOrDefault(e => e["id"]?.ToString() == sid)?["nombre"]?.ToString() ?? "N/A";
     }
 
-    public string idSeleccionado = "";
-    public string codigoSeleccionado = "";
-    public string nombreSeleccionado = "";
-    public string objetivoSeleccionado = "";
-    public string alcanceSeleccionado = "";
-    public string formulaSeleccionada = "";
-    public string tipoIndiSeleccionado = "";
-    public string unidadSeleccionada = "";
-    public string metaSeleccionada = "";
-    public string sentidoSeleccionado = "";
-    public string frecuenciaSeleccionada = "";
-    public string articuloSeleccionado = "";
-    public string literalSeleccionado = "";
-    public string numeralSeleccionado = "";
-    public string paragrafoSeleccionado = "";
-    public string peticionSeleccionada = "";
-
-
-    public void AbrirModal
-        (
-        string id
-        ,string codigo
-        ,string nombre
-        ,string objetivo
-        ,string alcance
-        ,string formula
-        ,string tpIndi
-        ,string unidad
-        ,string meta
-        ,string sentido
-        ,string frecuencia  
-        ,string articulo
-        ,string literal
-        ,string numeral
-        ,string paragrafo
-        ,string peticion
-        )
+    private string BuscarDescripcion(List<Dictionary<string, object>> lista, object? id)
     {
-        idSeleccionado = id;
-        codigoSeleccionado = codigo;
-        nombreSeleccionado = nombre;
-        objetivoSeleccionado = objetivo;
-        alcanceSeleccionado = alcance;
-        formulaSeleccionada = formula;
-        tipoIndiSeleccionado = tpIndi;
-        unidadSeleccionada = unidad;
-        metaSeleccionada = meta;
-        sentidoSeleccionado = sentido;
-        frecuenciaSeleccionada = frecuencia;
-        articuloSeleccionado = articulo;
-        literalSeleccionado = literal;
-        numeralSeleccionado = numeral;
-        paragrafoSeleccionado = paragrafo;
-        peticionSeleccionada = peticion;
-        
+        return lista.FirstOrDefault(e => e["id"].ToString() == id?.ToString())?["descripcion"]?.ToString() ?? "N/A";
     }
 
-
-    //================================ INICIO - Relacionamiento de ID con Nombre ====================================
-
-    private string ObtenerNombrePorId(Dictionary<string, object> entidad, string nombreFk, string nombreCampo)
+    private async Task CrearIndicador()
     {
-        if (entidad.TryGetValue(nombreFk, out var fkObtenido))
+        var nuevo = new Dictionary<string, object>
         {
-
-            List<Dictionary<string, object>> entidadConsultada = new List<Dictionary<string, object>>();;
-            
-            if(nombreFk == "fkidtipoindicador"){
-                entidadConsultada = tipoIndicador;
-            }
-            else if(nombreFk == "fkidunidadmedicion")
-            {
-                entidadConsultada = unidadMedicion;
-            }
-            else if(nombreFk == "fkidsentido")
-            {
-                entidadConsultada = sentido;
-            }
-            else if(nombreFk == "fkidfrecuencia")
-            {
-                entidadConsultada = frecuencia;
-            }
-            else if(nombreFk == "fkidarticulo")
-            {
-                entidadConsultada = articulo;
-            }
-            else if(nombreFk == "fkidliteral")
-            {
-                entidadConsultada = literal;
-            }
-            else if(nombreFk == "fkidnumeral")
-            {
-                entidadConsultada = numeral;
-            }
-            else if(nombreFk == "fkidparagrafo")
-            {
-                entidadConsultada = paragrafo;
-            }
-
-
-            var consulta = entidadConsultada.FirstOrDefault(p => ObtenerValor(p, "id") == fkObtenido?.ToString());
-            return consulta != null ? ObtenerValor(consulta, nombreCampo) : "(no encontrado)";
-        }
-
-        return "(no encontrado)";
-    }
-
-
-
-//================================ FIN - Relacionamiento de ID con Nombre ====================================
-
-
-    private async Task GuardarCambios()
-    {
-
-        var body = new Dictionary<string, object>
-        {
-            { "codigo", codigoSeleccionado},
-            { "nombre", nombreSeleccionado },
-            { "objetivo", objetivoSeleccionado },
-            { "alcance", alcanceSeleccionado },
-            { "formula", formulaSeleccionada },
-            { "fkidtipoindicador", tipoIndiSeleccionado },
-            { "fkidunidadmedicion", unidadSeleccionada },
-            { "meta", metaSeleccionada },
-            { "fkidsentido", sentidoSeleccionado },
-            { "fkidfrecuencia", frecuenciaSeleccionada },
-            { "fkidarticulo", articuloSeleccionado },
-            { "fkidliteral", literalSeleccionado },
-            { "fkidnumeral", numeralSeleccionado },
-            { "fkidparagrafo", paragrafoSeleccionado }
+            { "codigo", nuevoCodigo },
+            { "nombre", nuevoNombre },
+            { "meta", nuevoMeta },
+            { "objetivo", nuevoObjetivo },
+            { "alcance", nuevoAlcance },
+            { "formula", nuevoFormula },
+            { "fkidtipoindicador", nuevoTipoIndicador },
+            { "fkidunidadmedicion", nuevaUnidadMedicion },
+            { "fkidsentido", nuevoSentido },
+            { "fkidfrecuencia", nuevaFrecuencia },
+            { "fkidarticulo", nuevoArticulo },
+            { "fkidliteral", nuevoLiteral },
+            { "fkidnumeral", nuevoNumeral },
+            { "fkidparagrafo", nuevoParagrafo }
         };
 
-        HttpResponseMessage tempRespuesta = new HttpResponseMessage();
-        string tipoMsg = string.Empty;
+        var creado = await servicioEntidad.CrearAsync(TABLA, nuevo);
+        if (creado)
+        {
+            await ObtenerIndicadores();
+            LimpiarFormulario();
+        }
+        else
+        {
+            errorMensaje = "Error al crear el indicador.";
+        }
+    }
+
+    private void IniciarEdicion(Dictionary<string, object> indicador)
+    {
+        indicadorEditarId = indicador["id"].ToString();
+        indicadorEditarCodigo = indicador["codigo"]?.ToString() ?? "";
+        indicadorEditarNombre = indicador["nombre"]?.ToString() ?? "";
+        indicadorEditarMeta = indicador["meta"]?.ToString() ?? "";
+        indicadorEditarObjetivo = indicador["objetivo"]?.ToString() ?? "";
+        indicadorEditarAlcance = indicador["alcance"]?.ToString() ?? "";
+        indicadorEditarFormula = indicador["formula"]?.ToString() ?? "";
+        indicadorEditarTipo = indicador["fkidtipoindicador"]?.ToString() ?? "";
+        indicadorEditarUnidad = indicador["fkidunidadmedicion"]?.ToString() ?? "";
+        indicadorEditarSentido = indicador["fkidsentido"]?.ToString() ?? "";
+        indicadorEditarFrecuencia = indicador["fkidfrecuencia"]?.ToString() ?? "";
+        indicadorEditarArticulo = indicador["fkidarticulo"]?.ToString() ?? "";
+        indicadorEditarLiteral = indicador["fkidliteral"]?.ToString() ?? "";
+        indicadorEditarNumeral = indicador["fkidnumeral"]?.ToString() ?? "";
+        indicadorEditarParagrafo = indicador["fkidparagrafo"]?.ToString() ?? "";
+    }
+
+    private void CancelarEdicion()
+    {
+        indicadorEditarId = "";
+    }
+
+    private async Task GuardarEdicion()
+    {
+        if (string.IsNullOrEmpty(indicadorEditarId)) return;
+
+        var datosActualizados = new Dictionary<string, object>
+        {
+            { "codigo", indicadorEditarCodigo },
+            { "nombre", indicadorEditarNombre },
+            { "meta", indicadorEditarMeta },
+            { "objetivo", indicadorEditarObjetivo },
+            { "alcance", indicadorEditarAlcance },
+            { "formula", indicadorEditarFormula },
+            { "fkidtipoindicador", indicadorEditarTipo },
+            { "fkidunidadmedicion", indicadorEditarUnidad },
+            { "fkidsentido", indicadorEditarSentido },
+            { "fkidfrecuencia", indicadorEditarFrecuencia },
+            { "fkidarticulo", indicadorEditarArticulo },
+            { "fkidliteral", indicadorEditarLiteral },
+            { "fkidnumeral", indicadorEditarNumeral },
+            { "fkidparagrafo", indicadorEditarParagrafo }
+        };
 
         try
         {
-            if(peticionSeleccionada == "Create")
-            {
-                var respuesta = await ServicioEntidad.CrearAsync(TABLA, body);
-                tempRespuesta = new HttpResponseMessage(respuesta ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.BadRequest);
-                tipoMsg = "Creado";
-            }
-            else if(peticionSeleccionada == "Edit")
-            {                
-                var respuesta = await ServicioEntidad.ActualizarAsync(TABLA, "id", idSeleccionado, body);
-                tempRespuesta = new HttpResponseMessage(respuesta ? System.Net.HttpStatusCode.OK : System.Net.HttpStatusCode.BadRequest);
-                tipoMsg = "Actualizado";
-                
-            }
-            else{
-                tipoAlerta = "warning";
-                mensaje = "Acción no permitida, seleccione una acción valida";
-                resetMensaje();
-                return;
-            }
+            await JSRuntime.InvokeVoidAsync("console.log", "Actualizando:", JsonSerializer.Serialize(datosActualizados));
 
-            var serverMessage = await tempRespuesta.Content.ReadAsStringAsync();
+            var resultado = await servicioEntidad.ActualizarAsync(
+                TABLA,
+                "id",
+                indicadorEditarId,
+                datosActualizados
+            );
 
-            if (!tempRespuesta.IsSuccessStatusCode)
+            if (resultado)
             {
-                tipoAlerta = "danger";
-                // Si el servidor devuelve un mensaje, úsalo; de lo contrario, usa el ReasonPhrase
-                mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : tempRespuesta.ReasonPhrase;
+                indicadorEditarId = "";
+                await ObtenerIndicadores();
             }
             else
             {
-                tipoAlerta = "success";
-                mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : $"Registro {tipoMsg} Exitosamente!";
-                resetMensaje();
+                errorMensaje = "Error al actualizar el indicador.";
             }
-
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
-            tipoAlerta = "danger";
-            mensaje = $"Error en la petición: {ex.Message}";
-            Console.WriteLine($"Error en la petición: {ex.Message}");
+            errorMensaje = $"Error crítico al guardar: {ex.Message}";
         }
-        
     }
-    
 
-    private async Task EliminarRegistro(string id)
+    private void LimpiarFormulario()
+    {
+        nuevoCodigo = "";
+        nuevoNombre = "";
+        nuevoMeta = "";
+        nuevoObjetivo = "";
+        nuevoAlcance = "";
+        nuevoFormula = "";
+        nuevoTipoIndicador = "";
+        nuevaUnidadMedicion = "";
+        nuevoSentido = "";
+        nuevaFrecuencia = "";
+        nuevoArticulo = "";
+        nuevoLiteral = "";
+        nuevoNumeral = "";
+        nuevoParagrafo = "";
+    }
+
+    private async Task EliminarIndicador(Dictionary<string, object> indicador)
+    {
+        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm", $"¿Está seguro de eliminar el indicador '{indicador["nombre"]}'?");
+        if (!confirmar) return;
+
+        bool resultado = await servicioEntidad.EliminarAsync(TABLA, "id", indicador["id"].ToString());
+
+        if (resultado)
+        {
+            await ObtenerIndicadores();
+        }
+        else
+        {
+            errorMensaje = "Error al eliminar el indicador.";
+        }
+    }
+
+    private async Task AbrirModalResponsables(Dictionary<string, object> indicador)
+    {
+        indicadorSeleccionado = indicador;
+        mostrarModalResponsables = true;
+        mensajeModal = "";
+        nuevoResponsable = "";
+        nuevaFechaAsignacion = DateTime.Today;
+        editandoRelacion = null;
+
+        // Cargar relaciones para este indicador
+        await ObtenerRelacionesPorIndicador(indicador["id"].ToString());
+    }
+
+    private void CerrarModalResponsables()
+    {
+        mostrarModalResponsables = false;
+        indicadorSeleccionado = null;
+        relaciones.Clear();
+    }
+
+    private async Task ObtenerRelacionesPorIndicador(string indicadorId)
     {
         try
         {
-            var respuesta = await ServicioEntidad.EliminarAsync(TABLA, "id", id);
-            
-            if (respuesta)
-            {
-                tipoAlerta = "success";
-                mensaje = $"Registro Eliminado Exitosamente!";
-                resetMensaje();
-            }
+            var todasLasRelaciones = await servicioEntidad.ObtenerTodosAsync(TABLA_RESPONSABLES) ?? new();
+            relaciones = todasLasRelaciones
+                .Where(r => r["fkidindicador"].ToString() == indicadorId)
+                .ToList();
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
-            tipoAlerta = "danger";
-            mensaje = $"Error en la petición: {ex.Message}";
-            Console.WriteLine($"Error en la petición: {ex.Message}");
+            mensajeModal = $"Error al cargar responsables: {ex.Message}";
         }
     }
 
-    private async void resetMensaje(){
-        await Task.Delay(2000);
-        mensaje = null;
-        tipoAlerta = "info";
-        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    private string FormatFecha(object? fecha)
+    {
+        if (fecha is DateTime dt)
+            return dt.ToString("yyyy-MM-dd");
+
+        if (DateTime.TryParse(fecha?.ToString(), out var parsed))
+            return parsed.ToString("yyyy-MM-dd");
+
+        return "Fecha inválida";
+    }
+
+    private async Task CrearRelacion()
+    {
+        mensajeModal = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(nuevoResponsable) || indicadorSeleccionado == null)
+        {
+            mensajeModal = "Debe seleccionar un actor.";
+            return;
+        }
+
+        string indicadorId = indicadorSeleccionado["id"].ToString();
+
+        if (relaciones.Any(r =>
+            r["fkidresponsable"].ToString() == nuevoResponsable &&
+            r["fkidindicador"].ToString() == indicadorId))
+        {
+            mensajeModal = "La relación ya existe.";
+            return;
+        }
+
+        try
+        {
+            var nuevaRelacion = new Dictionary<string, object>
+        {
+            { "fkidresponsable", nuevoResponsable },
+            { "fkidindicador", indicadorId },
+            { "fechaasignacion", nuevaFechaAsignacion.ToString("yyyy-MM-dd") }
+        };
+
+            var resultado = await servicioEntidad.CrearAsync(TABLA_RESPONSABLES, nuevaRelacion);
+
+            if (resultado)
+            {
+                mensajeModal = "Responsable asignado correctamente.";
+                nuevoResponsable = string.Empty;
+                nuevaFechaAsignacion = DateTime.Today;
+                await ObtenerRelacionesPorIndicador(indicadorId);
+            }
+            else
+            {
+                mensajeModal = "Error al crear la relación.";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeModal = $"Error crítico: {ex.Message}";
+        }
+    }
+
+    private async Task EliminarRelacion(Dictionary<string, object> relacion)
+    {
+        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+            $"¿Deseas eliminar la relación de {relacion["fkidresponsable"]} con indicador {relacion["fkidindicador"]}?");
+
+        if (!confirmar) return;
+
+        try
+        {
+            var parametros = new Dictionary<string, object>
+        {
+            { "fkidresponsable", relacion["fkidresponsable"] },
+            { "fkidindicador", relacion["fkidindicador"] }
+        };
+
+            // Cambiado: Usar TABLA_RESPONSABLES en lugar de TABLA
+            var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+                TABLA_RESPONSABLES,
+                "sp_eliminar_responsablesporindicador",
+                parametros
+            );
+
+            if (resultado != null)
+            {
+                mensajeModal = "Relación eliminada correctamente.";
+                await ObtenerRelacionesPorIndicador(relacion["fkidindicador"].ToString());
+            }
+            else
+            {
+                mensajeModal = "Error al eliminar la relación.";
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeModal = $"Error al eliminar la relación: {ex.Message}";
+            await JSRuntime.InvokeVoidAsync("console.error", "Error al eliminar relación:", ex.Message);
+        }
+    }
+
+    //metodos para la representación visual
+    private async Task AbrirModalRepresenVisualPorIndicador(Dictionary<string, object> indicador)
+    {
+        indicadorSeleccionado = indicador;
+        mostrarModalRepresenVisualPorIndicador = true;
+        mensajeModalRepresenVisualPorIndicador = "";
+        nuevoIdRepresenVisualPorIndicador = "";
+
+        try
+        {
+            represenvisuales = await servicioEntidad.ObtenerTodosAsync("represenvisual") ?? new();
+            await ObtenerRelacionesRepresenVisual(indicador["id"].ToString());
+        }
+        catch (Exception ex)
+        {
+            mensajeModalRepresenVisualPorIndicador = $"Error al cargar datos: {ex.Message}";
+        }
+    }
+
+    private async Task ObtenerRelacionesRepresenVisual(string indicadorId)
+    {
+        try
+        {
+            var todasLasRelaciones = await servicioEntidad.ObtenerTodosAsync( TABLA_REPRESENVISUAL_INDICADOR) ?? new();
+            relacionesRepresenVisual = todasLasRelaciones
+                .Where(r => r["fkidindicador"].ToString() == indicadorId)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            mensajeModalRepresenVisualPorIndicador = $"Error al cargar relaciones: {ex.Message}";
+        }
+    }
+
+    private async Task AsignarRepresenVisualPorIndicador()
+    {
+        mensajeModalRepresenVisualPorIndicador = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(nuevoIdRepresenVisualPorIndicador))
+        {
+            mensajeModalRepresenVisualPorIndicador = "Debe seleccionar una representación visual.";
+            return;
+        }
+
+        if (relacionesRepresenVisual.Any(r =>
+            r["fkidrepresenvisual"].ToString() == nuevoIdRepresenVisualPorIndicador))
+        {
+            mensajeModalRepresenVisualPorIndicador = "La relación ya existe.";
+            return;
+        }
+
+        var parametros = new Dictionary<string, object>
+    {
+        { "nombreSP", "sp_insertar_represenvisualporindicador" },
+        { "fkidindicador", int.Parse(indicadorSeleccionado["id"].ToString()) },
+        { "fkidrepresenvisual", int.Parse(nuevoIdRepresenVisualPorIndicador) }
+    };
+
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+            TABLA_REPRESENVISUAL_INDICADOR,
+            "sp_insertar_represenvisualporindicador",
+            parametros
+        );
+
+        if (resultado != null)
+        {
+            mensajeModalRepresenVisualPorIndicador = "Relación creada correctamente.";
+            nuevoIdRepresenVisualPorIndicador = string.Empty;
+            await ObtenerRelacionesRepresenVisual(indicadorSeleccionado["id"].ToString());
+        }
+        else
+        {
+            mensajeModalRepresenVisualPorIndicador = "Error al crear la relación.";
+        }
+    }
+
+    private async Task EliminarRepresenVisualPorIndicador(Dictionary<string, object> relacion)
+    {
+        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+            $"¿Desea eliminar esta representación visual del indicador?");
+
+        if (!confirmar) return;
+
+        var parametros = new Dictionary<string, object>
+    {
+        { "nombreSP", "sp_eliminar_represenvisualporindicador" },
+        { "fkidindicador", int.Parse(relacion["fkidindicador"].ToString()) },
+        { "fkidrepresenvisual", int.Parse(relacion["fkidrepresenvisual"].ToString()) }
+    };
+
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+            TABLA_REPRESENVISUAL_INDICADOR,
+            "sp_eliminar_represenvisualporindicador",
+            parametros
+        );
+
+        if (resultado != null)
+        {
+            mensajeModalRepresenVisualPorIndicador = "Relación eliminada correctamente.";
+            await ObtenerRelacionesRepresenVisual(indicadorSeleccionado["id"].ToString());
+        }
+        else
+        {
+            mensajeModalRepresenVisualPorIndicador = "Error al eliminar la relación.";
+        }
+    }
+
+    private void CerrarModalRepresenVisualPorIndicador()
+    {
+        mostrarModalRepresenVisualPorIndicador = false;
+        indicadorSeleccionado = null;
+        relacionesRepresenVisual.Clear();
+    }
+
+    //metodos para fuentes por indicador
+    private async Task AbrirModalFuentesPorIndicador(Dictionary<string, object> indicador)
+    {
+        indicadorSeleccionado = indicador;
+        mostrarModalFuentesPorIndicador = true;
+        mensajeModalFuentesPorIndicador = "";
+        nuevoIdFuente = "";
+
+        try
+        {
+            fuentes = await servicioEntidad.ObtenerTodosAsync("fuente") ?? new();
+            await ObtenerRelacionesFuentes(indicador["id"].ToString());
+        }
+        catch (Exception ex)
+        {
+            mensajeModalFuentesPorIndicador = $"Error al cargar datos: {ex.Message}";
+        }
+    }
+
+    private async Task ObtenerRelacionesFuentes(string indicadorId)
+    {
+        try
+        {
+            var todasLasRelaciones = await servicioEntidad.ObtenerTodosAsync(TABLA_FUENTES_INDICADOR) ?? new();
+            relacionesFuentes = todasLasRelaciones
+                .Where(r => r["fkidindicador"].ToString() == indicadorId)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            mensajeModalFuentesPorIndicador = $"Error al cargar relaciones: {ex.Message}";
+        }
+    }
+
+    private async Task AsignarFuentePorIndicador()
+    {
+        mensajeModalFuentesPorIndicador = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(nuevoIdFuente))
+        {
+            mensajeModalFuentesPorIndicador = "Debe seleccionar una fuente.";
+            return;
+        }
+
+        if (relacionesFuentes.Any(r =>
+            r["fkidfuente"].ToString() == nuevoIdFuente))
+        {
+            mensajeModalFuentesPorIndicador = "La relación ya existe.";
+            return;
+        }
+
+        var parametros = new Dictionary<string, object>
+    {
+        { "nombreSP", "sp_insertar_fuentesporindicador" },
+        { "fkidfuente", int.Parse(nuevoIdFuente) },
+        { "fkidindicador", int.Parse(indicadorSeleccionado["id"].ToString()) }
+    };
+
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+            TABLA_FUENTES_INDICADOR,
+            "sp_insertar_fuentesporindicador",
+            parametros
+        );
+
+        if (resultado != null)
+        {
+            mensajeModalFuentesPorIndicador = "Fuente asignada correctamente.";
+            nuevoIdFuente = string.Empty;
+            await ObtenerRelacionesFuentes(indicadorSeleccionado["id"].ToString());
+        }
+        else
+        {
+            mensajeModalFuentesPorIndicador = "Error al asignar la fuente.";
+        }
+    }
+
+    private async Task EliminarFuentePorIndicador(Dictionary<string, object> relacion)
+    {
+        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+            $"¿Desea eliminar esta fuente del indicador?");
+
+        if (!confirmar) return;
+
+        var parametros = new Dictionary<string, object>
+    {
+        { "nombreSP", "sp_eliminar_fuentesporindicador" },
+        { "fkidfuente", int.Parse(relacion["fkidfuente"].ToString()) },
+        { "fkidindicador", int.Parse(relacion["fkidindicador"].ToString()) }
+    };
+
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+            TABLA_FUENTES_INDICADOR,
+            "sp_eliminar_fuentesporindicador",
+            parametros
+        );
+
+        if (resultado != null)
+        {
+            mensajeModalFuentesPorIndicador = "Fuente eliminada correctamente.";
+            await ObtenerRelacionesFuentes(indicadorSeleccionado["id"].ToString());
+        }
+        else
+        {
+            mensajeModalFuentesPorIndicador = "Error al eliminar la fuente.";
+        }
+    }
+
+    private void CerrarModalFuentesPorIndicador()
+    {
+        mostrarModalFuentesPorIndicador = false;
+        indicadorSeleccionado = null;
+        relacionesFuentes.Clear();
     }
 }
