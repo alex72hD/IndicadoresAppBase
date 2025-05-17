@@ -13,109 +13,109 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = browser
 build_property.RootNamespace = IndicadoresApp
 build_property.RootNamespace = IndicadoresApp
-build_property.ProjectDir = C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp\
+build_property.ProjectDir = C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = false
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\proyectos\ServiciosWeb2\APP2\IndicadoresApp
+build_property.MSBuildProjectDirectory = C:\Users\USUARIO\Documents\Aplicación y Servicios Web\Proyectos\proyectos_08_08_2025\App\IndicadoresAppBase\IndicadoresApp
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 9.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/App.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/App.razor]
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Articulos.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Articulos.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQXJ0aWN1bG9zLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Frecuencias.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Frecuencias.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnJlY3VlbmNpYXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Fuentes.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Fuentes.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnVlbnRlcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/FuentesIndicador.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/FuentesIndicador.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRnVlbnRlc0luZGljYWRvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Home.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Home.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSG9tZS5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Indicador.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Indicador.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kaWNhZG9yLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Literares.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Literares.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTGl0ZXJhcmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Numerales.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Numerales.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTnVtZXJhbGVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Paragrafos.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Paragrafos.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUGFyYWdyYWZvcy5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/RepresentanteVisual.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/RepresentanteVisual.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwcmVzZW50YW50ZVZpc3VhbC5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/RepresentanteVisualIndicador.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/RepresentanteVisualIndicador.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVwcmVzZW50YW50ZVZpc3VhbEluZGljYWRvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/ResponsablePorIndicador.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/ResponsablePorIndicador.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVzcG9uc2FibGVQb3JJbmRpY2Fkb3IucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/ResultadosIndicador.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/ResultadosIndicador.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVzdWx0YWRvc0luZGljYWRvci5yYXpvcg==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Roles.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Roles.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUm9sZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Secciones.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Secciones.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VjY2lvbmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Sentidos.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Sentidos.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2VudGlkb3MucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/Subsecciones.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/Subsecciones.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU3Vic2VjY2lvbmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TipoActores.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/TipoActores.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGlwb0FjdG9yZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/TipoIndicadores.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/TipoIndicadores.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVGlwb0luZGljYWRvcmVzLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Pages/UnidadesDeMedicion.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Pages/UnidadesDeMedicion.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVW5pZGFkZXNEZU1lZGljaW9uLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/_Imports.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/_Imports.razor]
 build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Layout/MainLayout.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE1haW5MYXlvdXQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-36ulzlir1k
 
-[C:/proyectos/ServiciosWeb2/APP2/IndicadoresApp/Layout/NavMenu.razor]
+[C:/Users/USUARIO/Documents/Aplicación y Servicios Web/Proyectos/proyectos_08_08_2025/App/IndicadoresAppBase/IndicadoresApp/Layout/NavMenu.razor]
 build_metadata.AdditionalFiles.TargetPath = TGF5b3V0XE5hdk1lbnUucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-5p22zz90aw
