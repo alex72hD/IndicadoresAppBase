@@ -404,22 +404,6 @@ else
                     PROCEDIMIENTO_ACCIONES,
                     responsableData
                 );
-
-                var serverMessage = await respuesta.Content.ReadAsStringAsync();
-
-                if (respuesta.IsSuccessStatusCode)
-                {
-                    MensajeExito = !string.IsNullOrWhiteSpace(serverMessage)
-                        ? serverMessage
-                        : "Asignación actualizada correctamente.";
-                    resultado = true;
-                }
-                else
-                {
-                    MensajeError = !string.IsNullOrWhiteSpace(serverMessage)
-                        ? serverMessage
-                        : "No se pudo actualizar la asignación.";
-                }
             }
             else
             {
@@ -433,22 +417,6 @@ else
                     PROCEDIMIENTO_ACCIONES,
                     responsableData
                 );
-
-                var serverMessage = await respuesta.Content.ReadAsStringAsync();
-
-                if (respuesta.IsSuccessStatusCode)
-                {
-                    MensajeExito = !string.IsNullOrWhiteSpace(serverMessage)
-                        ? serverMessage
-                        : "Asignación creada correctamente.";
-                    resultado = true;
-                }
-                else
-                {
-                    MensajeError = !string.IsNullOrWhiteSpace(serverMessage)
-                        ? serverMessage
-                        : "No se pudo crear la asignación.";
-                }
             }
 
             if (resultado)
@@ -485,23 +453,6 @@ else
                 PROCEDIMIENTO_ACCIONES,
                 body
             );
-
-            var serverMessage = await respuesta.Content.ReadAsStringAsync();
-
-            if (respuesta.IsSuccessStatusCode)
-            {
-                MensajeExito = !string.IsNullOrWhiteSpace(serverMessage)
-                    ? serverMessage
-                    : "Registro eliminado exitosamente.";
-                await CargarAsignaciones();
-                await modalConfirmacion.HideModalAsync();
-            }
-            else
-            {
-                MensajeError = !string.IsNullOrWhiteSpace(serverMessage) && serverMessage.Length <= 150
-                    ? serverMessage
-                    : "Error al intentar eliminar el registro, verifique sus dependencias.";
-            }
         }
         catch (Exception ex)
         {

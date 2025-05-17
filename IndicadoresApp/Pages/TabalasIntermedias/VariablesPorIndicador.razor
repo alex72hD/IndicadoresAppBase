@@ -1,4 +1,4 @@
-@page "/VariablePorIndicador"
+ @page "/VariablePorIndicador"
 @using System.Collections.Generic
 @using System.Text.Json
 @using IndicadoresApp.ModalGenerico
@@ -185,7 +185,7 @@ else
 
             ListaIndicadores = indicadoresData?.Select(i => new IndicadorModel
                 {
-                    id = Convert.ToInt32(ObtenerValor(i, "id")),
+                    id = ObtenerValor(i, "id"),
                     nombre = ObtenerValor(i, "nombre")
                 }).ToList() ?? new List<IndicadorModel>();
         }
@@ -268,12 +268,12 @@ else
         {
             if (peticionSeleccionada == "Create")
             {
-                tempRespuesta = await ServicioEntidad.CrearAsync(TABLA, body);
+                await ServicioEntidad.CrearAsync(TABLA, body);
                 tipoMsg = "Creado";
             }
             else if (peticionSeleccionada == "Edit")
             {
-                tempRespuesta = await ServicioEntidad.ActualizarAsync(TABLA, "id", idSeleccionado.ToString(), body);
+                await ServicioEntidad.ActualizarAsync(TABLA, "id", idSeleccionado.ToString(), body);
                 tipoMsg = "Actualizado";
             }
             else
@@ -349,4 +349,4 @@ else
             });
         });
     }
-}
+} 

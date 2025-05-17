@@ -1,9 +1,8 @@
 @page "/RepresentanteVisuales"
 @using System.Collections.Generic
 @using System.Text.Json
-@using Services
 @using IndicadoresApp.ModalGenerico
-@inject ServicioEntidad ServicioEntidad  
+@inject ServicioEntidad ServicioEntidad
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inherits ValidacionAcceso
@@ -12,7 +11,7 @@
 <h1>RepresentanteVisuales</h1>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
 </div>
 
 @if (EstamosCargando)
@@ -56,21 +55,19 @@ else
 }
 
 <!-- Modal para crear/editar relación -->
-<ModalGenerico @ref="modalFormulario" 
-Id="formModal" 
-Title="@TituloModal" 
-OnSave="GuardarRelacion">
+<ModalGenerico @ref="modalFormulario"
+Id="formModal"
+Title="@TituloModal"
+OnSave="GuardarRelacion"
+ShowSaveButton="false">
     <BodyContent>
         <div class="mb-3">
             <label for="idIndicador" class="form-label">Indicador</label>
             <select class="form-select" id="idIndicador" @bind="RelacionActual.IdIndicador">
                 <option value="0">Seleccione un indicador</option>
-                @if (IndicadoresDisponibles != null)
+                @foreach (var indicador in IndicadoresDisponibles)
                 {
-                    @foreach (var indicador in IndicadoresDisponibles)
-                    {
-                        <option value="@indicador.Id">@indicador.Nombre</option>
-                    }
+                    <option value="@indicador.Id">@indicador.Nombre</option>
                 }
             </select>
         </div>
@@ -78,38 +75,35 @@ OnSave="GuardarRelacion">
             <label for="idRepresentante" class="form-label">Representante Visual</label>
             <select class="form-select" id="idRepresentante" @bind="RelacionActual.IdRepresentanteVisual">
                 <option value="0">Seleccione un representante visual</option>
-                @if (RepresentantesDisponibles != null)
+                @foreach (var representante in RepresentantesDisponibles)
                 {
-                    @foreach (var representante in RepresentantesDisponibles)
-                    {
-                        <option value="@representante.Id">@representante.Nombre</option>
-                    }
+                    <option value="@representante.Id">@representante.Nombre</option>
                 }
             </select>
         </div>
-        @if (ModoEdicion)
-        {
-            <input type="hidden" @bind="RelacionOriginal.IdIndicador" />
-            <input type="hidden" @bind="RelacionOriginal.IdRepresentanteVisual" />
-        }
     </BodyContent>
 </ModalGenerico>
 
 <!-- Modal para confirmar eliminación -->
-<ModalGenerico @ref="modalConfirmacion" 
-Id="confirmModal" 
-Title="Confirmar eliminación" 
-OnSave="EliminarRelacion">
+<ModalGenerico @ref="modalConfirmacion"
+Id="confirmModal"
+Title="Confirmar eliminación"
+OnSave="EliminarRelacion"
+ShowSaveButton="false">
     <BodyContent>
-        <p>¿Está seguro que desea eliminar esta relación entre Indicador (@ObtenerNombreIndicador(RelacionAEliminar.IdIndicador.ToString())) y Representante Visual (@ObtenerNombreRepresentante(RelacionAEliminar.IdRepresentanteVisual.ToString()))?</p>
+        <p>¿Está seguro que desea eliminar esta relación?</p>
+        <ul>
+            <li>Indicador: @ObtenerNombreIndicador(RelacionAEliminar.IdIndicador.ToString())</li>
+            <li>Representante Visual: @ObtenerNombreRepresentante(RelacionAEliminar.IdRepresentanteVisual.ToString())</li>
+        </ul>
     </BodyContent>
 </ModalGenerico>
 
 @if (!string.IsNullOrEmpty(MensajeError))
 {
     <div class="alert alert-danger">
-        Error: @MensajeError
-        <button type="button" class="btn-close float-end" @onclick="() => MensajeError = null"></button>
+        @MensajeError
+        <button type="button" class="btn-close float-end" @onclick="LimpiarMensajes"></button>
     </div>
 }
 
@@ -117,7 +111,7 @@ OnSave="EliminarRelacion">
 {
     <div class="alert alert-success">
         @MensajeExito
-        <button type="button" class="btn-close float-end" @onclick="() => MensajeExito = null"></button>
+        <button type="button" class="btn-close float-end" @onclick="LimpiarMensajes"></button>
     </div>
 }
 
@@ -126,70 +120,53 @@ OnSave="EliminarRelacion">
     private const string TABLA_INDICADORES = "indicador";
     private const string TABLA_REPRESENTANTES = "represenvisual";
 
-    private List<Dictionary<string, object>> Representantes { get; set; } = new();
-    private bool EstamosCargando { get; set; } = true;
-    private string? MensajeError { get; set; }
-    private string? MensajeExito { get; set; }
+    private List<Dictionary<string, object>> Representantes = new();
+    private bool EstamosCargando = true;
+    private string MensajeError;
+    private string MensajeExito;
 
-    private bool ModoEdicion { get; set; } = false;
-    private RelacionModel RelacionActual { get; set; } = new();
-    private RelacionModel RelacionOriginal { get; set; } = new(); // Para guardar el estado inicial en edición
-    private ModalGenerico? modalFormulario;
-    private string TituloModal => $"{(ModoEdicion ? "Editar" : "Crear")} Relación Indicador-Representante Visual";
+    private bool ModoEdicion = false;
+    private RelacionModel RelacionActual = new();
+    private RelacionModel RelacionOriginal = new();
+    private ModalGenerico modalFormulario;
+    private string TituloModal => ModoEdicion ? "Editar Relación" : "Nueva Relación";
 
-    private RelacionModel RelacionAEliminar { get; set; } = new();
-    private ModalGenerico? modalConfirmacion;
+    private RelacionModel RelacionAEliminar = new();
+    private ModalGenerico modalConfirmacion;
 
-    // Datos para los selectores
-    private List<ItemSelectModel> IndicadoresDisponibles { get; set; } = new();
-    private List<ItemSelectModel> RepresentantesDisponibles { get; set; } = new();
+    private List<ItemSelectModel> IndicadoresDisponibles = new();
+    private List<ItemSelectModel> RepresentantesDisponibles = new();
 
-    // Para identificación única de relaciones
-    private string? IdRelacionSeleccionada { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await CargarDatosIniciales();
-    }
+    protected override async Task OnInitializedAsync() => await CargarDatosIniciales();
 
     private async Task CargarDatosIniciales()
     {
-        try {
-            // Cargar los indicadores y representantes para tener la referencia
-            await CargarIndicadores();
-            await CargarRepresentantes();
-            // Luego cargar las relaciones
+        try
+        {
+            await Task.WhenAll(CargarIndicadores(), CargarRepresentantes());
             await CargarRelaciones();
         }
-        catch (Exception ex) {
-            MensajeError = $"Error cargando datos iniciales: {ex.Message}";
+        catch (Exception ex)
+        {
+            MostrarError($"Error inicial: {ex.Message}");
         }
     }
 
     private async Task CargarRelaciones()
     {
-        EstamosCargando = true;
-        MensajeError = null;
-
         try
         {
-            Representantes = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
-
-            // Para debug: mostrar las claves disponibles en la primera relación
-            if (Representantes.Count > 0)
-            {
-                Console.WriteLine("Claves disponibles en relación: " + string.Join(", ", Representantes[0].Keys));
-            }
+            EstamosCargando = true;
+            Representantes = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new();
         }
         catch (Exception ex)
         {
-            MensajeError = $"Error al cargar relaciones: {ex.Message}";
-            Representantes = new List<Dictionary<string, object>>();
+            MostrarError($"Error cargando relaciones: {ex.Message}");
         }
         finally
         {
             EstamosCargando = false;
-            StateHasChanged(); // Forzar actualización del UI
+            StateHasChanged();
         }
     }
 
@@ -197,16 +174,12 @@ OnSave="EliminarRelacion">
     {
         try
         {
-            var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA_INDICADORES);
-            IndicadoresDisponibles = resultado.Select(i => new ItemSelectModel
-            {
-                Id = Convert.ToInt32(ObtenerValor(i, "id")),
-                Nombre = ObtenerValor(i, "nombre")
-            }).ToList();
+            var data = await ServicioEntidad.ObtenerTodosAsync(TABLA_INDICADORES);
+            IndicadoresDisponibles = ConvertirAItemSelect(data, "nombre");
         }
         catch (Exception ex)
         {
-            MensajeError = $"Error cargando indicadores: {ex.Message}";
+            MostrarError($"Error cargando indicadores: {ex.Message}");
         }
     }
 
@@ -214,313 +187,182 @@ OnSave="EliminarRelacion">
     {
         try
         {
-            var resultado = await ServicioEntidad.ObtenerTodosAsync(TABLA_REPRESENTANTES);
-            RepresentantesDisponibles = resultado.Select(r => new ItemSelectModel
-            {
-                Id = Convert.ToInt32(ObtenerValor(r, "id")),
-                Nombre = ObtenerValor(r, "nombre")
-            }).ToList();
+            var data = await ServicioEntidad.ObtenerTodosAsync(TABLA_REPRESENTANTES);
+            RepresentantesDisponibles = ConvertirAItemSelect(data, "nombre");
         }
         catch (Exception ex)
         {
-            MensajeError = $"Error cargando representantes visuales: {ex.Message}";
+            MostrarError($"Error cargando representantes: {ex.Message}");
         }
     }
 
-    private string ObtenerNombreIndicador(string id)
+    private List<ItemSelectModel> ConvertirAItemSelect(List<Dictionary<string, object>> datos, string campoNombre)
     {
-        if (string.IsNullOrEmpty(id) || !int.TryParse(id, out int idNumerico))
-        {
-            return "No asignado";
-        }
-
-        var indicador = IndicadoresDisponibles.FirstOrDefault(i => i.Id == idNumerico);
-        return indicador?.Nombre ?? "Desconocido";
-    }
-
-    private string ObtenerNombreRepresentante(string id)
-    {
-        if (string.IsNullOrEmpty(id) || !int.TryParse(id, out int idNumerico))
-        {
-            return "No asignado";
-        }
-
-        var representante = RepresentantesDisponibles.FirstOrDefault(r => r.Id == idNumerico);
-        return representante?.Nombre ?? "Desconocido";
+        return datos.Select(item => new ItemSelectModel
+            {
+                Id = Convert.ToInt32(ObtenerValor(item, "id")),
+                Nombre = ObtenerValor(item, campoNombre)
+            }).ToList();
     }
 
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        if (diccionario == null)
-        {
-            return string.Empty;
-        }
+        return diccionario.TryGetValue(clave, out var valor) ? valor?.ToString() : "";
+    }
 
-        if (diccionario.TryGetValue(clave, out var valor))
-        {
-            return valor?.ToString() ?? string.Empty;
-        }
-        else
-        {
-            return string.Empty;
-        }
+    private string ObtenerNombreIndicador(string id) =>
+        BuscarNombre(IndicadoresDisponibles, id);
+
+    private string ObtenerNombreRepresentante(string id) =>
+        BuscarNombre(RepresentantesDisponibles, id);
+
+    private string BuscarNombre(List<ItemSelectModel> lista, string id)
+    {
+        if (!int.TryParse(id, out int idNum)) return "N/A";
+        return lista.FirstOrDefault(i => i.Id == idNum)?.Nombre ?? "N/A";
     }
 
     private async Task MostrarFormularioCrear()
     {
-        RelacionActual = new RelacionModel();
-        RelacionOriginal = new RelacionModel();
         ModoEdicion = false;
+        RelacionActual = new();
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> relacion)
     {
-        // Almacenar los valores originales para saber qué eliminar
-        RelacionOriginal = new RelacionModel
-        {
-            IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
-            IdRepresentanteVisual = Convert.ToInt32(ObtenerValor(relacion, "fkidrepresenvisual"))
-        };
-
-        // Establecer los valores actuales para la edición
-        RelacionActual = new RelacionModel
-        {
-            IdIndicador = RelacionOriginal.IdIndicador,
-            IdRepresentanteVisual = RelacionOriginal.IdRepresentanteVisual
-        };
-
-        // Verificar si hay un ID de relación disponible
-        IdRelacionSeleccionada = ObtenerValor(relacion, "id");
-
         ModoEdicion = true;
+        RelacionActual = new()
+            {
+                IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
+                IdRepresentanteVisual = Convert.ToInt32(ObtenerValor(relacion, "fkidrepresenvisual"))
+            };
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task ConfirmarEliminar(Dictionary<string, object> relacion)
     {
-        RelacionAEliminar = new RelacionModel
-        {
-            IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
-            IdRepresentanteVisual = Convert.ToInt32(ObtenerValor(relacion, "fkidrepresenvisual"))
-        };
-
-        // Verificar si hay un ID de relación disponible
-        IdRelacionSeleccionada = ObtenerValor(relacion, "id");
-
+        RelacionAEliminar = new()
+            {
+                IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
+                IdRepresentanteVisual = Convert.ToInt32(ObtenerValor(relacion, "fkidrepresenvisual"))
+            };
         await modalConfirmacion.ShowModalAsync();
     }
 
     private async Task GuardarRelacion()
     {
-        MensajeError = null;
-        MensajeExito = null;
-
         try
         {
-            // Validaciones
-            if (RelacionActual.IdIndicador <= 0)
-            {
-                MensajeError = "Debe seleccionar un indicador.";
-                return;
-            }
+            if (!ValidarRelacion()) return;
 
-            if (RelacionActual.IdRepresentanteVisual <= 0)
-            {
-                MensajeError = "Debe seleccionar un representante visual.";
-                return;
-            }
+            var resultado = ModoEdicion
+                ? await ActualizarRelacion()
+                : await CrearRelacion();
 
-            // Crear el diccionario con los campos correctos para la API
-            var relacionData = new Dictionary<string, object>
+            if (resultado) await ActualizarUI();
+        }
+        catch (Exception ex)
+        {
+            MostrarError($"Error al guardar: {ex.Message}");
+        }
+    }
+
+    private bool ValidarRelacion()
+    {
+        if (RelacionActual.IdIndicador <= 0)
+        {
+            MostrarError("Seleccione un indicador");
+            return false;
+        }
+
+        if (RelacionActual.IdRepresentanteVisual <= 0)
+        {
+            MostrarError("Seleccione un representante visual");
+            return false;
+        }
+        return true;
+    }
+
+    private async Task<bool> CrearRelacion()
+    {
+        var data = new Dictionary<string, object>
             {
                 ["fkidindicador"] = RelacionActual.IdIndicador,
                 ["fkidrepresenvisual"] = RelacionActual.IdRepresentanteVisual
             };
 
-            bool resultado;
+        var resultado = await ServicioEntidad.CrearAsync(NOMBRE_TABLA, data);
+        if (resultado) MostrarExito("Relación creada");
+        return resultado;
+    }
 
-            if (ModoEdicion)
+    private async Task<bool> ActualizarRelacion()
+    {
+        var parametros = new Dictionary<string, object>
             {
-                // Método 1: Si la tabla tiene un ID primario único
-                if (!string.IsNullOrEmpty(IdRelacionSeleccionada))
-                {
-                    resultado = await ServicioEntidad.ActualizarAsync(
-                        NOMBRE_TABLA,
-                        "id",  // Campo ID
-                        IdRelacionSeleccionada,  // Valor del ID
-                        relacionData
-                    );
-                }
-                // Método 2: Enfoque eliminar y crear de nuevo
-                else
-                {
-                    // Primero intentamos eliminar la relación original
-                    await EliminarRelacionExistente();
+                ["accion"] = "edit",
+                ["fkidindicador"] = RelacionActual.IdIndicador,
+                ["fkidrepresenvisual"] = RelacionActual.IdRepresentanteVisual,
+                ["indicadorInicial"] = RelacionOriginal.IdIndicador,
+                ["repreInicial"] = RelacionOriginal.IdRepresentanteVisual
+            };
 
-                    // Luego creamos la nueva relación
-                    resultado = await ServicioEntidad.CrearAsync(
-                        NOMBRE_TABLA,
-                        relacionData
-                    );
-                }
+        var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+            NOMBRE_TABLA,
+            "accion_reprevisual_por_indicador",
+            parametros
+        );
+        return respuesta != null && respuesta.Count > 0;
+    }
 
-                if (resultado) 
+    private async Task EliminarRelacion()
+    {
+        try
+        {
+            var parametros = new Dictionary<string, object>
                 {
-                    MensajeExito = "Relación actualizada correctamente.";
-                }
-                else
-                {
-                    MensajeError = "No se pudo actualizar la relación.";
-                }
-            }
-            else
-            {
-                resultado = await ServicioEntidad.CrearAsync(
-                    NOMBRE_TABLA,
-                    relacionData
-                );
+                    ["accion"] = "delete",
+                    ["fkidindicador"] = RelacionAEliminar.IdIndicador,
+                    ["fkidrepresenvisual"] = RelacionAEliminar.IdRepresentanteVisual
+                };
 
-                if (resultado) 
-                {
-                    MensajeExito = "Relación creada correctamente.";
-                }
-                else
-                {
-                    MensajeError = "No se pudo crear la relación.";
-                }
-            }
+            var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                NOMBRE_TABLA,
+                "accion_reprevisual_por_indicador",
+                parametros
+            );
 
-            if (resultado)
-            {
-                await CargarRelaciones();
-            }
         }
         catch (Exception ex)
         {
-            MensajeError = $"Error: {ex.Message}";
-            Console.WriteLine($"Excepción al guardar relación: {ex}");
+            MostrarError($"Error al eliminar: {ex.Message}");
         }
     }
 
-    private async Task EliminarRelacionExistente()
+    private async Task ActualizarUI()
     {
-        var body = new Dictionary<string, object>
-        {
-            { "fkidindicador", inidicadorSeleccionado },
-            { "fkidrepresenvisual", repreVisualSeleccionada }
-        };
-
-        HttpResponseMessage tempRespuesta = new HttpResponseMessage();
-        string tipoMsg = string.Empty;
-
-        try
-        {
-            if (peticionSeleccionada == "Create")
-            {
-                var respuesta = await ServicioEntidad.CrearAsync(TABLA, body);
-                tempRespuesta = respuesta;
-                tipoMsg = "Creado";
-            }
-            else if (peticionSeleccionada == "Edit")
-            {
-                body["accion"] = "edit";
-                body["indicadorInicial"] = inidicadorIncial;
-                body["repreInicial"] = repreInicial;
-
-                var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
-                    "tbl",
-                    "accion_reprevisual_por_indicador",
-                    body
-                );
-
-                tempRespuesta = respuesta;
-                tipoMsg = "Actualizado";
-
-            }
-            else
-            {
-
-                tipoAlerta = "warning";
-                mensaje = "Acción no permitida, seleccione una acción valida";
-                resetMensaje();
-            }
-
-
-            var serverMessage = await tempRespuesta.Content.ReadAsStringAsync();
-
-
-            if (!tempRespuesta.IsSuccessStatusCode)
-            {
-                tipoAlerta = "danger";
-
-                if (!string.IsNullOrWhiteSpace(serverMessage) && serverMessage.Length > 150)
-                {
-                    mensaje = "Internal error for duplicate key";
-                }
-                else
-                {
-                    mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : tempRespuesta.ReasonPhrase;
-                }
-            }
-            else
-            {
-                tipoAlerta = "success";
-                mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : $"Registro {tipoMsg} Exitosamente!";
-                resetMensaje();
-            }
-        }
+        await CargarRelaciones();
+        await Task.WhenAll(modalFormulario.HideModalAsync(), modalConfirmacion.HideModalAsync());
+        LimpiarMensajes();
     }
 
-    private async Task EliminarRelacion(int idindicador , int idRepre)
+    private void MostrarError(string mensaje)
     {
-        try
-        {
-            var body = new Dictionary<string, object>
-            {
-                { "fkidindicador", idindicador },
-                { "fkidrepresenvisual", idRepre },
-                { "indicadorInicial", 0 },
-                { "repreInicial", 0 }
-            };
+        MensajeError = mensaje;
+        MensajeExito = null;
+    }
 
-            body["accion"] = "delete";
+    private void MostrarExito(string mensaje)
+    {
+        MensajeExito = mensaje;
+        MensajeError = null;
+    }
 
-            var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
-                "tbl",
-                "accion_reprevisual_por_indicador",
-                body
-            );
-
-            var serverMessage = await respuesta.Content.ReadAsStringAsync();
-
-            if (!respuesta.IsSuccessStatusCode)
-            {
-                tipoAlerta = "danger";
-
-                if (!string.IsNullOrWhiteSpace(serverMessage) && serverMessage.Length > 150)
-                {
-                    mensaje = "Error al intentar eliminar el registro, verifique sus dependencias";
-                }
-                else
-                {
-                    mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : respuesta.ReasonPhrase;
-                }
-            }
-            else
-            {
-                tipoAlerta = "success";
-                mensaje = "Registro Eliminado Exitosamente!";
-                resetMensaje();
-            }
-
-        }
-        catch (HttpRequestException ex)
-        {
-            tipoAlerta = "danger";
-            mensaje = $"Error en la petición: {ex.Message}";
-            Console.WriteLine($"Error en la petición: {ex.Message}");
-        }
+    private void LimpiarMensajes()
+    {
+        MensajeError = null;
+        MensajeExito = null;
     }
 
     private class RelacionModel
@@ -532,6 +374,6 @@ OnSave="EliminarRelacion">
     private class ItemSelectModel
     {
         public int Id { get; set; }
-        public string Nombre { get; set; } = string.Empty;
+        public string Nombre { get; set; }
     }
 }
