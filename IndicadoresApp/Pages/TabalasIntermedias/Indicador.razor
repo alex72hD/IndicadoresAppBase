@@ -254,10 +254,10 @@ else
 
 <!-- Modal para gestionar responsables por indicador -->
 <ModalGenerico @ref="modalResponsables"
-Id="modalResponsables"
-Title="Gestión de Responsables"
-OnSave="CrearRelacion"
-ShowSaveButton="false">
+               Id="modalResponsables"
+               Title="Gestión de Responsables"
+               OnSave="CrearRelacion"
+               ShowSaveButton="false">
     <BodyContent>
         @if (indicadorSeleccionado != null)
         {
@@ -311,10 +311,10 @@ ShowSaveButton="false">
 </ModalGenerico>
 
 <ModalGenerico @ref="modalRepresenVisual"
-Id="modalRepresenVisual"
-Title="Representaciones Visuales"
-OnSave="AsignarRepresenVisualPorIndicador"
-ShowSaveButton="false">
+               Id="modalRepresenVisual"
+               Title="Representaciones Visuales"
+               OnSave="AsignarRepresenVisualPorIndicador"
+               ShowSaveButton="false">
     <BodyContent>
         @if (indicadorSeleccionado != null)
         {
@@ -362,10 +362,10 @@ ShowSaveButton="false">
 </ModalGenerico>
 
 <ModalGenerico @ref="modalFuentes"
-Id="modalFuentes"
-Title="Gestión de Fuentes"
-OnSave="AsignarFuentePorIndicador"
-ShowSaveButton="false">
+               Id="modalFuentes"
+               Title="Gestión de Fuentes"
+               OnSave="AsignarFuentePorIndicador"
+               ShowSaveButton="false">
     <BodyContent>
         @if (indicadorSeleccionado != null)
         {

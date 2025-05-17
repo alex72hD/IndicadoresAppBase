@@ -1,0 +1,15 @@
+﻿<div class="mb-3 row g-2">
+    <FormField Label="Código" Value="@NuevoIndicador.Codigo" Changed="@(v => NuevoIndicador.Codigo = v)" />
+    <FormField Label="Nombre" Value="@NuevoIndicador.Nombre" Changed="@(v => NuevoIndicador.Nombre = v)" />
+    <FormField Label="Meta" Value="@NuevoIndicador.Meta" Changed="@(v => NuevoIndicador.Meta = v)" />
+    
+    <div class="col">
+        <button class="btn btn-success w-100" @onclick="OnValidSubmit">Crear</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public IndicadorModel NuevoIndicador { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public EventCallback OnClear { get; set; }
+}

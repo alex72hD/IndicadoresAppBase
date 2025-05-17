@@ -1,4 +1,8 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@inject NavigationManager NavManager
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">IndicadoresApp</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -9,132 +13,127 @@
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     <nav class="nav flex-column">
-        <!-- Home -->
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill"></span> Home
-            </NavLink>
-        </div>
-
-        <!-- Grupo de metricas-->
-        <div class="nav-item px-3 dropdown">
-            <div class="nav-link dropdown-toggle" @onclick:stopPropagation @onclick="() => ToggleDropdown(0)">
-                <span class="bi bi-gear"></span> Metricas
-            </div>
-            <div class="dropdown-menu @(dropdownStates[0] ? "show" : "")">
-                <NavLink class="dropdown-item" href="tipoindicador">
-                    <span class="bi bi-graph-up"></span> Tipo de indicador
-                </NavLink>
-                <NavLink class="dropdown-item" href="sentido">
-                    <span class="bi bi-arrow-left-right"></span> Sentidos
-                </NavLink>
-                 <NavLink class="dropdown-item" href="indicador">
-                    <span class="bi bi-graph-up"></span> Indicador
-                </NavLink>
-                 <NavLink class="dropdown-item" href="Variable">
-                    <span class="bi bi-graph-up"></span> Variables
-                </NavLink>
-                <NavLink class="dropdown-item" href="VariablePorIndicador">
-                    <span class="bi bi-graph-up"></span> Variable Por Indicador
-                </NavLink>
-            </div>
-        </div>
-
-        <!-- Grupo Personas -->
-        <div class="nav-item px-3 dropdown">
-            <div class="nav-link dropdown-toggle" @onclick:stopPropagation @onclick="() => ToggleDropdown(1)">
-                <span class="bi bi-people-fill"></span> Personas
-            </div>
-            <div class="dropdown-menu @(dropdownStates[1] ? "show" : "")">
-                <NavLink class="dropdown-item" href="Actor">
-                    <span class="bi bi-folder"></span> Actor
-                </NavLink>
-                <NavLink class="dropdown-item" href="tipoactor">
-                    <span class="bi bi-person-lines-fill"></span> Tipo de actor
-                </NavLink>
-                <NavLink class="nav-link" href="rol">
-                <span class="bi bi-person-badge"></span> Rol
-                </NavLink>
-                <NavLink class="nav-link" href="rolUsuario">
-                <span class="bi bi-person-badge"></span> Rol de usuario
-                </NavLink>
-          </div>
-       </div>
-
-
-        <!-- Grupo Fuentes -->
-        <div class="nav-item px-3 dropdown">
-            <div class="nav-link dropdown-toggle" @onclick:stopPropagation @onclick="() => ToggleDropdown(2)">
-                <span class="bi bi-database"></span> Fuentes
-            </div>
-            <div class="dropdown-menu @(dropdownStates[2] ? "show" : "")">
-                <NavLink class="dropdown-item" href="fuente">
-                    <span class="bi bi-archive"></span> Fuentes
-                </NavLink>
-                <NavLink class="dropdown-item" href="fuentesporindicador">
-                    <span class="bi bi-diagram-3"></span> Relación Indicadores
-                </NavLink>
-            </div>
-        </div>
-
-        <!-- Grupo Parámetros -->
-        <div class="nav-item px-3 dropdown">
-            <div class="nav-link dropdown-toggle" @onclick:stopPropagation @onclick="() => ToggleDropdown(3)">
-                <span class="bi bi-sliders"></span> Parámetros
-            </div>
-            <div class="dropdown-menu @(dropdownStates[3] ? "show" : "")">
-                <NavLink class="dropdown-item" href="frecuencia">
-                    <span class="bi bi-clock"></span> Frecuencia
-                </NavLink>
-                <NavLink class="dropdown-item" href="unidadmedicion">
-                    <span class="bi bi-rulers"></span> Unidad de Medición
-                </NavLink>
-                 <NavLink class="dropdown-item" href="resultadoindicador">
-                    <span class="bi bi-rulers"></span> resultado del indicador
-                </NavLink>
-            </div>
-        </div>
-
-        <!-- Grupo Visualización -->
-        <div class="nav-item px-3 dropdown">
-            <div class="nav-link dropdown-toggle" @onclick:stopPropagation @onclick="() => ToggleDropdown(4)">
-                <span class="bi bi-bar-chart-line"></span> Visualización
-            </div>
-            <div class="dropdown-menu @(dropdownStates[4] ? "show" : "")">
-                <NavLink class="dropdown-item" href="representante">
-                    <span class="bi bi-palette"></span> Representante 
-                </NavLink>
-                <NavLink class="dropdown-item" href="RepresentanteVisuales">
-                    <span class="bi bi-palette"></span> Representante Visual 
-                </NavLink>
-                <NavLink class="dropdown-item" href="resultadoindicador">
-                    <span class="bi bi-clipboard-data"></span> Resultados
-                </NavLink>
-                <NavLink class="dropdown-item" href="responsableporindicador">
-                    <span class="bi bi-person-check"></span> Responsable por indicador
-                </NavLink>
-
-            </div>
-        </div>
+        @foreach (var group in MenuGroups)
+        {
+            // ¿Mostramos el grupo? — Si es admin, siempre; si no, solo si al menos un ítem está permitido
+            if (IsAdmin || group.Items.Any(i => rutasPermitidas.Contains(i.Path)))
+            {
+                <div class="nav-item px-3 dropdown">
+                    <div class="nav-link dropdown-toggle"
+                    @onclick:stopPropagation
+                         @onclick="() => ToggleDropdown(group.Index)">
+                        <i class="@group.Icon"></i> @group.Title
+                    </div>
+                    <div class="dropdown-menu @(dropdownStates[group.Index] ? "show" : "")">
+                        @foreach (var item in group.Items)
+                        {
+                            // Idem: admin ve todo, usuario normal solo lo que tenga en sessionStorage
+                            if (IsAdmin || rutasPermitidas.Contains(item.Path))
+                            {
+                                <NavLink class="dropdown-item" href="@item.Path">
+                                    <i class="@item.Icon"></i> @item.Label
+                                </NavLink>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        }
     </nav>
 </div>
 
 @code {
+    // Estado del menú
     private bool collapseNavMenu = true;
-    private bool[] dropdownStates = new bool[5]; // Controla los 5 dropdowns
+    private bool[] dropdownStates;
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    // Acceso
+    private bool IsAdmin;
+    private List<string> rutasPermitidas = new();
 
-    private void ToggleNavMenu() => collapseNavMenu = !collapseNavMenu;
+    // Definición data-driven del menú
+    record MenuItem(string Path, string Label, string Icon);
+    record MenuGroup(int Index, string Title, string Icon, List<MenuItem> Items);
 
-    private void ToggleDropdown(int index)
+    private List<MenuGroup> MenuGroups;
+
+    protected override async Task OnInitializedAsync()
     {
-        dropdownStates[index] = !dropdownStates[index];
-        
-        //Comportamiento de acordeón (solo un dropdown abierto)
-        for (int i = 0; i < dropdownStates.Length; i++)
+        var relativePath = NavManager.ToBaseRelativePath(NavManager.Uri)
+                               .Split('?')[0]
+                               .TrimEnd('/');
+
+        // Si ya estamos en “login”, no redirijas
+        if (relativePath.Equals("login", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var correo = await JS.InvokeAsync<string>("sessionStorage.getItem", "usuarioEmail");
+        var rol = await JS.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
+
+        if (string.IsNullOrEmpty(correo))
         {
-            if(i != index) dropdownStates[i] = false;
+            NavManager.NavigateTo("/login");
+            return;
         }
+
+        IsAdmin = rol?.Equals("admin", StringComparison.OrdinalIgnoreCase) == true;
+        if (!IsAdmin)
+        {
+            rutasPermitidas = await JS.InvokeAsync<List<string>>("eval", @"
+            Object.keys(sessionStorage)
+                  .filter(k => k.startsWith('ruta_'))
+                  .map(k => sessionStorage.getItem(k))
+        ");
+        }
+
+        // 2) Inicializar definición de menú
+        MenuGroups = new()
+        {
+            new MenuGroup(0, "Métricas", "bi bi-gear", new()
+            {
+                new("/tipoindicador",     "Tipo de indicador",   "bi bi-graph-up"),
+                new("/sentido",            "Sentidos",            "bi bi-arrow-left-right"),
+                new("/indicador",          "Indicador",           "bi bi-graph-up"),
+                new("/variable",           "Variables",           "bi bi-graph-up"),
+                new("/variableporindicador","Variable x Indicador","bi bi-graph-up")
+            }),
+            new MenuGroup(1, "Personas", "bi bi-people-fill", new()
+            {
+                new("/actor",      "Actor",          "bi bi-folder"),
+                new("/tipoactor",  "Tipo de actor",  "bi bi-person-lines-fill"),
+                new("/rol",        "Rol",            "bi bi-person-badge"),
+                new("/rolusuario","Rol de usuario", "bi bi-person-badge")
+            }),
+            new MenuGroup(2, "Fuentes", "bi bi-database", new()
+            {
+                new("/fuente",               "Fuentes",           "bi bi-archive"),
+                new("/fuentesporindicador",  "Relación Indicador","bi bi-diagram-3")
+            }),
+            new MenuGroup(3, "Parámetros", "bi bi-sliders", new()
+            {
+                new("/frecuencia",        "Frecuencia",          "bi bi-clock"),
+                new("/unidadmedicion",    "Unidad de Medición",  "bi bi-rulers"),
+                new("/resultadoindicador","Resultado Indicador", "bi bi-rulers")
+            }),
+            new MenuGroup(4, "Visualización", "bi bi-bar-chart-line", new()
+            {
+                new("/representante",           "Representante",           "bi bi-palette"),
+                new("/representantevisuales",   "Representante Visual",    "bi bi-palette"),
+                new("/resultadoindicador",      "Resultados",              "bi bi-clipboard-data"),
+                new("/responsableporindicador", "Responsable x Indicador", "bi bi-person-check")
+            })
+        };
+
+        dropdownStates = new bool[MenuGroups.Count];
+    }
+
+    // Helpers de UI
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private void ToggleNavMenu() => collapseNavMenu = !collapseNavMenu;
+    private void ToggleDropdown(int idx)
+    {
+        dropdownStates[idx] = !dropdownStates[idx];
+        for (int i = 0; i < dropdownStates.Length; i++)
+            if (i != idx) dropdownStates[i] = false;
     }
 }

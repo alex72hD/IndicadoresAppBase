@@ -1,9 +1,6 @@
 // Se importan las dependencias necesarias
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace IndicadoresApp.Services
 {
