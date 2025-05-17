@@ -1,8 +1,10 @@
-@page "/unidadmedicion"  
-@using System.Collections.Generic  
-@using System.Text.Json  
+@page "/unidadmedicion"
+@using System.Collections.Generic
+@using System.Text.Json
+@using IndicadoresApp.Clases.IndicadoresApp.Clases
 @using IndicadoresApp.ModalGenerico
-@inject ServicioEntidad ServicioEntidad  
+@using IndicadoresApp.Clases
+@inject ServicioEntidad ServicioEntidad
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inherits ValidacionAcceso
@@ -10,9 +12,12 @@
 
 <h1>Unidades de Medición</h1>
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nueva</button>  
-</div>
+@if (!EsVerificador)
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nueva</button>
+    </div>
+}
 
 @if (EstamosCargando)
 {
@@ -30,7 +35,10 @@ else
                 <tr>
                     <th>Código</th>
                     <th>Nombre</th>
-                    <th>Acciones</th>
+                    @if (!EsVerificador)
+                    {
+                        <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -39,10 +47,13 @@ else
                     <tr>
                         <td>@ObtenerValor(unidad, "id")</td>
                         <td>@ObtenerValor(unidad, "descripcion")</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(unidad)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(unidad)">Eliminar</button>
-                        </td>
+                        @if (!EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(unidad)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(unidad)">Eliminar</button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>
@@ -51,10 +62,10 @@ else
 }
 
 <!-- Modal para crear/editar unidad -->
-<ModalGenerico @ref="modalFormulario" 
-              Id="formModal" 
-              Title="@TituloModal" 
-              OnSave="GuardarUnidad">
+<ModalGenerico @ref="modalFormulario"
+               Id="formModal"
+               Title="@TituloModal"
+               OnSave="GuardarUnidad">
     <BodyContent>
         <div class="mb-3">
             <label for="nombre" class="form-label">Nombre</label>
@@ -64,10 +75,10 @@ else
 </ModalGenerico>
 
 <!-- Modal para confirmar eliminación -->
-<ModalGenerico @ref="modalConfirmacion" 
-              Id="confirmModal" 
-              Title="Confirmar eliminación" 
-              OnSave="EliminarUnidad">
+<ModalGenerico @ref="modalConfirmacion"
+               Id="confirmModal"
+               Title="Confirmar eliminación"
+               OnSave="EliminarUnidad">
     <BodyContent>
         <p>¿Está seguro que desea eliminar la unidad de medición: @UnidadAEliminar.Nombre?</p>
     </BodyContent>
@@ -89,11 +100,12 @@ else
 
 @code {
     private const string NOMBRE_TABLA = "unidadmedicion";
-    
+
     private List<Dictionary<string, object>> UnidadesMedicion { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
     private string? MensajeExito { get; set; }
+    private bool EsVerificador { get; set; } = false;
 
     // Variables para el formulario
     private bool ModoEdicion { get; set; } = false;
@@ -108,6 +120,10 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // Verificar si el usuario tiene rol de verificador
+        var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
+        EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+
         await CargarUnidadesMedicion();
     }
 
@@ -115,11 +131,11 @@ else
     {
         EstamosCargando = true;
         MensajeError = null;
-        
+
         try
         {
             var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
-            
+
             UnidadesMedicion = resultado ?? new List<Dictionary<string, object>>();
         }
         catch (Exception ex)
@@ -137,17 +153,21 @@ else
     {
         if (diccionario == null)
             return string.Empty;
-            
+
         if (diccionario.TryGetValue(clave, out var valor))
         {
             return valor?.ToString() ?? string.Empty;
         }
-        
+
         return string.Empty;
     }
 
     private async Task MostrarFormularioCrear()
     {
+        // Si es verificador, no permitir crear
+        if (EsVerificador)
+            return;
+
         UnidadActual = new UnidadMedicionModel();
         ModoEdicion = false;
         await InvokeAsync(StateHasChanged);
@@ -156,11 +176,15 @@ else
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> unidad)
     {
+        // Si es verificador, no permitir editar
+        if (EsVerificador)
+            return;
+
         UnidadActual = new UnidadMedicionModel
-        {
-            Id = ObtenerValor(unidad, "id"),
-            Nombre = ObtenerValor(unidad, "descripcion")
-        };
+            {
+                Id = ObtenerValor(unidad, "id"),
+                Nombre = ObtenerValor(unidad, "descripcion")
+            };
         ModoEdicion = true;
         await InvokeAsync(StateHasChanged);
         await modalFormulario.ShowModalAsync();
@@ -168,26 +192,34 @@ else
 
     private async Task ConfirmarEliminar(Dictionary<string, object> unidad)
     {
+        // Si es verificador, no permitir eliminar
+        if (EsVerificador)
+            return;
+
         UnidadAEliminar = new UnidadMedicionModel
-        {
-            Id = ObtenerValor(unidad, "id"),
-            Nombre = ObtenerValor(unidad, "descripcion")
-        };
+            {
+                Id = ObtenerValor(unidad, "id"),
+                Nombre = ObtenerValor(unidad, "descripcion")
+            };
         await InvokeAsync(StateHasChanged);
         await modalConfirmacion.ShowModalAsync();
     }
 
     private async Task GuardarUnidad()
     {
+        // Si es verificador, no permitir guardar
+        if (EsVerificador)
+            return;
+
         MensajeError = null;
         MensajeExito = null;
 
         try
         {
             var unidadDict = new Dictionary<string, object>
-            {
-                ["descripcion"] = UnidadActual.Nombre
-            };
+                {
+                    ["descripcion"] = UnidadActual.Nombre
+                };
 
             bool resultado;
 
@@ -235,6 +267,10 @@ else
 
     private async Task EliminarUnidad()
     {
+        // Si es verificador, no permitir eliminar
+        if (EsVerificador)
+            return;
+
         MensajeError = null;
         MensajeExito = null;
 

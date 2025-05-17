@@ -1,5 +1,8 @@
 @page "/login"
 @using System.Net.Http.Json
+@using IndicadoresApp.Clases.IndicadoresApp.Clases
+@using IndicadoresApp.Services
+@using IndicadoresApp.Clases
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
@@ -88,7 +91,6 @@
             Console.WriteLine($"Enviando solicitud a: {Http.BaseAddress}usuario/verificar-contrasena");
 
             // Realizar una solicitud POST al backend para verificar credenciales
-            // Nota: Usamos directamente la ruta relativa ya que BaseAddress ya incluye api/
             var respuestaVerificar = await Http.PostAsJsonAsync("usuario/verificar-contrasena", datosVerificar);
 
             // Mostrar el código de respuesta para depuración
@@ -135,37 +137,71 @@
                                     // Guardar el nombre del rol en sessionStorage
                                     await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "rolUsuario", nombreRol);
 
-                                    // Consultar las rutas asociadas a este rol
-                                    var jsonConsultaRutas = new
+                                    // Si es admin, guardar todas las rutas directamente
+                                    if (RutasPermisosService.EsRolTodosAccesos(nombreRol))
                                     {
-                                        consulta = "SELECT Ruta FROM rutarol WHERE Rol = @Rol",
-                                        parametros = new { Rol = nombreRol }
-                                    };
-
-                                    var respuestaRutas = await Http.PostAsJsonAsync(
-                                        "tabla/ejecutar-consulta-parametrizada",
-                                        jsonConsultaRutas
-                                    );
-
-                                    if (respuestaRutas.IsSuccessStatusCode)
-                                    {
-                                        var listaRutas = await respuestaRutas.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>();
-
-                                        if (listaRutas != null)
+                                        // Registrar todas las rutas admin en sessionStorage
+                                        foreach (var ruta in RutasPermisosService.TodasLasRutas)
                                         {
-                                            foreach (var ruta in listaRutas)
-                                            {
-                                                if (ruta.TryGetValue("Ruta", out object? nombreRutaObj) && nombreRutaObj is not null)
-                                                {
-                                                    var nombreRuta = nombreRutaObj.ToString();
+                                            await JSRuntime.InvokeVoidAsync(
+                                                "sessionStorage.setItem",
+                                                $"ruta_{ruta}",
+                                                ruta
+                                            );
+                                            Console.WriteLine($"Admin: Asignada ruta {ruta}");
+                                        }
+                                    }
+                                    // Si es verificador, guardar todas las rutas excepto las de usuarios
+                                    else if (RutasPermisosService.EsRolVerificador(nombreRol))
+                                    {
+                                        var rutasVerificador = RutasPermisosService.ObtenerRutasVerificador();
 
-                                                    if (!string.IsNullOrEmpty(nombreRuta))
+                                        // Registrar todas las rutas de verificador en sessionStorage
+                                        foreach (var ruta in rutasVerificador)
+                                        {
+                                            await JSRuntime.InvokeVoidAsync(
+                                                "sessionStorage.setItem",
+                                                $"ruta_{ruta}",
+                                                ruta
+                                            );
+                                            Console.WriteLine($"Verificador: Asignada ruta {ruta}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Para roles no-admin y no-verificador, consultar las rutas asociadas
+                                        var jsonConsultaRutas = new
+                                        {
+                                            consulta = "SELECT Ruta FROM rutarol WHERE Rol = @Rol",
+                                            parametros = new { Rol = nombreRol }
+                                        };
+
+                                        var respuestaRutas = await Http.PostAsJsonAsync(
+                                            "tabla/ejecutar-consulta-parametrizada",
+                                            jsonConsultaRutas
+                                        );
+
+                                        if (respuestaRutas.IsSuccessStatusCode)
+                                        {
+                                            var listaRutas = await respuestaRutas.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>();
+
+                                            if (listaRutas != null)
+                                            {
+                                                foreach (var ruta in listaRutas)
+                                                {
+                                                    if (ruta.TryGetValue("Ruta", out object? nombreRutaObj) && nombreRutaObj is not null)
                                                     {
-                                                        await JSRuntime.InvokeVoidAsync(
-                                                            "sessionStorage.setItem",
-                                                            $"ruta_{nombreRuta}",
-                                                            nombreRuta
-                                                        );
+                                                        var nombreRuta = nombreRutaObj.ToString();
+
+                                                        if (!string.IsNullOrEmpty(nombreRuta))
+                                                        {
+                                                            await JSRuntime.InvokeVoidAsync(
+                                                                "sessionStorage.setItem",
+                                                                $"ruta_{nombreRuta}",
+                                                                nombreRuta
+                                                            );
+                                                            Console.WriteLine($"Usuario: Asignada ruta {nombreRuta}");
+                                                        }
                                                     }
                                                 }
                                             }

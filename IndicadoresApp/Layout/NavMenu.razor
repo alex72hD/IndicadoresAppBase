@@ -1,7 +1,10 @@
-﻿@using Microsoft.JSInterop
+﻿@using IndicadoresApp.Clases.IndicadoresApp.Clases
+@using Microsoft.JSInterop
+@using IndicadoresApp.Services
+@using IndicadoresApp.Clases
 @inject IJSRuntime JS
 @inject NavigationManager NavManager
-
+@inject NavigationManager NavigationManager
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">IndicadoresApp</a>
@@ -15,8 +18,9 @@
     <nav class="nav flex-column">
         @foreach (var group in MenuGroups)
         {
-            // ¿Mostramos el grupo? — Si es admin, siempre; si no, solo si al menos un ítem está permitido
-            if (IsAdmin || group.Items.Any(i => rutasPermitidas.Contains(i.Path)))
+            // ¿Mostramos el grupo? — Si es admin o verificador, según corresponda; si no, solo si al menos un ítem está permitido
+            if (IsAdmin || (IsVerificador && group.Items.Any(item => rutasPermitidas.Contains(item.Path))) ||
+            (!IsAdmin && !IsVerificador && group.Items.Any(item => rutasPermitidas.Contains(item.Path))))
             {
                 <div class="nav-item px-3 dropdown">
                     <div class="nav-link dropdown-toggle"
@@ -27,8 +31,9 @@
                     <div class="dropdown-menu @(dropdownStates[group.Index] ? "show" : "")">
                         @foreach (var item in group.Items)
                         {
-                            // Idem: admin ve todo, usuario normal solo lo que tenga en sessionStorage
-                            if (IsAdmin || rutasPermitidas.Contains(item.Path))
+                            // Idem: admin ve todo, verificador ve todo menos usuarios, usuario normal solo lo que tenga en sessionStorage
+                            if (IsAdmin || (IsVerificador && rutasPermitidas.Contains(item.Path)) ||
+                            (!IsAdmin && !IsVerificador && rutasPermitidas.Contains(item.Path)))
                             {
                                 <NavLink class="dropdown-item" href="@item.Path">
                                     <i class="@item.Icon"></i> @item.Label
@@ -49,6 +54,7 @@
 
     // Acceso
     private bool IsAdmin;
+    private bool IsVerificador;
     private List<string> rutasPermitidas = new();
 
     // Definición data-driven del menú
@@ -59,11 +65,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var relativePath = NavManager.ToBaseRelativePath(NavManager.Uri)
-                               .Split('?')[0]
-                               .TrimEnd('/');
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri)
+                           .Split('?')[0]
+                           .TrimEnd('/');
 
-        // Si ya estamos en “login”, no redirijas
         if (relativePath.Equals("login", StringComparison.OrdinalIgnoreCase))
             return;
 
@@ -76,14 +81,39 @@
             return;
         }
 
-        IsAdmin = rol?.Equals("admin", StringComparison.OrdinalIgnoreCase) == true;
-        if (!IsAdmin)
+        // Verificar si es administrador o verificador
+        IsAdmin = RutasPermisosService.EsRolTodosAccesos(rol);
+        IsVerificador = RutasPermisosService.EsRolVerificador(rol);
+
+        // Si es admin, añadir todas las rutas directamente
+        if (IsAdmin)
         {
-            rutasPermitidas = await JS.InvokeAsync<List<string>>("eval", @"
-            Object.keys(sessionStorage)
-                  .filter(k => k.startsWith('ruta_'))
-                  .map(k => sessionStorage.getItem(k))
-        ");
+            rutasPermitidas = RutasPermisosService.TodasLasRutas;
+            Console.WriteLine($"Usuario admin: {correo} con {rutasPermitidas.Count} rutas");
+        }
+        // Si es verificador, añadir todas las rutas excepto las de usuarios
+        else if (IsVerificador)
+        {
+            rutasPermitidas = RutasPermisosService.ObtenerRutasVerificador();
+            Console.WriteLine($"Usuario verificador: {correo} con {rutasPermitidas.Count} rutas");
+        }
+        else
+        {
+            // Para usuarios normales, obtenemos rutas de sessionStorage
+            try
+            {
+                rutasPermitidas = await JS.InvokeAsync<List<string>>("eval", @"
+                    Object.keys(sessionStorage)
+                          .filter(k => k.startsWith('ruta_'))
+                          .map(k => sessionStorage.getItem(k))
+                ");
+                Console.WriteLine($"Usuario regular: {correo} con {rutasPermitidas.Count} rutas");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener rutas: {ex.Message}");
+                rutasPermitidas = new List<string>();
+            }
         }
 
         // 2) Inicializar definición de menú
@@ -121,6 +151,12 @@
                 new("/representantevisuales",   "Representante Visual",    "bi bi-palette"),
                 new("/resultadoindicador",      "Resultados",              "bi bi-clipboard-data"),
                 new("/responsableporindicador", "Responsable x Indicador", "bi bi-person-check")
+            }),
+            new MenuGroup(5, "Administración", "bi bi-gear-fill", new()
+            {
+                new("/usuario",           "Usuarios",             "bi bi-people"),
+                new("/prueba-roles-rutas", "Prueba Roles/Rutas",  "bi bi-check-circle"),
+                new("/gestion-rutas",      "Gestión de Rutas",    "bi bi-card-list")
             })
         };
 
@@ -137,3 +173,4 @@
             if (i != idx) dropdownStates[i] = false;
     }
 }
+
