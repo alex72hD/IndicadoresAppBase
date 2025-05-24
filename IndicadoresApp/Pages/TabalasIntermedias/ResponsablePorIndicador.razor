@@ -9,10 +9,12 @@
 <PageTitle>Responsables por indicadores</PageTitle>
 
 <h1>Responsables por indicadores</h1>
-
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
-</div>
+@if (!EsVerificador)
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+    </div>
+}
 
 @if (EstamosCargando)
 {
@@ -58,9 +60,9 @@ else
 
 <!-- Modal para crear/editar -->
 <ModalGenerico @ref="modalFormulario"
-               Id="formModal"
-               Title="@TituloModal"
-               OnSave="GuardarResponsable">
+Id="formModal"
+Title="@TituloModal"
+OnSave="GuardarResponsable">
     <BodyContent>
         <div class="mb-3">
             <label for="idResponsable" class="form-label">Responsable</label>
@@ -91,8 +93,8 @@ else
         <div class="mb-3">
             <label for="fechaAsignacion" class="form-label">Fecha de Asignación</label>
             <input type="date" class="form-control" id="fechaAsignacion"
-                   @bind="ResponsableActual.FechaAsignacion"
-                   @bind:format="yyyy-MM-dd" />
+            @bind="ResponsableActual.FechaAsignacion"
+            @bind:format="yyyy-MM-dd" />
         </div>
         @if (ModoEdicion)
         {
@@ -104,9 +106,9 @@ else
 
 <!-- Modal de confirmación -->
 <ModalGenerico @ref="modalConfirmacion"
-               Id="confirmModal"
-               Title="Confirmar eliminación"
-               OnSave="EliminarResponsable">
+Id="confirmModal"
+Title="Confirmar eliminación"
+OnSave="EliminarResponsable">
     <BodyContent>
         <p>
             ¿Está seguro que desea eliminar la asignación del responsable
@@ -137,7 +139,7 @@ else
     private const string TABLA_INDICADORES = "indicador";
     private const string TABLA_RESPONSABLES = "actor";
     private const string PROCEDIMIENTO_ACCIONES = "accion_responsable_por_indicador";
-
+    private bool EsVerificador { get; set; } = false;
     private List<Dictionary<string, object>> Responsables { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
@@ -285,6 +287,8 @@ else
 
     private async Task MostrarFormularioCrear()
     {
+        if (EsVerificador)
+            return;
         ResponsableActual = new ResponsableModel
             {
                 FechaAsignacion = DateTime.Today // Establecer fecha actual por defecto
@@ -296,6 +300,8 @@ else
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> responsable)
     {
+        if (EsVerificador)
+            return;
         try
         {
             // Almacenar los valores originales para saber qué eliminar
@@ -434,6 +440,8 @@ else
 
     private async Task EliminarResponsable()
     {
+        if (EsVerificador)
+            return;
         MensajeError = null;
         MensajeExito = null;
 

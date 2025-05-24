@@ -6,11 +6,12 @@
 <PageTitle>Resultados de Indicadores</PageTitle>
 
 <h1>Resultados de Indicadores</h1>
-
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
-</div>
-
+@if (!EsVerificador)
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+    </div>
+}
 @if (cargando)
 {
     <p><em>Cargando...</em></p>
@@ -63,12 +64,12 @@ else
                         <label for="resultado" class="form-label">Resultado</label>
                         <input type="text" class="form-control" id="resultado" @bind="resultadoActual.Valor" />
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="fechacalculo" class="form-label">Fecha de Cálculo</label>
                         <input type="date" class="form-control" id="fechacalculo" @bind="resultadoActual.FechaCalculo" />
                     </div>
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Indicador</label>
                         <select class="form-select" @bind="resultadoActual.IndicadorId">
@@ -86,7 +87,7 @@ else
                             }
                         </select>
                     </div>
-                    
+
                     @if (modoEdicion)
                     {
                         <input type="hidden" @bind="resultadoActual.Id" />
@@ -140,12 +141,13 @@ else
 
 @code {
     private const string TABLA = "resultadoindicador";
-    
+
     private List<Dictionary<string, object>> resultados = new List<Dictionary<string, object>>();
     private bool cargando = true;
     private bool cargandoIndicadores = true;
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
+    private bool EsVerificador { get; set; } = false;
 
     // Lista para los indicadores
     private List<IndicadorModel> indicadoresDisponibles = new List<IndicadorModel>();
@@ -251,6 +253,8 @@ else
 
     private void MostrarFormularioCrear()
     {
+        if (EsVerificador)
+            return;
         resultadoActual = new ResultadoModel();
         modoEdicion = false;
         mostrarFormulario = true;
@@ -258,6 +262,8 @@ else
 
     private void MostrarFormularioEditar(Dictionary<string, object> resultado)
     {
+        if (EsVerificador)
+            return;
         // Extracción de los valores del diccionario
         string id = ObtenerValor(resultado, "id");
         string valor = ObtenerValor(resultado, "resultado");
@@ -382,6 +388,8 @@ else
 
     private async Task EliminarResultado()
     {
+        if (EsVerificador)
+            return;
         errorMensaje = null;
         exitoMensaje = null;
 

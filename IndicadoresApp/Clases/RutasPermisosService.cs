@@ -29,7 +29,7 @@
             "/gestion-rutas"
         };
 
-            // Rutas relacionadas con usuarios que se excluirán para el rol "verificador"
+            // Rutas relacionadas con usuarios que se excluirán para el rol "verificador" y al "validador" 
             public static readonly List<string> RutasUsuarios = new()
         {
             "/usuario",

@@ -9,11 +9,12 @@
 <PageTitle>Variables por indicador</PageTitle>
 
 <h1>Variables por Indicador</h1>
-
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
-</div>
-
+@if (!EsVerificador)
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+    </div>
+}
 @if (EstamosCargando)
 {
     <p><em>Cargando...</em></p>
@@ -138,6 +139,7 @@ else
     private ModalGenerico? modalFormulario;
     private ModalGenerico? modalConfirmacion;
     private string TituloModal => $"{(peticionSeleccionada == "Edit" ? "Editar" : "Crear")} Variable por Indicador";
+    private bool EsVerificador { get; set; } = false;
 
     // Listas para dropdowns
     private List<VariableModel> ListaVariables { get; set; } = new();
@@ -203,6 +205,8 @@ else
 
     private async Task MostrarFormularioCrear()
     {
+        if (EsVerificador)
+            return;
         LimpiarFormulario();
         peticionSeleccionada = "Create";
         await modalFormulario.ShowModalAsync();
@@ -210,6 +214,8 @@ else
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> variable)
     {
+        if (EsVerificador)
+            return;
         LimpiarFormulario();
 
         idSeleccionado = Convert.ToInt32(ObtenerValor(variable, "id"));
@@ -308,6 +314,8 @@ else
 
     private async Task EliminarVariable()
     {
+        if (EsVerificador)
+            return;
         try
         {
             var respuesta = await ServicioEntidad.EliminarAsync(TABLA, "id", idSeleccionado.ToString());
