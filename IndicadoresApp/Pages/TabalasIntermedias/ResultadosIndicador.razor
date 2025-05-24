@@ -29,7 +29,10 @@ else
                     <th>Resultado</th>
                     <th>Fecha de Cálculo</th>
                     <th>Indicador</th>
-                    <th>Acciones</th>
+                    @if (!EsVerificador)
+                    {
+                        <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -39,10 +42,13 @@ else
                         <td>@ObtenerValor(resultado, "resultado")</td>
                         <td>@ObtenerValor(resultado, "fechacalculo")</td>
                         <td>@ObtenerNombreIndicador(ObtenerValor(resultado, "fkidindicador"))</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(resultado)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(resultado)">Eliminar</button>
-                        </td>
+                        @if (!EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(resultado)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(resultado)">Eliminar</button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>

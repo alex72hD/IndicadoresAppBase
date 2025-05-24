@@ -33,7 +33,10 @@ else
                     <th>Fuente</th>
                     <th>ID Indicador</th>
                     <th>Indicador</th>
-                    <th>Acciones</th>
+                    @if (!EsVerificador)
+                    {
+                        <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -44,10 +47,13 @@ else
                         <td>@ObtenerNombreFuente(ObtenerValor(relacion, "fkidfuente"))</td>
                         <td>@ObtenerValor(relacion, "fkidindicador")</td>
                         <td>@ObtenerNombreIndicador(ObtenerValor(relacion, "fkidindicador"))</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(relacion)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(relacion)">Eliminar</button>
-                        </td>
+                        @if (!EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(relacion)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(relacion)">Eliminar</button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>

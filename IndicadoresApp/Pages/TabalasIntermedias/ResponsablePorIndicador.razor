@@ -35,7 +35,10 @@ else
                     <th>ID Indicador</th>
                     <th>Indicador</th>
                     <th>Fecha de Asignación</th>
-                    <th>Acciones</th>
+                    @if (!EsVerificador)
+                    {
+                        <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -47,10 +50,13 @@ else
                         <td>@ObtenerValor(responsable, "fkidindicador")</td>
                         <td>@ObtenerNombreIndicador(ObtenerValor(responsable, "fkidindicador"))</td>
                         <td>@ObtenerValor(responsable, "fechaasignacion")</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(responsable)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(responsable)">Eliminar</button>
-                        </td>
+                        @if (!EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(responsable)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(responsable)">Eliminar</button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>

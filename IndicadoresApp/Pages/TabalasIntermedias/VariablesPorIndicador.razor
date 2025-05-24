@@ -34,7 +34,10 @@ else
                     <th>Dato</th>
                     <th>Email</th>
                     <th>FechaDato</th>
-                    <th>Acciones</th>
+                    @if (!EsVerificador)
+                    {
+                        <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>

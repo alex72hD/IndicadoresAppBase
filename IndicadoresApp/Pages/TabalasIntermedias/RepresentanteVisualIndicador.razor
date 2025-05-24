@@ -33,7 +33,10 @@ else
                     <th>Indicador</th>
                     <th>ID Representante Visual</th>
                     <th>Representante Visual</th>
-                    <th>Acciones</th>
+                    @if (!EsVerificador)
+                    {
+                        <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -44,10 +47,13 @@ else
                         <td>@ObtenerNombreIndicador(ObtenerValor(relacion, "fkidindicador"))</td>
                         <td>@ObtenerValor(relacion, "fkidrepresenvisual")</td>
                         <td>@ObtenerNombreRepresentante(ObtenerValor(relacion, "fkidrepresenvisual"))</td>
+                        @if (!EsVerificador)
+                        {
                         <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(relacion)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(relacion)">Eliminar</button>
                         </td>
+                        }
                     </tr>
                 }
             </tbody>
