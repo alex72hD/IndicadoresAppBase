@@ -9,11 +9,12 @@
 <PageTitle>Fuentes Por Indicador</PageTitle>
 
 <h1>Fuentes Por Indicador</h1>
-
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
-</div>
-
+@if (!EsVerificador)
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
+    </div>
+}
 @if (EstamosCargando)
 {
     <p><em>Cargando...</em></p>
@@ -56,9 +57,9 @@ else
 
 <!-- Modal para crear/editar relación -->
 <ModalGenerico @ref="modalFormulario" 
-              Id="formModal" 
-              Title="@TituloModal" 
-              OnSave="GuardarRelacion">
+Id="formModal" 
+Title="@TituloModal" 
+OnSave="GuardarRelacion">
     <BodyContent>
         <div class="mb-3">
             <label for="idFuente" class="form-label">Fuente</label>
@@ -96,9 +97,9 @@ else
 
 <!-- Modal para confirmar eliminación -->
 <ModalGenerico @ref="modalConfirmacion" 
-              Id="confirmModal" 
-              Title="Confirmar eliminación" 
-              OnSave="EliminarRelacion">
+Id="confirmModal" 
+Title="Confirmar eliminación" 
+OnSave="EliminarRelacion">
     <BodyContent>
         <p>¿Está seguro que desea eliminar esta relación entre Fuente (@ObtenerNombreFuente(RelacionAEliminar.IdFuente.ToString())) e Indicador (@ObtenerNombreIndicador(RelacionAEliminar.IdIndicador.ToString()))?</p>
     </BodyContent>
@@ -124,7 +125,7 @@ else
     private const string NOMBRE_TABLA = "fuentesporindicador";
     private const string TABLA_FUENTES = "fuente";
     private const string TABLA_INDICADORES = "indicador";
-    
+    private bool EsVerificador { get; set; } = false;
     private List<Dictionary<string, object>> FuentesPorIndicador { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
@@ -267,6 +268,8 @@ else
 
     private async Task MostrarFormularioCrear()
     {
+        if (EsVerificador)
+            return;
         RelacionActual = new RelacionModel();
         RelacionOriginal = new RelacionModel();
         ModoEdicion = false;
@@ -275,6 +278,8 @@ else
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> relacion)
     {
+        if (EsVerificador)
+            return;
         // Almacenar los valores originales para saber qué eliminar
         RelacionOriginal = new RelacionModel
         {
@@ -403,6 +408,8 @@ else
 
     private async Task EliminarRelacionExistente()
     {
+        if (EsVerificador)
+            return;
         try
         {
             // Si tenemos un ID único para la relación, lo usamos
@@ -444,6 +451,8 @@ else
 
     private async Task EliminarRelacion()
     {
+        if (EsVerificador)
+            return;
         MensajeError = null;
         MensajeExito = null;
 

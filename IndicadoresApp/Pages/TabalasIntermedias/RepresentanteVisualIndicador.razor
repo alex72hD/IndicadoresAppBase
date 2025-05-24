@@ -9,11 +9,12 @@
 <PageTitle>RepresentanteVisuales</PageTitle>
 
 <h1>RepresentanteVisuales</h1>
-
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
-</div>
-
+@if (!EsVerificador)
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+    </div>
+}
 @if (EstamosCargando)
 {
     <p><em>Cargando...</em></p>
@@ -119,7 +120,7 @@ ShowSaveButton="false">
     private const string NOMBRE_TABLA = "represenvisualporindicador";
     private const string TABLA_INDICADORES = "indicador";
     private const string TABLA_REPRESENTANTES = "represenvisual";
-
+    private bool EsVerificador { get; set; } = false;
     private List<Dictionary<string, object>> Representantes = new();
     private bool EstamosCargando = true;
     private string MensajeError;
@@ -224,6 +225,8 @@ ShowSaveButton="false">
 
     private async Task MostrarFormularioCrear()
     {
+        if (EsVerificador)
+            return;
         ModoEdicion = false;
         RelacionActual = new();
         await modalFormulario.ShowModalAsync();
@@ -231,6 +234,8 @@ ShowSaveButton="false">
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> relacion)
     {
+        if (EsVerificador)
+            return;
         ModoEdicion = true;
         RelacionActual = new()
             {
@@ -318,6 +323,8 @@ ShowSaveButton="false">
 
     private async Task EliminarRelacion()
     {
+        if (EsVerificador)
+            return;
         try
         {
             var parametros = new Dictionary<string, object>
