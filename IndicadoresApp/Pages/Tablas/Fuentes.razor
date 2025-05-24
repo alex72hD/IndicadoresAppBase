@@ -8,7 +8,7 @@
 <PageTitle>Lista de tipos de fuentes</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
 
 <h1>fuentes</h1>  
-@if(!EsVerificador)
+@if (!EsVerificador)
 {   
 <div class="mb-3">
     <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
@@ -33,7 +33,10 @@ else
                 <tr>  <!-- Fila del encabezado -->
                     <th>Código</th>  <!-- Columna para el código de la fuentes -->
                     <th>nombre</th>  <!-- Columna para el nombre de la fuentes -->
+                    @if (!EsVerificador){
                     <th>Acciones</th>
+                    }
+
                 </tr>
             </thead>
             <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
@@ -43,10 +46,13 @@ else
                     <tr>  <!-- Fila para cada fuente -->
                         <td>@ObtenerValor(fuente, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
                         <td>@ObtenerValor(fuente, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
-                         <td>
+                        @if (!EsVerificador)
+                        {
+                        <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(fuente)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(fuente)">Eliminar</button>
                          </td>
+                         }
                     </tr>
                 }
             </tbody>

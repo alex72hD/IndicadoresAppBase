@@ -8,11 +8,12 @@
 <PageTitle>Lista de tipos de sentidos</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
 
 <h1>sentidos</h1>  
-
+@if (!EsVerificador)
+{
 <div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
     <button class="btn btn-primary"@onclick="MostrarFormularioCrear">Crear Nuevo</button> 
 </div>
-
+}
 <!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
 <!-- Si no está cargando pero no hay sentidos o la lista es nula, muestra un mensaje informativo -->
 <!-- Si hay sentidos para mostrar, muestra la tabla -->
@@ -32,7 +33,10 @@ else
                 <tr>  <!-- Fila del encabezado -->
                     <th>Código</th>  <!-- Columna para el código de la sentido -->
                     <th>nombre</th>  <!-- Columna para el nombre de la sentido -->
-                    <th>Acciones</th>
+                    @if (!EsVerificador)
+                    {
+                        <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
@@ -42,10 +46,13 @@ else
                     <tr>  <!-- Fila para cada sentido -->
                         <td>@ObtenerValor(sentido, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
                         <td>@ObtenerValor(sentido, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
-                         <td>
+                        @if (!EsVerificador)
+                        {
+                        <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(sentido)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(sentido)">Eliminar</button>
                          </td>
+                         }
                     </tr>
                 }
             </tbody>
@@ -120,6 +127,7 @@ else
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "sentido";
+    private bool EsVerificador { get; set; } = false;
 
     // Variables para el formulario
     private bool mostrarFormulario = false;
@@ -178,6 +186,8 @@ else
     }
     private void MostrarFormularioCrear()
     {
+        if (EsVerificador)
+            return;
         sentidoActual = new SentidoModel();
         modoEdicion = false;
         mostrarFormulario = true;
@@ -185,6 +195,8 @@ else
 
     private void MostrarFormularioEditar(Dictionary<string, object> sentido)
     {
+        if (EsVerificador)
+            return;
         sentidoActual = new SentidoModel
         {
             id = ObtenerValor(sentido, "id"),
@@ -201,6 +213,8 @@ else
 
     private async Task Guardarsentido()
     {
+        if (EsVerificador)
+            return;
         errorMensaje = null;
         exitoMensaje = null;
 
@@ -257,6 +271,8 @@ else
     }
     private void ConfirmarEliminar(Dictionary<string, object> sentido)
     {
+        if (EsVerificador)
+            return;
         sentidoEliminar = new SentidoModel
         {
             id = ObtenerValor(sentido, "id"),

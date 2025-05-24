@@ -8,11 +8,12 @@
 <PageTitle>Lista de tipos de representantees</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
 
 <h1>Representantes</h1>  
-
+@if (!EsVerificador)
+{
 <div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
     <button class="btn btn-primary"@onclick="MostrarFormularioCrear">Crear Nuevo</button> 
 </div>
-
+}
 <!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
 <!-- Si no está cargando pero no hay Representantes o la lista es nula, muestra un mensaje informativo -->
 <!-- Si hay Representantes para mostrar, muestra la tabla -->
@@ -32,7 +33,9 @@ else
                 <tr>  <!-- Fila del encabezado -->
                     <th>Código</th>  <!-- Columna para el código de la representantes -->
                     <th>nombre</th>  <!-- Columna para el nombre de la representantes -->
+                    @if (!EsVerificador){
                     <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
@@ -42,10 +45,13 @@ else
                     <tr>  <!-- Fila para cada representante -->
                         <td>@ObtenerValor(representante, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
                         <td>@ObtenerValor(representante, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
-                         <td>
+                }
+                @if (!EsVerificador)
+                        {<td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(representante)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(representante)">Eliminar</button>
                          </td>
+                         }
                     </tr>
                 }
             </tbody>
@@ -116,10 +122,11 @@ else
     // Lista para almacenar los representantes que se obtienen de la API
     private List<Dictionary<string, object>> representantes = new List<Dictionary<string, object>>();
     
-   private bool cargando = true;
+    private bool cargando = true;
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "represenvisual";
+    private bool EsVerificador {get;set;} = false;
 
     // Variables para el formulario
     private bool mostrarFormulario = false;
@@ -185,6 +192,8 @@ else
 
     private void MostrarFormularioEditar(Dictionary<string, object> representante)
     {
+        if (EsVerificador)
+            return;
         representanteActual = new RepresentanteModel
         {
             id = ObtenerValor(representante, "id"),
@@ -201,6 +210,8 @@ else
 
     private async Task Guardarrepresentante()
     {
+        if (EsVerificador)
+            return;
         errorMensaje = null;
         exitoMensaje = null;
 
@@ -257,6 +268,8 @@ else
     }
     private void ConfirmarEliminar(Dictionary<string, object> representante)
     {
+        if (EsVerificador)
+            return;
         representanteEliminar = new RepresentanteModel
         {
             id = ObtenerValor(representante, "id"),

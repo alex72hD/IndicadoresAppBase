@@ -8,11 +8,12 @@
 <PageTitle>Lista de indicadores</PageTitle>
 
 <h1>Indicadores</h1>
-
+@if (!EsVerificador)
+{
 <div class="mb-3">
     <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
 </div>
-
+}
 @if (cargando)
 {
     <p><em>Cargando...</em></p>
@@ -29,7 +30,10 @@ else
                 <tr>
                     <th>Código</th>
                     <th>Nombre</th>
-                    <th>Acciones</th>
+                    @if (!EsVerificador)
+                    {
+                        <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -38,10 +42,13 @@ else
                     <tr>
                         <td>@ObtenerValor(tipoindicador, "id")</td>
                         <td>@ObtenerValor(tipoindicador, "nombre")</td>
+                        @if (!EsVerificador)
+                        {
                         <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(tipoindicador)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(tipoindicador)">Eliminar</button>
                         </td>
+                        }
                     </tr>
                 }
             </tbody>
@@ -114,6 +121,7 @@ else
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "tipoindicador";
+    private bool EsVerificador { get; set; } = false;
 
     // Variables para el formulario
     private bool mostrarFormulario = false;
@@ -172,6 +180,8 @@ else
     }
     private void MostrarFormularioCrear()
     {
+        if (EsVerificador)
+            return;
         indicadorActual = new IndicadorModel();
         modoEdicion = false;
         mostrarFormulario = true;
@@ -179,6 +189,8 @@ else
 
     private void MostrarFormularioEditar(Dictionary<string, object> indicador)
     {
+        if (EsVerificador)
+            return;
         indicadorActual = new IndicadorModel
         {
             id = ObtenerValor(indicador, "id"),
@@ -253,6 +265,8 @@ else
     // Funciones para eliminar
     private void ConfirmarEliminar(Dictionary<string, object> indicador)
     {
+        if (EsVerificador)
+            return;
         indicadorEliminar = new IndicadorModel
         {
             id = ObtenerValor(indicador, "id"),

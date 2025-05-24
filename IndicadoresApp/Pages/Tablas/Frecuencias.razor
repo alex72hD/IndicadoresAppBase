@@ -9,7 +9,7 @@
 <PageTitle>Lista de frecuencias</PageTitle>
 
 <h1>Frecuencias</h1>
-@if (EsVerificador)
+@if (!EsVerificador)
 {   
 <div class="mb-3">
     <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
@@ -31,7 +31,10 @@ else
                 <tr>
                     <th>Código</th>
                     <th>Nombre</th>
+                    @if (!EsVerificador){
                     <th>Acciones</th>
+                    }
+                    
                 </tr>
             </thead>
             <tbody>
@@ -40,10 +43,13 @@ else
                     <tr>
                         <td>@ObtenerValor(frecuencia, "id")</td>
                         <td>@ObtenerValor(frecuencia, "nombre")</td>
+                        @if (!EsVerificador)
+                        {
                         <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(frecuencia)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(frecuencia)">Eliminar</button>
                         </td>
+                        }
                     </tr>
                 }
             </tbody>
