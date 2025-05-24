@@ -1,6 +1,7 @@
 @page "/frecuencia"  
 @using System.Collections.Generic  
 @using System.Text.Json  
+@using IndicadoresApp.Clases.IndicadoresApp.Clases
 @inject ServicioEntidad servicioEntidad  
 @inject NavigationManager navegacionManager  
 @inherits ValidacionAcceso
@@ -8,11 +9,12 @@
 <PageTitle>Lista de frecuencias</PageTitle>
 
 <h1>Frecuencias</h1>
-
+@if (EsVerificador)
+{   
 <div class="mb-3">
     <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
 </div>
-
+}
 @if (cargando)
 {
     <p><em>Cargando...</em></p>
@@ -114,6 +116,7 @@ else
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "frecuencia";
+    private bool EsVerificador {get;set;} = false;
 
     // Variables para el formulario
     private bool mostrarFormulario = false;
@@ -172,6 +175,8 @@ else
     }
     private void MostrarFormularioCrear()
     {
+        if (EsVerificador)
+            return;
         frecuenciaActual = new FrecuenciaModel();
         modoEdicion = false;
         mostrarFormulario = true;
@@ -179,6 +184,9 @@ else
 
     private void MostrarFormularioEditar(Dictionary<string, object> frecuencia)
     {
+        if (EsVerificador)
+            return;
+
         frecuenciaActual = new FrecuenciaModel
         {
             id = ObtenerValor(frecuencia, "id"),
@@ -195,6 +203,9 @@ else
 
     private async Task Guardarfrecuencia()
     {
+        if (EsVerificador)
+        return;
+
         errorMensaje = null;
         exitoMensaje = null;
 
@@ -253,6 +264,9 @@ else
     // Funciones para eliminar
     private void ConfirmarEliminar(Dictionary<string, object> frecuencia)
     {
+        if (EsVerificador)
+        return;
+
         frecuenciaEliminar = new FrecuenciaModel
         {
             id = ObtenerValor(frecuencia, "id"),

@@ -8,11 +8,12 @@
 <PageTitle>Lista de tipos de fuentes</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
 
 <h1>fuentes</h1>  
-
-<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
-    <button class="btn btn-primary"@onclick="MostrarFormularioCrear">Crear Nuevo</button> 
+@if(!EsVerificador)
+{   
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
 </div>
-
+}
 <!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
 <!-- Si no está cargando pero no hay fuentes o la lista es nula, muestra un mensaje informativo -->
 <!-- Si hay fuentes para mostrar, muestra la tabla -->
@@ -116,10 +117,11 @@ else
     // Lista para almacenar los fuentes que se obtienen de la API
     private List<Dictionary<string, object>> fuentes = new List<Dictionary<string, object>>();
     
-   private bool cargando = true;
+    private bool cargando = true;
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "fuente";
+    private bool EsVerificador {get;set;} = false;
 
     // Variables para el formulario
     private bool mostrarFormulario = false;
@@ -178,6 +180,8 @@ else
     }
     private void MostrarFormularioCrear()
     {
+        if (EsVerificador)
+        return;
         fuenteActual = new FuenteModel();
         modoEdicion = false;
         mostrarFormulario = true;
@@ -185,6 +189,9 @@ else
 
     private void MostrarFormularioEditar(Dictionary<string, object> fuente)
     {
+        if (EsVerificador)
+            return;
+
         fuenteActual = new FuenteModel
         {
             id = ObtenerValor(fuente, "id"),
@@ -201,6 +208,9 @@ else
 
     private async Task Guardarfuente()
     {
+        if (EsVerificador)
+        return;
+        
         errorMensaje = null;
         exitoMensaje = null;
 
@@ -257,6 +267,8 @@ else
     }
     private void ConfirmarEliminar(Dictionary<string, object> fuente)
     {
+        if (EsVerificador)
+        return;
         fuenteEliminar = new FuenteModel
         {
             id = ObtenerValor(fuente, "id"),
