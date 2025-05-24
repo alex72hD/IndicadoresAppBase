@@ -31,7 +31,10 @@ else
                     <th>Nombre</th>
                     <th>Fecha</th>
                     <th>Email</th>
-                    <th>Acciones</th>
+                    @if (!EsVerificador)
+                    {
+                        <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -41,10 +44,13 @@ else
                         <td>@ObtenerValor(variable, "nombre")</td>
                         <td>@ObtenerValor(variable, "fechacreacion")</td>
                         <td>@ObtenerValor(variable, "fkemailusuario")</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(variable)">Eliminar</button>
-                        </td>
+                        @if (!EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(variable)">Eliminar</button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>
