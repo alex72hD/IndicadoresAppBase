@@ -2,6 +2,7 @@
 @using System.Collections.Generic  
 @using System.Text.Json  
 @using IndicadoresApp.Clases.IndicadoresApp.Clases
+@inject IJSRuntime JSRuntime
 @inject ServicioEntidad servicioEntidad  
 @inject NavigationManager navegacionManager  
 @inherits ValidacionAcceso
@@ -135,6 +136,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
+        EsVerificador = RutasPermisosService.EsRolVerificador(rol);
         await CargarTipodeFrecuencias();
     }
 

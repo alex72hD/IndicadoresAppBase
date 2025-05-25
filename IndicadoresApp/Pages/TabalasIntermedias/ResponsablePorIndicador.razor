@@ -1,7 +1,9 @@
 @page "/ResponsablePorIndicador"
 @using System.Collections.Generic
 @using System.Text.Json
+@using IndicadoresApp.Clases.IndicadoresApp.Clases
 @using IndicadoresApp.ModalGenerico
+@inject IJSRuntime JSRuntime
 @inject ServicioEntidad ServicioEntidad
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
@@ -169,6 +171,8 @@ OnSave="EliminarResponsable">
 
     protected override async Task OnInitializedAsync()
     {
+        var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
+        EsVerificador = RutasPermisosService.EsRolVerificador(rol);
         await CargarDatosIniciales();
     }
 

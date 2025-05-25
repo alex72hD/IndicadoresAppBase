@@ -509,6 +509,11 @@ else
             await CargarTabla("numeral", numerales);
             await CargarTabla("paragrafo", parrafos);
             await CargarTabla("actor", actores);
+
+            // *** AGREGAR ESTAS DOS LÍNEAS ***
+            await CargarTabla("represenvisual", represenvisuales);  // O el nombre correcto de tu tabla
+            await CargarTabla("fuente", fuentes);  // O el nombre correcto de tu tabla
+
             await ObtenerIndicadores();
         }
         catch (Exception ex)

@@ -1,6 +1,7 @@
 @page "/FuentesPorIndicador"
 @using System.Collections.Generic
 @using System.Text.Json
+@using IndicadoresApp.Clases.IndicadoresApp.Clases
 @using IndicadoresApp.ModalGenerico
 @inject ServicioEntidad ServicioEntidad  
 @inject NavigationManager NavigationManager
@@ -155,6 +156,8 @@ OnSave="EliminarRelacion">
 
     protected override async Task OnInitializedAsync()
     {
+        var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
+        EsVerificador = RutasPermisosService.EsRolVerificador(rol);
         await CargarDatosIniciales();
     }
 

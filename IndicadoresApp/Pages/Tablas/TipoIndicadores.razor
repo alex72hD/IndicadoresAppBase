@@ -1,8 +1,12 @@
-@page "/tipoindicador"  
-@using System.Collections.Generic  
-@using System.Text.Json  
-@inject ServicioEntidad servicioEntidad  
-@inject NavigationManager navegacionManager  
+@page "/tipoindicador"
+@using System.Collections.Generic
+@using System.Text.Json
+@using IndicadoresApp.Clases.IndicadoresApp.Clases
+@using IndicadoresApp.ModalGenerico
+@using IndicadoresApp.Clases
+@inject ServicioEntidad servicioEntidad
+@inject NavigationManager navegacionManager
+@inject IJSRuntime JSRuntime
 @inherits ValidacionAcceso
 
 <PageTitle>Lista de indicadores</PageTitle>
@@ -10,9 +14,9 @@
 <h1>Indicadores</h1>
 @if (!EsVerificador)
 {
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
-</div>
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+    </div>
 }
 @if (cargando)
 {
@@ -44,10 +48,10 @@ else
                         <td>@ObtenerValor(tipoindicador, "nombre")</td>
                         @if (!EsVerificador)
                         {
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(tipoindicador)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(tipoindicador)">Eliminar</button>
-                        </td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(tipoindicador)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(tipoindicador)">Eliminar</button>
+                            </td>
                         }
                     </tr>
                 }
@@ -56,50 +60,28 @@ else
     </div>
 }
 
-@if (mostrarFormulario)
-{
-    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">@(modoEdicion ? "Editar" : "Crear") Tipo de Indicador</h5>
-                    <button type="button" class="btn-close" @onclick="CerrarFormulario"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre</label>
-                        <input type="text" class="form-control" id="nombre" @bind="indicadorActual.nombre" />
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CerrarFormulario">Cancelar</button>
-                    <button type="button" class="btn btn-primary" @onclick="GuardarIndicador">Guardar</button>
-                </div>
-            </div>
+<!-- Modal para crear/editar indicador -->
+<ModalGenerico @ref="modalFormulario"
+               Id="formModal"
+               Title="@TituloModal"
+               OnSave="GuardarIndicador">
+    <BodyContent>
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" @bind="indicadorActual.nombre" />
         </div>
-    </div>
-}
+    </BodyContent>
+</ModalGenerico>
 
-@if (mostrarConfirmacion)
-{
-    <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Confirmar eliminación</h5>
-                    <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
-                </div>
-                <div class="modal-body">
-                    <p>¿Está seguro que desea eliminar el indicador: @indicadorEliminar?.nombre?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
-                    <button type="button" class="btn btn-danger" @onclick="EliminarIndicador">Eliminar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-}
+<!-- Modal para confirmar eliminación -->
+<ModalGenerico @ref="modalConfirmacion"
+               Id="confirmModal"
+               Title="Confirmar eliminación"
+               OnSave="EliminarIndicador">
+    <BodyContent>
+        <p>¿Está seguro que desea eliminar el indicador: @indicadorEliminar?.nombre?</p>
+    </BodyContent>
+</ModalGenerico>
 
 @if (errorMensaje != null)
 {
@@ -124,16 +106,21 @@ else
     private bool EsVerificador { get; set; } = false;
 
     // Variables para el formulario
-    private bool mostrarFormulario = false;
     private bool modoEdicion = false;
     private IndicadorModel indicadorActual = new IndicadorModel();
+    private ModalGenerico? modalFormulario;
+    private string TituloModal => $"{(modoEdicion ? "Editar" : "Crear")} Tipo de Indicador";
 
     // Variables para confirmación de eliminación
-    private bool mostrarConfirmacion = false;
     private IndicadorModel indicadorEliminar = new IndicadorModel();
+    private ModalGenerico? modalConfirmacion;
 
     protected override async Task OnInitializedAsync()
     {
+        // Verificar si el usuario tiene rol de verificador
+        var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
+        EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+
         await CargarTipodeIndicadores();
     }
 
@@ -141,11 +128,11 @@ else
     {
         cargando = true;
         errorMensaje = null;
-        
+
         try
         {
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
-            
+
             if (resultado != null)
             {
                 indicadores = resultado;
@@ -170,52 +157,58 @@ else
     {
         if (diccionario == null)
             return string.Empty;
-            
+
         if (diccionario.TryGetValue(clave, out var valor))
         {
             return valor?.ToString() ?? string.Empty;
         }
-        
+
         return string.Empty;
     }
-    private void MostrarFormularioCrear()
+
+    private async Task MostrarFormularioCrear()
     {
+        // Si es verificador, no permitir crear
         if (EsVerificador)
             return;
+
         indicadorActual = new IndicadorModel();
         modoEdicion = false;
-        mostrarFormulario = true;
+        await InvokeAsync(StateHasChanged);
+        await modalFormulario.ShowModalAsync();
     }
 
-    private void MostrarFormularioEditar(Dictionary<string, object> indicador)
+    private async Task MostrarFormularioEditar(Dictionary<string, object> indicador)
     {
+        // Si es verificador, no permitir editar
         if (EsVerificador)
             return;
-        indicadorActual = new IndicadorModel
-        {
-            id = ObtenerValor(indicador, "id"),
-            nombre = ObtenerValor(indicador, "nombre")
-        };
-        modoEdicion = true;
-        mostrarFormulario = true;
-    }
 
-    private void CerrarFormulario()
-    {
-        mostrarFormulario = false;
+        indicadorActual = new IndicadorModel
+            {
+                id = ObtenerValor(indicador, "id"),
+                nombre = ObtenerValor(indicador, "nombre")
+            };
+        modoEdicion = true;
+        await InvokeAsync(StateHasChanged);
+        await modalFormulario.ShowModalAsync();
     }
 
     private async Task GuardarIndicador()
     {
+        // Si es verificador, no permitir guardar
+        if (EsVerificador)
+            return;
+
         errorMensaje = null;
         exitoMensaje = null;
 
         try
         {
             var indicadorDict = new Dictionary<string, object>
-            {
-                ["nombre"] = indicadorActual.nombre
-            };
+                {
+                    ["nombre"] = indicadorActual.nombre
+                };
 
             bool resultado;
 
@@ -249,7 +242,6 @@ else
             if (resultado)
             {
                 await CargarTipodeIndicadores();
-                mostrarFormulario = false;
             }
             else
             {
@@ -263,25 +255,27 @@ else
     }
 
     // Funciones para eliminar
-    private void ConfirmarEliminar(Dictionary<string, object> indicador)
+    private async Task ConfirmarEliminar(Dictionary<string, object> indicador)
     {
+        // Si es verificador, no permitir eliminar
         if (EsVerificador)
             return;
-        indicadorEliminar = new IndicadorModel
-        {
-            id = ObtenerValor(indicador, "id"),
-            nombre = ObtenerValor(indicador, "nombre")
-        };
-        mostrarConfirmacion = true;
-    }
 
-    private void CancelarEliminar()
-    {
-        mostrarConfirmacion = false;
+        indicadorEliminar = new IndicadorModel
+            {
+                id = ObtenerValor(indicador, "id"),
+                nombre = ObtenerValor(indicador, "nombre")
+            };
+        await InvokeAsync(StateHasChanged);
+        await modalConfirmacion.ShowModalAsync();
     }
 
     private async Task EliminarIndicador()
     {
+        // Si es verificador, no permitir eliminar
+        if (EsVerificador)
+            return;
+
         errorMensaje = null;
         exitoMensaje = null;
 
@@ -302,8 +296,6 @@ else
             {
                 errorMensaje = "No se pudo eliminar el indicador.";
             }
-
-            mostrarConfirmacion = false;
         }
         catch (Exception ex)
         {

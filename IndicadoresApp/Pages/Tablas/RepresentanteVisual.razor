@@ -1,6 +1,9 @@
 @page "/representante"  
 @using System.Collections.Generic  
 @using System.Text.Json  
+@inject IJSRuntime JSRuntime
+@using IndicadoresApp.Clases.IndicadoresApp.Clases
+
 @inject ServicioEntidad servicioEntidad  
 @inject NavigationManager navegacionManager  
 @inherits ValidacionAcceso
@@ -33,7 +36,8 @@ else
                 <tr>  <!-- Fila del encabezado -->
                     <th>Código</th>  <!-- Columna para el código de la representantes -->
                     <th>nombre</th>  <!-- Columna para el nombre de la representantes -->
-                    @if (!EsVerificador){
+                    @if (!EsVerificador)
+                    {
                     <th>Acciones</th>
                     }
                 </tr>
@@ -45,15 +49,15 @@ else
                     <tr>  <!-- Fila para cada representante -->
                         <td>@ObtenerValor(representante, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
                         <td>@ObtenerValor(representante, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
-                }
                 @if (!EsVerificador)
-                        {<td>
+                      {       
+                         <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(representante)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(representante)">Eliminar</button>
                          </td>
-                         }
+                        }
                     </tr>
-                }
+                    }
             </tbody>
         </table>
     </div>
@@ -139,6 +143,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
+        EsVerificador = RutasPermisosService.EsRolVerificador(rol);
         await Cargarunidadmedicion();
     }
 
