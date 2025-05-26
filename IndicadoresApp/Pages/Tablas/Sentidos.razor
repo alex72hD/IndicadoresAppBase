@@ -1,31 +1,32 @@
-@page "/sentido"  
-@using System.Collections.Generic  
-@using System.Text.Json  
+@page "/sentido"
+@using System.Collections.Generic
+@using System.Text.Json
 @using IndicadoresApp.Clases.IndicadoresApp.Clases
+@using IndicadoresApp.ModalGenerico @* Se añade para consistencia aunque se usen modales directos *@
 @inject IJSRuntime JSRuntime
-@inject ServicioEntidad servicioEntidad  
-@inject NavigationManager navegacionManager  
+@inject ServicioEntidad servicioEntidad
+@inject NavigationManager navegacionManager
 @inherits ValidacionAcceso
 
 <PageTitle>Lista de tipos de sentidos</PageTitle>
 
-<h1>Sentidos</h1>  
-@if (!EsVerificador)
+<h1>Sentidos</h1>
+@* Solo los verificadores y validadores no pueden crear *@
+@if (!EsVerificador && !EsValidador)
 {
     <div class="mb-3">
-        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button> 
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
     </div>
 }
 
-<!-- Campo de búsqueda -->
 <div class="mb-3">
     <div class="row">
         <div class="col-md-6">
             <div class="input-group">
-                <input type="text" 
-                       class="form-control" 
-                       placeholder="Buscar por código o nombre..." 
-                       @bind="TextoBusqueda" 
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por código o nombre..."
+                       @bind="TextoBusqueda"
                        @oninput="FiltrarSentidos" />
                 <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
                     <i class="fas fa-times"></i> Limpiar
@@ -46,7 +47,7 @@
 }
 else if (sentidos == null || sentidos.Count == 0)
 {
-    <p>No hay tipos de sentidos disponible</p>  
+    <p>No hay tipos de sentidos disponible</p>
 }
 else if (SentidosFiltrados.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
 {
@@ -62,7 +63,13 @@ else
                 <tr>
                     <th>Código</th>
                     <th>Nombre</th>
-                    @if (!EsVerificador)
+                    @* Solo los verificadores y validadores no ven las acciones de crear/editar/eliminar *@
+                    @if (!EsVerificador && !EsValidador)
+                    {
+                        <th>Acciones</th>
+                    }
+                    @* Los validadores solo pueden editar, así que necesitan ver la columna de acciones si solo son validadores y no verificadores *@
+                    @if (EsValidador && !EsVerificador)
                     {
                         <th>Acciones</th>
                     }
@@ -74,11 +81,19 @@ else
                     <tr>
                         <td>@ObtenerValor(sentido, "id")</td>
                         <td>@ObtenerValor(sentido, "nombre")</td>
-                        @if (!EsVerificador)
+                        @* Administradores pueden hacer todo *@
+                        @if (!EsVerificador && !EsValidador)
                         {
                             <td>
                                 <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(sentido)">Editar</button>
                                 <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(sentido)">Eliminar</button>
+                            </td>
+                        }
+                        @* Los validadores solo pueden editar *@
+                        @if (EsValidador && !EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(sentido)">Editar</button>
                             </td>
                         }
                     </tr>
@@ -88,6 +103,7 @@ else
     </div>
 }
 
+@* Aquí se mantienen tus modales directos con la visibilidad controlada por los roles *@
 @if (mostrarFormulario)
 {
     <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
@@ -151,12 +167,15 @@ else
     // Lista para almacenar los sentidos que se obtienen de la API
     private List<Dictionary<string, object>> sentidos = new List<Dictionary<string, object>>();
     private List<Dictionary<string, object>> SentidosFiltrados = new List<Dictionary<string, object>>();
-    
+
     private bool cargando = true;
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "sentido";
+
+    // Variables para control de roles
     private bool EsVerificador { get; set; } = false;
+    private bool EsValidador { get; set; } = false; // <-- Añadido: Declaración de EsValidador
 
     // Variables para la búsqueda
     private string TextoBusqueda { get; set; } = string.Empty;
@@ -174,6 +193,7 @@ else
     {
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+        EsValidador = RutasPermisosService.EsRolValidador(rol); // <-- Añadido: Inicialización de EsValidador
 
         await CargarSentidos();
     }
@@ -182,14 +202,14 @@ else
     {
         cargando = true;
         errorMensaje = null;
-        
+
         try
         {
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
-            
+
             sentidos = resultado ?? new List<Dictionary<string, object>>();
             SentidosFiltrados = new List<Dictionary<string, object>>(sentidos);
-            
+
             // Aplicar filtro si hay texto de búsqueda
             if (!string.IsNullOrEmpty(TextoBusqueda))
             {
@@ -212,12 +232,12 @@ else
     {
         if (diccionario == null)
             return string.Empty;
-            
+
         if (diccionario.TryGetValue(clave, out var valor))
         {
             return valor?.ToString() ?? string.Empty;
         }
-        
+
         return string.Empty;
     }
 
@@ -235,13 +255,13 @@ else
         else
         {
             var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
-            
+
             SentidosFiltrados = sentidos.Where(sentido =>
             {
                 var codigo = ObtenerValor(sentido, "id").ToLower();
                 var nombre = ObtenerValor(sentido, "nombre").ToLower();
-                
-                return codigo.Contains(textoBusquedaLower) || 
+
+                return codigo.Contains(textoBusquedaLower) ||
                        nombre.Contains(textoBusquedaLower);
             }).ToList();
         }
@@ -258,7 +278,8 @@ else
 
     private void MostrarFormularioCrear()
     {
-        if (EsVerificador)
+        // <-- Modificado: Los verificadores y validadores no pueden crear
+        if (EsVerificador || EsValidador)
             return;
         sentidoActual = new SentidoModel();
         modoEdicion = false;
@@ -267,13 +288,14 @@ else
 
     private void MostrarFormularioEditar(Dictionary<string, object> sentido)
     {
+        // <-- Modificado: Solo los verificadores no pueden editar (los validadores sí pueden)
         if (EsVerificador)
             return;
         sentidoActual = new SentidoModel
-        {
-            id = ObtenerValor(sentido, "id"),
-            nombre = ObtenerValor(sentido, "nombre")
-        };
+            {
+                id = ObtenerValor(sentido, "id"),
+                nombre = ObtenerValor(sentido, "nombre")
+            };
         modoEdicion = true;
         mostrarFormulario = true;
     }
@@ -285,17 +307,23 @@ else
 
     private async Task Guardarsentido()
     {
+        // <-- Modificado: Solo los verificadores no pueden guardar (los validadores sí pueden editar)
         if (EsVerificador)
             return;
+
+        // <-- Añadido: Los validadores no pueden crear, solo editar
+        if (EsValidador && !modoEdicion)
+            return;
+
         errorMensaje = null;
         exitoMensaje = null;
 
         try
         {
             var sentidoDict = new Dictionary<string, object>
-            {
-                ["nombre"] = sentidoActual.nombre
-            };
+                {
+                    ["nombre"] = sentidoActual.nombre
+                };
 
             bool resultado;
 
@@ -344,13 +372,14 @@ else
 
     private void ConfirmarEliminar(Dictionary<string, object> sentido)
     {
-        if (EsVerificador)
+        // <-- Modificado: Los verificadores y validadores no pueden eliminar
+        if (EsVerificador || EsValidador)
             return;
         sentidoEliminar = new SentidoModel
-        {
-            id = ObtenerValor(sentido, "id"),
-            nombre = ObtenerValor(sentido, "nombre")
-        };
+            {
+                id = ObtenerValor(sentido, "id"),
+                nombre = ObtenerValor(sentido, "nombre")
+            };
         mostrarConfirmacion = true;
     }
 
@@ -361,6 +390,10 @@ else
 
     private async Task Eliminarsentido()
     {
+        // <-- Modificado: Los verificadores y validadores no pueden eliminar
+        if (EsVerificador || EsValidador)
+            return;
+
         errorMensaje = null;
         exitoMensaje = null;
 

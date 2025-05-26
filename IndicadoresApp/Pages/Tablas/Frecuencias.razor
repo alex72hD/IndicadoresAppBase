@@ -2,6 +2,7 @@
 @using System.Collections.Generic
 @using System.Text.Json
 @using IndicadoresApp.Clases.IndicadoresApp.Clases
+@using IndicadoresApp.ModalGenerico @* Se añade para consistencia aunque se usen modales directos *@
 @inject IJSRuntime JSRuntime
 @inject ServicioEntidad servicioEntidad
 @inject NavigationManager navegacionManager
@@ -10,10 +11,11 @@
 <PageTitle>Lista de frecuencias</PageTitle>
 
 <h1>Frecuencias</h1>
-@if (!EsVerificador)
-{    
+@* Solo los verificadores y validadores no pueden crear *@
+@if (!EsVerificador && !EsValidador)
+{
     <div class="mb-3">
-        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>    
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
     </div>
 }
 
@@ -61,7 +63,13 @@ else
                 <tr>
                     <th>Código</th>
                     <th>Nombre</th>
-                    @if (!EsVerificador)
+                    @* Solo los verificadores y validadores no ven las acciones de crear/editar/eliminar *@
+                    @if (!EsVerificador && !EsValidador)
+                    {
+                        <th>Acciones</th>
+                    }
+                    @* Los validadores solo pueden editar, así que necesitan ver la columna de acciones si solo son validadores y no verificadores *@
+                    @if (EsValidador && !EsVerificador)
                     {
                         <th>Acciones</th>
                     }
@@ -73,11 +81,19 @@ else
                     <tr>
                         <td>@ObtenerValor(frecuencia, "id")</td>
                         <td>@ObtenerValor(frecuencia, "nombre")</td>
-                        @if (!EsVerificador)
+                        @* Administradores pueden hacer todo *@
+                        @if (!EsVerificador && !EsValidador)
                         {
                             <td>
                                 <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(frecuencia)">Editar</button>
                                 <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(frecuencia)">Eliminar</button>
+                            </td>
+                        }
+                        @* Los validadores solo pueden editar *@
+                        @if (EsValidador && !EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(frecuencia)">Editar</button>
                             </td>
                         }
                     </tr>
@@ -87,6 +103,7 @@ else
     </div>
 }
 
+@* Aquí se mantienen tus modales directos con la visibilidad controlada por los roles *@
 @if (mostrarFormulario)
 {
     <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
@@ -121,7 +138,7 @@ else
                     <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
                 </div>
                 <div class="modal-body">
-                    <p>¿Está seguro que desea eliminar el frecuencia: @frecuenciaEliminar?.nombre?</p>
+                    <p>¿Está seguro que desea eliminar el frecuencia: @frecuenciaEliminar.nombre?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
@@ -153,7 +170,10 @@ else
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "frecuencia";
+
+    // Variables para control de roles
     private bool EsVerificador { get; set; } = false;
+    private bool EsValidador { get; set; } = false; // <-- Añadido: Declaración de EsValidador
 
     // Variables para la búsqueda
     private string TextoBusqueda { get; set; } = string.Empty;
@@ -171,10 +191,12 @@ else
     {
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
-        await CargarFrecuencias(); // Renamed for clarity
+        EsValidador = RutasPermisosService.EsRolValidador(rol); // <-- Añadido: Inicialización de EsValidador
+
+        await CargarFrecuencias();
     }
 
-    private async Task CargarFrecuencias() // Renamed method
+    private async Task CargarFrecuencias()
     {
         cargando = true;
         errorMensaje = null;
@@ -254,7 +276,8 @@ else
 
     private void MostrarFormularioCrear()
     {
-        if (EsVerificador)
+        // <-- Modificado: Los verificadores y validadores no pueden crear
+        if (EsVerificador || EsValidador)
             return;
         frecuenciaActual = new FrecuenciaModel();
         modoEdicion = false;
@@ -263,14 +286,15 @@ else
 
     private void MostrarFormularioEditar(Dictionary<string, object> frecuencia)
     {
+        // <-- Modificado: Solo los verificadores no pueden editar (los validadores sí pueden)
         if (EsVerificador)
             return;
 
         frecuenciaActual = new FrecuenciaModel
-        {
-            id = ObtenerValor(frecuencia, "id"),
-            nombre = ObtenerValor(frecuencia, "nombre")
-        };
+            {
+                id = ObtenerValor(frecuencia, "id"),
+                nombre = ObtenerValor(frecuencia, "nombre")
+            };
         modoEdicion = true;
         mostrarFormulario = true;
     }
@@ -282,7 +306,12 @@ else
 
     private async Task Guardarfrecuencia()
     {
+        // <-- Modificado: Solo los verificadores no pueden guardar (los validadores sí pueden editar)
         if (EsVerificador)
+            return;
+
+        // <-- Añadido: Los validadores no pueden crear, solo editar
+        if (EsValidador && !modoEdicion)
             return;
 
         errorMensaje = null;
@@ -291,9 +320,9 @@ else
         try
         {
             var frecuenciaDict = new Dictionary<string, object>
-            {
-                ["nombre"] = frecuenciaActual.nombre
-            };
+                {
+                    ["nombre"] = frecuenciaActual.nombre
+                };
 
             bool resultado;
 
@@ -326,7 +355,7 @@ else
 
             if (resultado)
             {
-                await CargarFrecuencias(); // Renamed method
+                await CargarFrecuencias();
                 mostrarFormulario = false;
             }
             else
@@ -343,14 +372,15 @@ else
     // Funciones para eliminar
     private void ConfirmarEliminar(Dictionary<string, object> frecuencia)
     {
-        if (EsVerificador)
+        // <-- Modificado: Los verificadores y validadores no pueden eliminar
+        if (EsVerificador || EsValidador)
             return;
 
         frecuenciaEliminar = new FrecuenciaModel
-        {
-            id = ObtenerValor(frecuencia, "id"),
-            nombre = ObtenerValor(frecuencia, "nombre")
-        };
+            {
+                id = ObtenerValor(frecuencia, "id"),
+                nombre = ObtenerValor(frecuencia, "nombre")
+            };
         mostrarConfirmacion = true;
     }
 
@@ -361,6 +391,10 @@ else
 
     private async Task Eliminarfrecuencia()
     {
+        // <-- Modificado: Los verificadores y validadores no pueden eliminar
+        if (EsVerificador || EsValidador)
+            return;
+
         errorMensaje = null;
         exitoMensaje = null;
 
@@ -375,7 +409,7 @@ else
             if (resultado)
             {
                 exitoMensaje = "Frecuencia eliminada correctamente.";
-                await CargarFrecuencias(); // Renamed method
+                await CargarFrecuencias();
             }
             else
             {

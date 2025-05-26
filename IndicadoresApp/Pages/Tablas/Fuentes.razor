@@ -2,6 +2,7 @@
 @using System.Collections.Generic
 @using System.Text.Json
 @using IndicadoresApp.Clases.IndicadoresApp.Clases
+@using IndicadoresApp.ModalGenerico @* Se añade para consistencia aunque se usen modales directos *@
 @inject IJSRuntime JSRuntime
 @inject ServicioEntidad servicioEntidad
 @inject NavigationManager navegacionManager
@@ -10,7 +11,8 @@
 <PageTitle>Lista de tipos de fuentes</PageTitle>
 
 <h1>Fuentes</h1>
-@if (!EsVerificador)
+@* Solo los verificadores y validadores no pueden crear *@
+@if (!EsVerificador && !EsValidador)
 {
     <div class="mb-3">
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
@@ -60,8 +62,14 @@ else
             <thead>
                 <tr>
                     <th>Código</th>
-                    <th>nombre</th>
-                    @if (!EsVerificador)
+                    <th>Nombre</th>
+                    @* Solo los verificadores y validadores no ven las acciones de crear/editar/eliminar *@
+                    @if (!EsVerificador && !EsValidador)
+                    {
+                        <th>Acciones</th>
+                    }
+                    @* Los validadores solo pueden editar, así que necesitan ver la columna de acciones si solo son validadores y no verificadores *@
+                    @if (EsValidador && !EsVerificador)
                     {
                         <th>Acciones</th>
                     }
@@ -73,11 +81,19 @@ else
                     <tr>
                         <td>@ObtenerValor(fuente, "id")</td>
                         <td>@ObtenerValor(fuente, "nombre")</td>
-                        @if (!EsVerificador)
+                        @* Administradores pueden hacer todo *@
+                        @if (!EsVerificador && !EsValidador)
                         {
                             <td>
                                 <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(fuente)">Editar</button>
                                 <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(fuente)">Eliminar</button>
+                            </td>
+                        }
+                        @* Los validadores solo pueden editar *@
+                        @if (EsValidador && !EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(fuente)">Editar</button>
                             </td>
                         }
                     </tr>
@@ -87,6 +103,7 @@ else
     </div>
 }
 
+@* Aquí se mantienen tus modales directos con la visibilidad controlada por los roles *@
 @if (mostrarFormulario)
 {
     <div class="modal" style="display:block; background-color: rgba(0,0,0,0.4);">
@@ -121,7 +138,7 @@ else
                     <button type="button" class="btn-close" @onclick="CancelarEliminar"></button>
                 </div>
                 <div class="modal-body">
-                    <p>¿Está seguro que desea eliminar la fuente: @fuenteEliminar?.nombre?</p>
+                    <p>¿Está seguro que desea eliminar la fuente: @fuenteEliminar.nombre?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" @onclick="CancelarEliminar">Cancelar</button>
@@ -155,7 +172,10 @@ else
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "fuente";
+
+    // Variables para control de roles
     private bool EsVerificador { get; set; } = false;
+    private bool EsValidador { get; set; } = false; // <-- Añadido: Declaración de EsValidador
 
     // Variables para la búsqueda
     private string TextoBusqueda { get; set; } = string.Empty;
@@ -173,11 +193,12 @@ else
     {
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+        EsValidador = RutasPermisosService.EsRolValidador(rol); // <-- Añadido: Inicialización de EsValidador
 
-        await CargarFuentes(); // Renamed for clarity
+        await CargarFuentes();
     }
 
-    private async Task CargarFuentes() // Renamed method
+    private async Task CargarFuentes()
     {
         cargando = true;
         errorMensaje = null;
@@ -257,7 +278,8 @@ else
 
     private void MostrarFormularioCrear()
     {
-        if (EsVerificador)
+        // <-- Modificado: Los verificadores y validadores no pueden crear
+        if (EsVerificador || EsValidador)
             return;
         fuenteActual = new FuenteModel();
         modoEdicion = false;
@@ -266,14 +288,15 @@ else
 
     private void MostrarFormularioEditar(Dictionary<string, object> fuente)
     {
+        // <-- Modificado: Solo los verificadores no pueden editar (los validadores sí pueden)
         if (EsVerificador)
             return;
 
         fuenteActual = new FuenteModel
-        {
-            id = ObtenerValor(fuente, "id"),
-            nombre = ObtenerValor(fuente, "nombre")
-        };
+            {
+                id = ObtenerValor(fuente, "id"),
+                nombre = ObtenerValor(fuente, "nombre")
+            };
         modoEdicion = true;
         mostrarFormulario = true;
     }
@@ -285,7 +308,12 @@ else
 
     private async Task Guardarfuente()
     {
+        // <-- Modificado: Solo los verificadores no pueden guardar (los validadores sí pueden editar)
         if (EsVerificador)
+            return;
+
+        // <-- Añadido: Los validadores no pueden crear, solo editar
+        if (EsValidador && !modoEdicion)
             return;
 
         errorMensaje = null;
@@ -294,9 +322,9 @@ else
         try
         {
             var fuenteDict = new Dictionary<string, object>
-            {
-                ["nombre"] = fuenteActual.nombre
-            };
+                {
+                    ["nombre"] = fuenteActual.nombre
+                };
 
             bool resultado;
 
@@ -329,7 +357,7 @@ else
 
             if (resultado)
             {
-                await CargarFuentes(); // Renamed method
+                await CargarFuentes();
                 mostrarFormulario = false;
             }
             else
@@ -345,13 +373,14 @@ else
 
     private void ConfirmarEliminar(Dictionary<string, object> fuente)
     {
-        if (EsVerificador)
+        // <-- Modificado: Los verificadores y validadores no pueden eliminar
+        if (EsVerificador || EsValidador)
             return;
         fuenteEliminar = new FuenteModel
-        {
-            id = ObtenerValor(fuente, "id"),
-            nombre = ObtenerValor(fuente, "nombre")
-        };
+            {
+                id = ObtenerValor(fuente, "id"),
+                nombre = ObtenerValor(fuente, "nombre")
+            };
         mostrarConfirmacion = true;
     }
 
@@ -362,6 +391,10 @@ else
 
     private async Task Eliminarfuente()
     {
+        // <-- Modificado: Los verificadores y validadores no pueden eliminar
+        if (EsVerificador || EsValidador)
+            return;
+
         errorMensaje = null;
         exitoMensaje = null;
 
@@ -376,7 +409,7 @@ else
             if (resultado)
             {
                 exitoMensaje = "Fuente eliminada correctamente.";
-                await CargarFuentes(); // Renamed method
+                await CargarFuentes();
             }
             else
             {

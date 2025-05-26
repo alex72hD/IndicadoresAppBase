@@ -13,7 +13,8 @@
 
 <h1>Unidades de Medición</h1>
 
-@if (!EsVerificador)
+@* Solo los verificadores y validadores no pueden crear/editar/eliminar *@
+@if (!EsVerificador && !EsValidador)
 {
     <div class="mb-3">
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nueva</button>
@@ -25,10 +26,10 @@
     <div class="row">
         <div class="col-md-6">
             <div class="input-group">
-                <input type="text" 
-                       class="form-control" 
-                       placeholder="Buscar por código o nombre..." 
-                       @bind="TextoBusqueda" 
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por código o nombre..."
+                       @bind="TextoBusqueda"
                        @oninput="FiltrarUnidades" />
                 <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
                     <i class="fas fa-times"></i> Limpiar
@@ -65,7 +66,13 @@ else
                 <tr>
                     <th>Código</th>
                     <th>Nombre</th>
-                    @if (!EsVerificador)
+                    @* Solo los verificadores y validadores no ven las acciones *@
+                    @if (!EsVerificador && !EsValidador)
+                    {
+                        <th>Acciones</th>
+                    }
+                    @* Los validadores solo pueden editar *@
+                    @if (EsValidador && !EsVerificador)
                     {
                         <th>Acciones</th>
                     }
@@ -77,11 +84,19 @@ else
                     <tr>
                         <td>@ObtenerValor(unidad, "id")</td>
                         <td>@ObtenerValor(unidad, "descripcion")</td>
-                        @if (!EsVerificador)
+                        @* Administradores pueden hacer todo *@
+                        @if (!EsVerificador && !EsValidador)
                         {
                             <td>
                                 <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(unidad)">Editar</button>
                                 <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(unidad)">Eliminar</button>
+                            </td>
+                        }
+                        @* Los validadores solo pueden editar *@
+                        @if (EsValidador && !EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(unidad)">Editar</button>
                             </td>
                         }
                     </tr>
@@ -136,7 +151,10 @@ else
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
     private string? MensajeExito { get; set; }
+
+    // Variables para control de roles
     private bool EsVerificador { get; set; } = false;
+    private bool EsValidador { get; set; } = false;
 
     // Variables para la búsqueda
     private string TextoBusqueda { get; set; } = string.Empty;
@@ -154,9 +172,10 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // Verificar si el usuario tiene rol de verificador
+        // Verificar roles del usuario
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+        EsValidador = RutasPermisosService.EsRolValidador(rol);
 
         await CargarUnidadesMedicion();
     }
@@ -172,7 +191,7 @@ else
 
             UnidadesMedicion = resultado ?? new List<Dictionary<string, object>>();
             UnidadesFiltradas = new List<Dictionary<string, object>>(UnidadesMedicion);
-            
+
             // Aplicar filtro si hay texto de búsqueda
             if (!string.IsNullOrEmpty(TextoBusqueda))
             {
@@ -218,13 +237,13 @@ else
         else
         {
             var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
-            
+
             UnidadesFiltradas = UnidadesMedicion.Where(unidad =>
             {
                 var codigo = ObtenerValor(unidad, "id").ToLower();
                 var nombre = ObtenerValor(unidad, "descripcion").ToLower();
-                
-                return codigo.Contains(textoBusquedaLower) || 
+
+                return codigo.Contains(textoBusquedaLower) ||
                        nombre.Contains(textoBusquedaLower);
             }).ToList();
         }
@@ -241,8 +260,8 @@ else
 
     private async Task MostrarFormularioCrear()
     {
-        // Si es verificador, no permitir crear
-        if (EsVerificador)
+        // Los verificadores y validadores no pueden crear
+        if (EsVerificador || EsValidador)
             return;
 
         UnidadActual = new UnidadMedicionModel();
@@ -253,7 +272,7 @@ else
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> unidad)
     {
-        // Si es verificador, no permitir editar
+        // Solo los verificadores no pueden editar (los validadores sí pueden)
         if (EsVerificador)
             return;
 
@@ -269,8 +288,8 @@ else
 
     private async Task ConfirmarEliminar(Dictionary<string, object> unidad)
     {
-        // Si es verificador, no permitir eliminar
-        if (EsVerificador)
+        // Los verificadores y validadores no pueden eliminar
+        if (EsVerificador || EsValidador)
             return;
 
         UnidadAEliminar = new UnidadMedicionModel
@@ -284,8 +303,12 @@ else
 
     private async Task GuardarUnidad()
     {
-        // Si es verificador, no permitir guardar
+        // Solo los verificadores no pueden guardar (los validadores sí pueden editar)
         if (EsVerificador)
+            return;
+
+        // Los validadores no pueden crear, solo editar
+        if (EsValidador && !ModoEdicion)
             return;
 
         MensajeError = null;
@@ -344,8 +367,8 @@ else
 
     private async Task EliminarUnidad()
     {
-        // Si es verificador, no permitir eliminar
-        if (EsVerificador)
+        // Los verificadores y validadores no pueden eliminar
+        if (EsVerificador || EsValidador)
             return;
 
         MensajeError = null;
