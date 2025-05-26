@@ -1,60 +1,85 @@
-@page "/fuente"  
-@using System.Collections.Generic  
-@using System.Text.Json  
+@page "/fuente"
+@using System.Collections.Generic
+@using System.Text.Json
 @using IndicadoresApp.Clases.IndicadoresApp.Clases
 @inject IJSRuntime JSRuntime
-@inject ServicioEntidad servicioEntidad  
-@inject NavigationManager navegacionManager  
+@inject ServicioEntidad servicioEntidad
+@inject NavigationManager navegacionManager
 @inherits ValidacionAcceso
 
-<PageTitle>Lista de tipos de fuentes</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+<PageTitle>Lista de tipos de fuentes</PageTitle>
 
-<h1>fuentes</h1>  
+<h1>Fuentes</h1>
 @if (!EsVerificador)
-{   
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
-</div>
+{
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+    </div>
 }
-<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
-<!-- Si no está cargando pero no hay fuentes o la lista es nula, muestra un mensaje informativo -->
-<!-- Si hay fuentes para mostrar, muestra la tabla -->
+
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por código o nombre..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarFuentes" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @FuentesFiltradas.Count de @fuentes.Count fuentes
+            </small>
+        </div>
+    </div>
+</div>
+
 @if (cargando)
 {
-    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+    <p><em>Cargando...</em></p>
 }
 else if (fuentes == null || fuentes.Count == 0)
 {
-    <p>No hay tipos de fuentes disponible</p>  
+    <p>No hay tipos de fuentes disponible</p>
+}
+else if (FuentesFiltradas.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron fuentes que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
-    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
-        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
-            <thead>  <!-- Encabezado de la tabla -->
-                <tr>  <!-- Fila del encabezado -->
-                    <th>Código</th>  <!-- Columna para el código de la fuentes -->
-                    <th>nombre</th>  <!-- Columna para el nombre de la fuentes -->
-                    @if (!EsVerificador){
-                    <th>Acciones</th>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>nombre</th>
+                    @if (!EsVerificador)
+                    {
+                        <th>Acciones</th>
                     }
-
                 </tr>
             </thead>
-            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
-                <!-- Bucle foreach que itera sobre cada fuente en la lista -->
-                @foreach (var fuente in fuentes)
+            <tbody>
+                @foreach (var fuente in FuentesFiltradas)
                 {
-                    <tr>  <!-- Fila para cada fuente -->
-                        <td>@ObtenerValor(fuente, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
-                        <td>@ObtenerValor(fuente, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                    <tr>
+                        <td>@ObtenerValor(fuente, "id")</td>
+                        <td>@ObtenerValor(fuente, "nombre")</td>
                         @if (!EsVerificador)
                         {
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(fuente)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(fuente)">Eliminar</button>
-                         </td>
-                         }
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(fuente)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(fuente)">Eliminar</button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>
@@ -122,14 +147,18 @@ else
 }
 
 @code {
-    // Lista para almacenar los fuentes que se obtienen de la API
+    // Lista para almacenar las fuentes que se obtienen de la API
     private List<Dictionary<string, object>> fuentes = new List<Dictionary<string, object>>();
-    
+    private List<Dictionary<string, object>> FuentesFiltradas = new List<Dictionary<string, object>>();
+
     private bool cargando = true;
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "fuente";
-    private bool EsVerificador {get;set;} = false;
+    private bool EsVerificador { get; set; } = false;
+
+    // Variables para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     // Variables para el formulario
     private bool mostrarFormulario = false;
@@ -144,31 +173,33 @@ else
     {
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
-        await Cargarunidadmedicion();
+
+        await CargarFuentes(); // Renamed for clarity
     }
 
-    private async Task Cargarunidadmedicion()
+    private async Task CargarFuentes() // Renamed method
     {
         cargando = true;
         errorMensaje = null;
-        
+
         try
         {
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
-            
-            if (resultado != null)
+
+            fuentes = resultado ?? new List<Dictionary<string, object>>();
+            FuentesFiltradas = new List<Dictionary<string, object>>(fuentes);
+
+            // Aplicar filtro si hay texto de búsqueda
+            if (!string.IsNullOrEmpty(TextoBusqueda))
             {
-                fuentes = resultado;
-            }
-            else
-            {
-                fuentes = new List<Dictionary<string, object>>();
+                FiltrarFuentes();
             }
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al cargar la fuente: {ex.Message}";
+            errorMensaje = $"Error al cargar las fuentes: {ex.Message}";
             fuentes = new List<Dictionary<string, object>>();
+            FuentesFiltradas = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -180,18 +211,54 @@ else
     {
         if (diccionario == null)
             return string.Empty;
-            
+
         if (diccionario.TryGetValue(clave, out var valor))
         {
             return valor?.ToString() ?? string.Empty;
         }
-        
+
         return string.Empty;
     }
+
+    private void FiltrarFuentes(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            FuentesFiltradas = new List<Dictionary<string, object>>(fuentes);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+
+            FuentesFiltradas = fuentes.Where(fuente =>
+            {
+                var codigo = ObtenerValor(fuente, "id").ToLower();
+                var nombre = ObtenerValor(fuente, "nombre").ToLower();
+
+                return codigo.Contains(textoBusquedaLower) ||
+                       nombre.Contains(textoBusquedaLower);
+            }).ToList();
+        }
+
+        StateHasChanged();
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        FuentesFiltradas = new List<Dictionary<string, object>>(fuentes);
+        StateHasChanged();
+    }
+
     private void MostrarFormularioCrear()
     {
         if (EsVerificador)
-        return;
+            return;
         fuenteActual = new FuenteModel();
         modoEdicion = false;
         mostrarFormulario = true;
@@ -219,8 +286,8 @@ else
     private async Task Guardarfuente()
     {
         if (EsVerificador)
-        return;
-        
+            return;
+
         errorMensaje = null;
         exitoMensaje = null;
 
@@ -244,7 +311,7 @@ else
 
                 if (resultado)
                 {
-                    exitoMensaje = "fuente actualizada correctamente.";
+                    exitoMensaje = "Fuente actualizada correctamente.";
                 }
             }
             else
@@ -256,13 +323,13 @@ else
 
                 if (resultado)
                 {
-                    exitoMensaje = "fuente creado correctamente.";
+                    exitoMensaje = "Fuente creada correctamente.";
                 }
             }
 
             if (resultado)
             {
-                await Cargarunidadmedicion();
+                await CargarFuentes(); // Renamed method
                 mostrarFormulario = false;
             }
             else
@@ -272,13 +339,14 @@ else
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al guardar el fuente: {ex.Message}";
+            errorMensaje = $"Error al guardar la fuente: {ex.Message}";
         }
     }
+
     private void ConfirmarEliminar(Dictionary<string, object> fuente)
     {
         if (EsVerificador)
-        return;
+            return;
         fuenteEliminar = new FuenteModel
         {
             id = ObtenerValor(fuente, "id"),
@@ -307,8 +375,8 @@ else
 
             if (resultado)
             {
-                exitoMensaje = "fuente eliminado correctamente.";
-                await Cargarunidadmedicion();
+                exitoMensaje = "Fuente eliminada correctamente.";
+                await CargarFuentes(); // Renamed method
             }
             else
             {

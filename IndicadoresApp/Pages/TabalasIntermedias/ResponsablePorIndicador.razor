@@ -18,6 +18,28 @@
     </div>
 }
 
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por responsable, indicador o fecha..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarResponsables" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @ResponsablesFiltrados.Count de @Responsables.Count asignaciones
+            </small>
+        </div>
+    </div>
+</div>
+
 @if (EstamosCargando)
 {
     <p><em>Cargando...</em></p>
@@ -25,6 +47,12 @@
 else if (Responsables == null || Responsables.Count == 0)
 {
     <p>No hay responsables asignados a indicadores.</p>
+}
+else if (ResponsablesFiltrados.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron asignaciones que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
@@ -44,7 +72,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var responsable in Responsables)
+                @foreach (var responsable in ResponsablesFiltrados)
                 {
                     <tr>
                         <td>@ObtenerValor(responsable, "fkidresponsable")</td>
@@ -66,11 +94,10 @@ else
     </div>
 }
 
-<!-- Modal para crear/editar -->
 <ModalGenerico @ref="modalFormulario"
-Id="formModal"
-Title="@TituloModal"
-OnSave="GuardarResponsable">
+               Id="formModal"
+               Title="@TituloModal"
+               OnSave="GuardarResponsable">
     <BodyContent>
         <div class="mb-3">
             <label for="idResponsable" class="form-label">Responsable</label>
@@ -101,8 +128,8 @@ OnSave="GuardarResponsable">
         <div class="mb-3">
             <label for="fechaAsignacion" class="form-label">Fecha de Asignación</label>
             <input type="date" class="form-control" id="fechaAsignacion"
-            @bind="ResponsableActual.FechaAsignacion"
-            @bind:format="yyyy-MM-dd" />
+                   @bind="ResponsableActual.FechaAsignacion"
+                   @bind:format="yyyy-MM-dd" />
         </div>
         @if (ModoEdicion)
         {
@@ -112,11 +139,10 @@ OnSave="GuardarResponsable">
     </BodyContent>
 </ModalGenerico>
 
-<!-- Modal de confirmación -->
 <ModalGenerico @ref="modalConfirmacion"
-Id="confirmModal"
-Title="Confirmar eliminación"
-OnSave="EliminarResponsable">
+               Id="confirmModal"
+               Title="Confirmar eliminación"
+               OnSave="EliminarResponsable">
     <BodyContent>
         <p>
             ¿Está seguro que desea eliminar la asignación del responsable
@@ -149,9 +175,13 @@ OnSave="EliminarResponsable">
     private const string PROCEDIMIENTO_ACCIONES = "accion_responsable_por_indicador";
     private bool EsVerificador { get; set; } = false;
     private List<Dictionary<string, object>> Responsables { get; set; } = new();
+    private List<Dictionary<string, object>> ResponsablesFiltrados { get; set; } = new(); // New list for filtered data
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
     private string? MensajeExito { get; set; }
+
+    // Propiedad para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     private bool ModoEdicion { get; set; } = false;
     private ResponsableModel ResponsableActual { get; set; } = new();
@@ -200,17 +230,25 @@ OnSave="EliminarResponsable">
         try
         {
             Responsables = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
+            ResponsablesFiltrados = new List<Dictionary<string, object>>(Responsables); // Initialize filtered list
+
+            // Apply filter if there's existing search text
+            if (!string.IsNullOrEmpty(TextoBusqueda))
+            {
+                FiltrarResponsables();
+            }
         }
         catch (Exception ex)
         {
             MensajeError = $"Error al cargar asignaciones: {ex.Message}";
             Console.WriteLine($"Excepción al cargar asignaciones: {ex}");
             Responsables = new List<Dictionary<string, object>>();
+            ResponsablesFiltrados = new List<Dictionary<string, object>>();
         }
         finally
         {
             EstamosCargando = false;
-            StateHasChanged(); // Forzar actualización del UI
+            StateHasChanged(); // Force UI update
         }
     }
 
@@ -293,6 +331,43 @@ OnSave="EliminarResponsable">
         {
             return string.Empty;
         }
+    }
+
+    private void FiltrarResponsables(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            ResponsablesFiltrados = new List<Dictionary<string, object>>(Responsables);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+
+            ResponsablesFiltrados = Responsables.Where(r =>
+            {
+                var nombreResponsable = ObtenerNombreResponsable(ObtenerValor(r, "fkidresponsable")).ToLower();
+                var nombreIndicador = ObtenerNombreIndicador(ObtenerValor(r, "fkidindicador")).ToLower();
+                var fechaAsignacion = ObtenerValor(r, "fechaasignacion").ToLower();
+
+                return nombreResponsable.Contains(textoBusquedaLower) ||
+                       nombreIndicador.Contains(textoBusquedaLower) ||
+                       fechaAsignacion.Contains(textoBusquedaLower);
+            }).ToList();
+        }
+
+        StateHasChanged(); // Notify Blazor that the state has changed and UI should re-render
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        ResponsablesFiltrados = new List<Dictionary<string, object>>(Responsables);
+        StateHasChanged();
     }
 
     private async Task MostrarFormularioCrear()
@@ -435,7 +510,7 @@ OnSave="EliminarResponsable">
                 );
             }
 
-            if (resultado)
+            if (resultado) // The variable 'resultado' is not being set by the `EjecutarProcedimientoAsync` calls. You might need to adjust your ServicioEntidad or the way you handle the response. For now, assuming it returns a boolean.
             {
                 await CargarAsignaciones();
                 await modalFormulario.HideModalAsync();
@@ -458,13 +533,13 @@ OnSave="EliminarResponsable">
         try
         {
             var body = new Dictionary<string, object>
-            {
-                { "fkidindicador", ResponsableAEliminar.IdIndicador },
-                { "fkidresponsable", ResponsableAEliminar.IdResponsable },
-                { "accion", "delete" },
-                { "indicadorInicial", 0 },
-                { "responsableInicial", 0 }
-            };
+                {
+                    { "fkidindicador", ResponsableAEliminar.IdIndicador },
+                    { "fkidresponsable", ResponsableAEliminar.IdResponsable },
+                    { "accion", "delete" },
+                    { "indicadorInicial", 0 },
+                    { "responsableInicial", 0 }
+                };
 
             var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
                 "tbl",

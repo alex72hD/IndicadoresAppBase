@@ -14,6 +14,29 @@
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
     </div>
 }
+
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por resultado, fecha o indicador..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarResultados" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @resultadosFiltrados.Count de @resultados.Count resultados
+            </small>
+        </div>
+    </div>
+</div>
+
 @if (cargando)
 {
     <p><em>Cargando...</em></p>
@@ -21,6 +44,12 @@
 else if (resultados == null || resultados.Count == 0)
 {
     <p>No hay resultados disponibles.</p>
+}
+else if (resultadosFiltrados.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron resultados que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
@@ -38,7 +67,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var resultado in resultados)
+                @foreach (var resultado in resultadosFiltrados)
                 {
                     <tr>
                         <td>@ObtenerValor(resultado, "resultado")</td>
@@ -151,11 +180,15 @@ else
     private const string TABLA = "resultadoindicador";
 
     private List<Dictionary<string, object>> resultados = new List<Dictionary<string, object>>();
+    private List<Dictionary<string, object>> resultadosFiltrados = new List<Dictionary<string, object>>(); // New list for filtered data
     private bool cargando = true;
     private bool cargandoIndicadores = true;
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private bool EsVerificador { get; set; } = false;
+
+    // Propiedad para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     // Lista para los indicadores
     private List<IndicadorModel> indicadoresDisponibles = new List<IndicadorModel>();
@@ -181,24 +214,33 @@ else
     {
         cargando = true;
         errorMensaje = null;
-        
+
         try
         {
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
-            
+
             if (resultado != null)
             {
                 resultados = resultado;
+                resultadosFiltrados = new List<Dictionary<string, object>>(resultados); // Initialize filtered list
             }
             else
             {
                 resultados = new List<Dictionary<string, object>>();
+                resultadosFiltrados = new List<Dictionary<string, object>>();
+            }
+
+            // Apply filter if there's existing search text
+            if (!string.IsNullOrEmpty(TextoBusqueda))
+            {
+                FiltrarResultados();
             }
         }
         catch (Exception ex)
         {
             errorMensaje = $"Error al cargar los resultados: {ex.Message}";
             resultados = new List<Dictionary<string, object>>();
+            resultadosFiltrados = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -210,11 +252,11 @@ else
     {
         cargandoIndicadores = true;
         errorMensaje = null;
-        
+
         try
         {
             var indicadores = await servicioEntidad.ObtenerTodosAsync("indicador");
-            
+
             if (indicadores != null)
             {
                 indicadoresDisponibles = indicadores.Select(i => new IndicadorModel
@@ -243,7 +285,7 @@ else
     {
         if (string.IsNullOrEmpty(id))
             return "No asignado";
-            
+
         var indicador = indicadoresDisponibles.FirstOrDefault(i => i.Id == id);
         return indicador != null ? indicador.Nombre : "Desconocido";
     }
@@ -252,13 +294,50 @@ else
     {
         if (diccionario == null)
             return string.Empty;
-            
+
         if (diccionario.TryGetValue(clave, out var valor))
         {
             return valor?.ToString() ?? string.Empty;
         }
-        
+
         return string.Empty;
+    }
+
+    private void FiltrarResultados(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            resultadosFiltrados = new List<Dictionary<string, object>>(resultados);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+
+            resultadosFiltrados = resultados.Where(r =>
+            {
+                var valorResultado = ObtenerValor(r, "resultado").ToLower();
+                var fechaCalculo = ObtenerValor(r, "fechacalculo").ToLower();
+                var nombreIndicador = ObtenerNombreIndicador(ObtenerValor(r, "fkidindicador")).ToLower();
+
+                return valorResultado.Contains(textoBusquedaLower) ||
+                       fechaCalculo.Contains(textoBusquedaLower) ||
+                       nombreIndicador.Contains(textoBusquedaLower);
+            }).ToList();
+        }
+
+        StateHasChanged(); // Notify Blazor that the state has changed and UI should re-render
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        resultadosFiltrados = new List<Dictionary<string, object>>(resultados);
+        StateHasChanged();
     }
 
     private void MostrarFormularioCrear()
@@ -278,14 +357,14 @@ else
         string id = ObtenerValor(resultado, "id");
         string valor = ObtenerValor(resultado, "resultado");
         string indicadorId = ObtenerValor(resultado, "fkidindicador");
-        
+
         // Manejo de la fecha
         DateTime fechaCalculo = DateTime.Now;
         if (DateTime.TryParse(ObtenerValor(resultado, "fechacalculo"), out DateTime fecha))
         {
             fechaCalculo = fecha;
         }
-        
+
         // Crear el modelo para edición
         resultadoActual = new ResultadoModel
         {
@@ -294,7 +373,7 @@ else
             FechaCalculo = fechaCalculo,
             IndicadorId = indicadorId
         };
-        
+
         modoEdicion = true;
         mostrarFormulario = true;
     }

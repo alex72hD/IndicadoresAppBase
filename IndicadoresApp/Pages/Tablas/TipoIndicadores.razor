@@ -18,6 +18,28 @@
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
     </div>
 }
+<!-- Campo de búsqueda -->
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por código o nombre..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarIndicadores" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @IndicadoresFiltrados.Count de @indicadores.Count indicadores
+            </small>
+        </div>
+    </div>
+</div>
 @if (cargando)
 {
     <p><em>Cargando...</em></p>
@@ -26,23 +48,23 @@ else if (indicadores == null || indicadores.Count == 0)
 {
     <p>No hay Tipos de indicadores.</p>
 }
+else if (IndicadoresFiltrados.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron indicadores que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
+}
+else if (IndicadoresFiltrados.Count == 0)
+{
+    <p>No hay Tipos de indicadores.</p>
+}
 else
 {
     <div class="table-responsive">
         <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    @if (!EsVerificador)
-                    {
-                        <th>Acciones</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var tipoindicador in indicadores)
-                {
+            <!-- Tabla modificada para usar IndicadoresFiltrados -->
+            @foreach (var tipoindicador in IndicadoresFiltrados)
+            {
                     <tr>
                         <td>@ObtenerValor(tipoindicador, "id")</td>
                         <td>@ObtenerValor(tipoindicador, "nombre")</td>
@@ -55,7 +77,6 @@ else
                         }
                     </tr>
                 }
-            </tbody>
         </table>
     </div>
 }
@@ -104,6 +125,8 @@ else
     private string? exitoMensaje = null;
     private const string TABLA = "tipoindicador";
     private bool EsVerificador { get; set; } = false;
+    private string TextoBusqueda { get; set; } = string.Empty;
+    private List<Dictionary<string, object>> IndicadoresFiltrados { get; set; } = new();
 
     // Variables para el formulario
     private bool modoEdicion = false;
@@ -123,6 +146,36 @@ else
 
         await CargarTipodeIndicadores();
     }
+    private void FiltrarIndicadores(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            IndicadoresFiltrados = new List<Dictionary<string, object>>(indicadores);
+        }
+        else
+        {
+            var textoLower = TextoBusqueda.ToLower().Trim();
+            IndicadoresFiltrados = indicadores
+                .Where(ind =>
+                    ObtenerValor(ind, "id").ToLower().Contains(textoLower) ||
+                    ObtenerValor(ind, "nombre").ToLower().Contains(textoLower)
+                ) 
+                .ToList();
+        }
+        StateHasChanged();
+    }
+
+private void LimpiarBusqueda()
+{
+    TextoBusqueda = string.Empty;
+    IndicadoresFiltrados = new List<Dictionary<string, object>>(indicadores);
+    StateHasChanged();
+}
 
     private async Task CargarTipodeIndicadores()
     {
@@ -132,20 +185,19 @@ else
         try
         {
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            indicadores = resultado ?? new List<Dictionary<string, object>>();
+            IndicadoresFiltrados = new List<Dictionary<string, object>>(indicadores);
 
-            if (resultado != null)
+            if (!string.IsNullOrEmpty(TextoBusqueda))
             {
-                indicadores = resultado;
-            }
-            else
-            {
-                indicadores = new List<Dictionary<string, object>>();
+                FiltrarIndicadores();
             }
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al cargar Tipos de Indicadores: {ex.Message}";
+            errorMensaje = $"Error al cargar: {ex.Message}";
             indicadores = new List<Dictionary<string, object>>();
+            IndicadoresFiltrados = new List<Dictionary<string, object>>();
         }
         finally
         {

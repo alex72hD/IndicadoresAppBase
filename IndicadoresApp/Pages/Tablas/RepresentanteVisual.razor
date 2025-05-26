@@ -1,63 +1,88 @@
-@page "/representante"  
-@using System.Collections.Generic  
-@using System.Text.Json  
+@page "/representante"
+@using System.Collections.Generic
+@using System.Text.Json
 @inject IJSRuntime JSRuntime
 @using IndicadoresApp.Clases.IndicadoresApp.Clases
 
-@inject ServicioEntidad servicioEntidad  
-@inject NavigationManager navegacionManager  
+@inject ServicioEntidad servicioEntidad
+@inject NavigationManager navegacionManager
 @inherits ValidacionAcceso
 
-<PageTitle>Lista de tipos de representantees</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+<PageTitle>Lista de tipos de representantees</PageTitle>
 
-<h1>Representantes</h1>  
+<h1>Representantes</h1>
 @if (!EsVerificador)
 {
-<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
-    <button class="btn btn-primary"@onclick="MostrarFormularioCrear">Crear Nuevo</button> 
-</div>
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+    </div>
 }
-<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
-<!-- Si no está cargando pero no hay Representantes o la lista es nula, muestra un mensaje informativo -->
-<!-- Si hay Representantes para mostrar, muestra la tabla -->
+
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por código o nombre..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarRepresentantes" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @RepresentantesFiltrados.Count de @representantes.Count representantes
+            </small>
+        </div>
+    </div>
+</div>
+
 @if (cargando)
 {
-    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+    <p><em>Cargando...</em></p>
 }
 else if (representantes == null || representantes.Count == 0)
 {
-    <p>No hay tipos de representantes disponible</p>  
+    <p>No hay tipos de representantes disponible</p>
+}
+else if (RepresentantesFiltrados.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron representantes que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
-    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
-        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
-            <thead>  <!-- Encabezado de la tabla -->
-                <tr>  <!-- Fila del encabezado -->
-                    <th>Código</th>  <!-- Columna para el código de la representantes -->
-                    <th>nombre</th>  <!-- Columna para el nombre de la representantes -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>nombre</th>
                     @if (!EsVerificador)
                     {
-                    <th>Acciones</th>
+                        <th>Acciones</th>
                     }
                 </tr>
             </thead>
-            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
-                <!-- Bucle foreach que itera sobre cada representante en la lista -->
-                @foreach (var representante in representantes)
+            <tbody>
+                @foreach (var representante in RepresentantesFiltrados)
                 {
-                    <tr>  <!-- Fila para cada representante -->
-                        <td>@ObtenerValor(representante, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
-                        <td>@ObtenerValor(representante, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
-                @if (!EsVerificador)
-                      {       
-                         <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(representante)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(representante)">Eliminar</button>
-                         </td>
+                    <tr>
+                        <td>@ObtenerValor(representante, "id")</td>
+                        <td>@ObtenerValor(representante, "nombre")</td>
+                        @if (!EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(representante)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(representante)">Eliminar</button>
+                            </td>
                         }
                     </tr>
-                    }
+                }
             </tbody>
         </table>
     </div>
@@ -125,12 +150,16 @@ else
 @code {
     // Lista para almacenar los representantes que se obtienen de la API
     private List<Dictionary<string, object>> representantes = new List<Dictionary<string, object>>();
-    
+    private List<Dictionary<string, object>> RepresentantesFiltrados = new List<Dictionary<string, object>>();
+
     private bool cargando = true;
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "represenvisual";
-    private bool EsVerificador {get;set;} = false;
+    private bool EsVerificador { get; set; } = false;
+
+    // Variables para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     // Variables para el formulario
     private bool mostrarFormulario = false;
@@ -145,31 +174,33 @@ else
     {
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
-        await Cargarunidadmedicion();
+
+        await CargarRepresentantes(); // Changed from Cargarunidadmedicion to CargarRepresentantes for clarity
     }
 
-    private async Task Cargarunidadmedicion()
+    private async Task CargarRepresentantes() // Changed method name
     {
         cargando = true;
         errorMensaje = null;
-        
+
         try
         {
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
-            
-            if (resultado != null)
+
+            representantes = resultado ?? new List<Dictionary<string, object>>();
+            RepresentantesFiltrados = new List<Dictionary<string, object>>(representantes);
+
+            // Aplicar filtro si hay texto de búsqueda
+            if (!string.IsNullOrEmpty(TextoBusqueda))
             {
-                representantes = resultado;
-            }
-            else
-            {
-                representantes = new List<Dictionary<string, object>>();
+                FiltrarRepresentantes();
             }
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al cargar el representante: {ex.Message}";
+            errorMensaje = $"Error al cargar los representantes: {ex.Message}";
             representantes = new List<Dictionary<string, object>>();
+            RepresentantesFiltrados = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -181,16 +212,54 @@ else
     {
         if (diccionario == null)
             return string.Empty;
-            
+
         if (diccionario.TryGetValue(clave, out var valor))
         {
             return valor?.ToString() ?? string.Empty;
         }
-        
+
         return string.Empty;
     }
+
+    private void FiltrarRepresentantes(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            RepresentantesFiltrados = new List<Dictionary<string, object>>(representantes);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+
+            RepresentantesFiltrados = representantes.Where(representante =>
+            {
+                var codigo = ObtenerValor(representante, "id").ToLower();
+                var nombre = ObtenerValor(representante, "nombre").ToLower();
+
+                return codigo.Contains(textoBusquedaLower) ||
+                       nombre.Contains(textoBusquedaLower);
+            }).ToList();
+        }
+
+        StateHasChanged();
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        RepresentantesFiltrados = new List<Dictionary<string, object>>(representantes);
+        StateHasChanged();
+    }
+
     private void MostrarFormularioCrear()
     {
+        if (EsVerificador)
+            return;
         representanteActual = new RepresentanteModel();
         modoEdicion = false;
         mostrarFormulario = true;
@@ -241,7 +310,7 @@ else
 
                 if (resultado)
                 {
-                    exitoMensaje = "representante actualizado correctamente.";
+                    exitoMensaje = "Representante actualizado correctamente.";
                 }
             }
             else
@@ -253,13 +322,13 @@ else
 
                 if (resultado)
                 {
-                    exitoMensaje = "representante creado correctamente.";
+                    exitoMensaje = "Representante creado correctamente.";
                 }
             }
 
             if (resultado)
             {
-                await Cargarunidadmedicion();
+                await CargarRepresentantes(); // Changed method name
                 mostrarFormulario = false;
             }
             else
@@ -272,6 +341,7 @@ else
             errorMensaje = $"Error al guardar el representante: {ex.Message}";
         }
     }
+
     private void ConfirmarEliminar(Dictionary<string, object> representante)
     {
         if (EsVerificador)
@@ -304,8 +374,8 @@ else
 
             if (resultado)
             {
-                exitoMensaje = "representante eliminado correctamente.";
-                await Cargarunidadmedicion();
+                exitoMensaje = "Representante eliminado correctamente.";
+                await CargarRepresentantes(); // Changed method name
             }
             else
             {

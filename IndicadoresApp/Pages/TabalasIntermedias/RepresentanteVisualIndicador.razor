@@ -1,6 +1,7 @@
 @page "/RepresentanteVisuales"
 @using System.Collections.Generic
 @using System.Text.Json
+@using IndicadoresApp.Clases.IndicadoresApp.Clases
 @using IndicadoresApp.ModalGenerico
 @inject ServicioEntidad ServicioEntidad
 @inject NavigationManager NavigationManager
@@ -15,6 +16,30 @@
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
     </div>
 }
+
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por indicador o representante visual..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarRepresentantes" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @RepresentantesFiltrados.Count de @Representantes.Count relaciones
+            </small>
+        </div>
+    </div>
+</div>
+
+
 @if (EstamosCargando)
 {
     <p><em>Cargando...</em></p>
@@ -22,6 +47,12 @@
 else if (Representantes == null || Representantes.Count == 0)
 {
     <p>No hay Representantes registrados.</p>
+}
+else if (RepresentantesFiltrados.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron relaciones que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
@@ -40,7 +71,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var relacion in Representantes)
+                @foreach (var relacion in RepresentantesFiltrados)
                 {
                     <tr>
                         <td>@ObtenerValor(relacion, "fkidindicador")</td>
@@ -49,10 +80,10 @@ else
                         <td>@ObtenerNombreRepresentante(ObtenerValor(relacion, "fkidrepresenvisual"))</td>
                         @if (!EsVerificador)
                         {
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(relacion)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(relacion)">Eliminar</button>
-                        </td>
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(relacion)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(relacion)">Eliminar</button>
+                            </td>
                         }
                     </tr>
                 }
@@ -61,12 +92,11 @@ else
     </div>
 }
 
-<!-- Modal para crear/editar relación -->
 <ModalGenerico @ref="modalFormulario"
-Id="formModal"
-Title="@TituloModal"
-OnSave="GuardarRelacion"
-ShowSaveButton="false">
+               Id="formModal"
+               Title="@TituloModal"
+               OnSave="GuardarRelacion"
+               ShowSaveButton="true"> @* Changed to true for save button *@
     <BodyContent>
         <div class="mb-3">
             <label for="idIndicador" class="form-label">Indicador</label>
@@ -91,12 +121,11 @@ ShowSaveButton="false">
     </BodyContent>
 </ModalGenerico>
 
-<!-- Modal para confirmar eliminación -->
 <ModalGenerico @ref="modalConfirmacion"
-Id="confirmModal"
-Title="Confirmar eliminación"
-OnSave="EliminarRelacion"
-ShowSaveButton="false">
+               Id="confirmModal"
+               Title="Confirmar eliminación"
+               OnSave="EliminarRelacion"
+               ShowSaveButton="true"> @* Changed to true for save button *@
     <BodyContent>
         <p>¿Está seguro que desea eliminar esta relación?</p>
         <ul>
@@ -108,17 +137,17 @@ ShowSaveButton="false">
 
 @if (!string.IsNullOrEmpty(MensajeError))
 {
-    <div class="alert alert-danger">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert"> @* Added dismissible for closer button *@
         @MensajeError
-        <button type="button" class="btn-close float-end" @onclick="LimpiarMensajes"></button>
+        <button type="button" class="btn-close" @onclick="LimpiarMensajes" aria-label="Close"></button> @* Removed float-end as btn-close handles it *@
     </div>
 }
 
 @if (!string.IsNullOrEmpty(MensajeExito))
 {
-    <div class="alert alert-success">
+    <div class="alert alert-success alert-dismissible fade show" role="alert"> @* Added dismissible for closer button *@
         @MensajeExito
-        <button type="button" class="btn-close float-end" @onclick="LimpiarMensajes"></button>
+        <button type="button" class="btn-close" @onclick="LimpiarMensajes" aria-label="Close"></button> @* Removed float-end as btn-close handles it *@
     </div>
 }
 
@@ -126,25 +155,36 @@ ShowSaveButton="false">
     private const string NOMBRE_TABLA = "represenvisualporindicador";
     private const string TABLA_INDICADORES = "indicador";
     private const string TABLA_REPRESENTANTES = "represenvisual";
-    private bool EsVerificador { get; set; } = false;
-    private List<Dictionary<string, object>> Representantes = new();
-    private bool EstamosCargando = true;
-    private string MensajeError;
-    private string MensajeExito;
+    private const string PROCEDIMIENTO_ACCIONES = "accion_reprevisual_por_indicador"; // Define the stored procedure name
 
-    private bool ModoEdicion = false;
-    private RelacionModel RelacionActual = new();
-    private RelacionModel RelacionOriginal = new();
-    private ModalGenerico modalFormulario;
+    private bool EsVerificador { get; set; } = false;
+    private List<Dictionary<string, object>> Representantes { get; set; } = new();
+    private List<Dictionary<string, object>> RepresentantesFiltrados { get; set; } = new(); // New list for filtered data
+    private bool EstamosCargando { get; set; } = true;
+    private string? MensajeError { get; set; } // Make nullable for consistent behavior
+    private string? MensajeExito { get; set; } // Make nullable for consistent behavior
+
+    // Propiedad para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
+
+    private bool ModoEdicion { get; set; } = false;
+    private RelacionModel RelacionActual { get; set; } = new();
+    private RelacionModel RelacionOriginal { get; set; } = new(); // Para guardar el estado inicial en edición
+    private ModalGenerico? modalFormulario; // Make nullable for consistent behavior
     private string TituloModal => ModoEdicion ? "Editar Relación" : "Nueva Relación";
 
-    private RelacionModel RelacionAEliminar = new();
-    private ModalGenerico modalConfirmacion;
+    private RelacionModel RelacionAEliminar { get; set; } = new();
+    private ModalGenerico? modalConfirmacion; // Make nullable for consistent behavior
 
-    private List<ItemSelectModel> IndicadoresDisponibles = new();
-    private List<ItemSelectModel> RepresentantesDisponibles = new();
+    private List<ItemSelectModel> IndicadoresDisponibles { get; set; } = new();
+    private List<ItemSelectModel> RepresentantesDisponibles { get; set; } = new();
 
-    protected override async Task OnInitializedAsync() => await CargarDatosIniciales();
+    protected override async Task OnInitializedAsync()
+    {
+        var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
+        EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+        await CargarDatosIniciales();
+    }
 
     private async Task CargarDatosIniciales()
     {
@@ -165,10 +205,19 @@ ShowSaveButton="false">
         {
             EstamosCargando = true;
             Representantes = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new();
+            RepresentantesFiltrados = new List<Dictionary<string, object>>(Representantes); // Initialize filtered list
+
+            // Apply filter if there's existing search text
+            if (!string.IsNullOrEmpty(TextoBusqueda))
+            {
+                FiltrarRepresentantes();
+            }
         }
         catch (Exception ex)
         {
             MostrarError($"Error cargando relaciones: {ex.Message}");
+            Representantes = new List<Dictionary<string, object>>();
+            RepresentantesFiltrados = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -209,12 +258,14 @@ ShowSaveButton="false">
             {
                 Id = Convert.ToInt32(ObtenerValor(item, "id")),
                 Nombre = ObtenerValor(item, campoNombre)
-            }).ToList();
+            })
+            .OrderBy(i => i.Nombre) // Order alphabetically
+            .ToList();
     }
 
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        return diccionario.TryGetValue(clave, out var valor) ? valor?.ToString() : "";
+        return diccionario.TryGetValue(clave, out var valor) ? valor?.ToString() ?? string.Empty : string.Empty; // Added null-coalescing and string.Empty
     }
 
     private string ObtenerNombreIndicador(string id) =>
@@ -229,13 +280,49 @@ ShowSaveButton="false">
         return lista.FirstOrDefault(i => i.Id == idNum)?.Nombre ?? "N/A";
     }
 
+    private void FiltrarRepresentantes(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            RepresentantesFiltrados = new List<Dictionary<string, object>>(Representantes);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+
+            RepresentantesFiltrados = Representantes.Where(r =>
+            {
+                var nombreIndicador = ObtenerNombreIndicador(ObtenerValor(r, "fkidindicador")).ToLower();
+                var nombreRepresentante = ObtenerNombreRepresentante(ObtenerValor(r, "fkidrepresenvisual")).ToLower();
+
+                return nombreIndicador.Contains(textoBusquedaLower) ||
+                       nombreRepresentante.Contains(textoBusquedaLower);
+            }).ToList();
+        }
+
+        StateHasChanged(); // Notify Blazor that the state has changed and UI should re-render
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        RepresentantesFiltrados = new List<Dictionary<string, object>>(Representantes);
+        StateHasChanged();
+    }
+
+
     private async Task MostrarFormularioCrear()
     {
         if (EsVerificador)
             return;
         ModoEdicion = false;
         RelacionActual = new();
-        await modalFormulario.ShowModalAsync();
+        await modalFormulario!.ShowModalAsync(); // Use null-forgiving operator
     }
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> relacion)
@@ -248,7 +335,12 @@ ShowSaveButton="false">
                 IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
                 IdRepresentanteVisual = Convert.ToInt32(ObtenerValor(relacion, "fkidrepresenvisual"))
             };
-        await modalFormulario.ShowModalAsync();
+        RelacionOriginal = new() // Store original for the update procedure
+            {
+                IdIndicador = RelacionActual.IdIndicador,
+                IdRepresentanteVisual = RelacionActual.IdRepresentanteVisual
+            };
+        await modalFormulario!.ShowModalAsync(); // Use null-forgiving operator
     }
 
     private async Task ConfirmarEliminar(Dictionary<string, object> relacion)
@@ -258,7 +350,7 @@ ShowSaveButton="false">
                 IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
                 IdRepresentanteVisual = Convert.ToInt32(ObtenerValor(relacion, "fkidrepresenvisual"))
             };
-        await modalConfirmacion.ShowModalAsync();
+        await modalConfirmacion!.ShowModalAsync(); // Use null-forgiving operator
     }
 
     private async Task GuardarRelacion()
@@ -267,11 +359,26 @@ ShowSaveButton="false">
         {
             if (!ValidarRelacion()) return;
 
-            var resultado = ModoEdicion
-                ? await ActualizarRelacion()
-                : await CrearRelacion();
+            bool resultado = false; // Initialize result
 
-            if (resultado) await ActualizarUI();
+            if (ModoEdicion)
+            {
+                resultado = await ActualizarRelacion();
+            }
+            else
+            {
+                resultado = await CrearRelacion();
+            }
+
+            if (resultado)
+            {
+                await ActualizarUI();
+                MostrarExito(ModoEdicion ? "Relación actualizada con éxito." : "Relación creada con éxito.");
+            }
+            else
+            {
+                MostrarError(ModoEdicion ? "No se pudo actualizar la relación." : "No se pudo crear la relación.");
+            }
         }
         catch (Exception ex)
         {
@@ -283,15 +390,41 @@ ShowSaveButton="false">
     {
         if (RelacionActual.IdIndicador <= 0)
         {
-            MostrarError("Seleccione un indicador");
+            MostrarError("Seleccione un indicador.");
             return false;
         }
 
         if (RelacionActual.IdRepresentanteVisual <= 0)
         {
-            MostrarError("Seleccione un representante visual");
+            MostrarError("Seleccione un representante visual.");
             return false;
         }
+
+        // Check for existing relationship if in creation mode
+        if (!ModoEdicion)
+        {
+            if (Representantes.Any(r =>
+                Convert.ToInt32(ObtenerValor(r, "fkidindicador")) == RelacionActual.IdIndicador &&
+                Convert.ToInt32(ObtenerValor(r, "fkidrepresenvisual")) == RelacionActual.IdRepresentanteVisual))
+            {
+                MostrarError("Esta relación entre indicador y representante visual ya existe.");
+                return false;
+            }
+        }
+        else // In edit mode, check if the new combination already exists, but exclude the original
+        {
+            if (Representantes.Any(r =>
+                Convert.ToInt32(ObtenerValor(r, "fkidindicador")) == RelacionActual.IdIndicador &&
+                Convert.ToInt32(ObtenerValor(r, "fkidrepresenvisual")) == RelacionActual.IdRepresentanteVisual &&
+                (Convert.ToInt32(ObtenerValor(r, "fkidindicador")) != RelacionOriginal.IdIndicador ||
+                 Convert.ToInt32(ObtenerValor(r, "fkidrepresenvisual")) != RelacionOriginal.IdRepresentanteVisual)))
+            {
+                MostrarError("La relación modificada ya existe para otro registro.");
+                return false;
+            }
+        }
+
+
         return true;
     }
 
@@ -300,12 +433,26 @@ ShowSaveButton="false">
         var data = new Dictionary<string, object>
             {
                 ["fkidindicador"] = RelacionActual.IdIndicador,
-                ["fkidrepresenvisual"] = RelacionActual.IdRepresentanteVisual
+                ["fkidrepresenvisual"] = RelacionActual.IdRepresentanteVisual,
+                ["accion"] = "create", // Action for the stored procedure
+                ["indicadorInicial"] = 0, // Not used for create, but good to include if SP expects it
+                ["repreInicial"] = 0 // Not used for create, but good to include if SP expects it
             };
 
-        var resultado = await ServicioEntidad.CrearAsync(NOMBRE_TABLA, data);
-        if (resultado) MostrarExito("Relación creada");
-        return resultado;
+        try
+        {
+            var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                NOMBRE_TABLA,
+                PROCEDIMIENTO_ACCIONES,
+                data
+            );
+            return respuesta != null && respuesta.Count > 0 && Convert.ToBoolean(respuesta.FirstOrDefault()?.GetValueOrDefault("success") ?? false);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al ejecutar procedimiento de creación: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task<bool> ActualizarRelacion()
@@ -319,12 +466,20 @@ ShowSaveButton="false">
                 ["repreInicial"] = RelacionOriginal.IdRepresentanteVisual
             };
 
-        var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
-            NOMBRE_TABLA,
-            "accion_reprevisual_por_indicador",
-            parametros
-        );
-        return respuesta != null && respuesta.Count > 0;
+        try
+        {
+            var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
+                NOMBRE_TABLA,
+                PROCEDIMIENTO_ACCIONES,
+                parametros
+            );
+            return respuesta != null && respuesta.Count > 0 && Convert.ToBoolean(respuesta.FirstOrDefault()?.GetValueOrDefault("success") ?? false);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al ejecutar procedimiento de actualización: {ex.Message}");
+            return false;
+        }
     }
 
     private async Task EliminarRelacion()
@@ -337,15 +492,26 @@ ShowSaveButton="false">
                 {
                     ["accion"] = "delete",
                     ["fkidindicador"] = RelacionAEliminar.IdIndicador,
-                    ["fkidrepresenvisual"] = RelacionAEliminar.IdRepresentanteVisual
+                    ["fkidrepresenvisual"] = RelacionAEliminar.IdRepresentanteVisual,
+                    ["indicadorInicial"] = 0, // Not used for delete, but good to include if SP expects it
+                    ["repreInicial"] = 0 // Not used for delete, but good to include if SP expects it
                 };
 
             var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
                 NOMBRE_TABLA,
-                "accion_reprevisual_por_indicador",
+                PROCEDIMIENTO_ACCIONES,
                 parametros
             );
 
+            if (respuesta != null && respuesta.Count > 0 && Convert.ToBoolean(respuesta.FirstOrDefault()?.GetValueOrDefault("success") ?? false))
+            {
+                await ActualizarUI();
+                MostrarExito("Relación eliminada con éxito.");
+            }
+            else
+            {
+                MostrarError("No se pudo eliminar la relación.");
+            }
         }
         catch (Exception ex)
         {
@@ -356,7 +522,8 @@ ShowSaveButton="false">
     private async Task ActualizarUI()
     {
         await CargarRelaciones();
-        await Task.WhenAll(modalFormulario.HideModalAsync(), modalConfirmacion.HideModalAsync());
+        await modalFormulario!.HideModalAsync();
+        await modalConfirmacion!.HideModalAsync();
         LimpiarMensajes();
     }
 
@@ -364,18 +531,21 @@ ShowSaveButton="false">
     {
         MensajeError = mensaje;
         MensajeExito = null;
+        StateHasChanged();
     }
 
     private void MostrarExito(string mensaje)
     {
         MensajeExito = mensaje;
         MensajeError = null;
+        StateHasChanged();
     }
 
     private void LimpiarMensajes()
     {
         MensajeError = null;
         MensajeExito = null;
+        StateHasChanged();
     }
 
     private class RelacionModel
@@ -387,6 +557,6 @@ ShowSaveButton="false">
     private class ItemSelectModel
     {
         public int Id { get; set; }
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = string.Empty;
     }
 }

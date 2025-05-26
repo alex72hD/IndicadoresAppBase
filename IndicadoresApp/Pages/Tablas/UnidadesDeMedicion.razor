@@ -20,6 +20,29 @@
     </div>
 }
 
+<!-- Campo de búsqueda -->
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" 
+                       class="form-control" 
+                       placeholder="Buscar por código o nombre..." 
+                       @bind="TextoBusqueda" 
+                       @oninput="FiltrarUnidades" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @UnidadesFiltradas.Count de @UnidadesMedicion.Count unidades
+            </small>
+        </div>
+    </div>
+</div>
+
 @if (EstamosCargando)
 {
     <p><em>Cargando...</em></p>
@@ -27,6 +50,12 @@
 else if (UnidadesMedicion == null || UnidadesMedicion.Count == 0)
 {
     <p>No hay unidades de medición registradas.</p>
+}
+else if (UnidadesFiltradas.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron unidades de medición que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
@@ -43,7 +72,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var unidad in UnidadesMedicion)
+                @foreach (var unidad in UnidadesFiltradas)
                 {
                     <tr>
                         <td>@ObtenerValor(unidad, "id")</td>
@@ -103,10 +132,14 @@ else
     private const string NOMBRE_TABLA = "unidadmedicion";
 
     private List<Dictionary<string, object>> UnidadesMedicion { get; set; } = new();
+    private List<Dictionary<string, object>> UnidadesFiltradas { get; set; } = new();
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
     private string? MensajeExito { get; set; }
     private bool EsVerificador { get; set; } = false;
+
+    // Variables para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     // Variables para el formulario
     private bool ModoEdicion { get; set; } = false;
@@ -138,11 +171,19 @@ else
             var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
 
             UnidadesMedicion = resultado ?? new List<Dictionary<string, object>>();
+            UnidadesFiltradas = new List<Dictionary<string, object>>(UnidadesMedicion);
+            
+            // Aplicar filtro si hay texto de búsqueda
+            if (!string.IsNullOrEmpty(TextoBusqueda))
+            {
+                FiltrarUnidades();
+            }
         }
         catch (Exception ex)
         {
             MensajeError = $"Error al cargar unidades de medición: {ex.Message}";
             UnidadesMedicion = new List<Dictionary<string, object>>();
+            UnidadesFiltradas = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -161,6 +202,41 @@ else
         }
 
         return string.Empty;
+    }
+
+    private void FiltrarUnidades(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            UnidadesFiltradas = new List<Dictionary<string, object>>(UnidadesMedicion);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+            
+            UnidadesFiltradas = UnidadesMedicion.Where(unidad =>
+            {
+                var codigo = ObtenerValor(unidad, "id").ToLower();
+                var nombre = ObtenerValor(unidad, "descripcion").ToLower();
+                
+                return codigo.Contains(textoBusquedaLower) || 
+                       nombre.Contains(textoBusquedaLower);
+            }).ToList();
+        }
+
+        StateHasChanged();
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        UnidadesFiltradas = new List<Dictionary<string, object>>(UnidadesMedicion);
+        StateHasChanged();
     }
 
     private async Task MostrarFormularioCrear()

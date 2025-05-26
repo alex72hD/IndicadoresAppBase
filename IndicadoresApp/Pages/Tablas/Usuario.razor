@@ -1,27 +1,20 @@
 @page "/Usuario"
-<!--  Importa el espacio de nombres para trabajar con listas y colecciones -->
 @using System.Collections.Generic
 @using System.Text.Json
-<!--  Importa el espacio de nombres para trabajar con JSON -->
 @using System.Net.Http
 @using System.Net.Http.Json
 @using System.Linq
 @using System.Text
 @inherits ValidacionAcceso
 
-
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
-<!--  Importa el espacio de nombres donde se encuentra el ServicioEntidad-->
 @inject ServicioEntidad servicioEntidad
-<!--  Inyecta el servicio que se comunicará con la API ServicioEntidad -->
-@inject NavigationManager navegacionManager
-<!--  Inyecta el servicio para manejar la navegación entre páginas ServicioEntidad-->
 
+<PageTitle>Usuarios</PageTitle>
 
-<PageTitle>Usuarios</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+<h1>Usuarios</h1>
 
-<h1>Usuarios</h1>  <!-- Encabezado principal de la página -->
 @if (roles.Contains("Verificador") || roles.Contains("Validador"))
 {
     <div class="mb-3">
@@ -31,321 +24,347 @@
 else
 {
     <div class="mb-3">
-        <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" @onclick='() => AbrirModal("ejemplo@ejemplo.com", "", "Create")'>Crear Nuevo</button>  <!-- Botón deshabilitado para crear nuevos productos -->
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
     </div>
 }
 
 @if (cargando)
 {
-    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+    <p><em>Cargando...</em></p>
 }
 else if (tipoActores == null || tipoActores.Count == 0)
 {
-    <p>No hay información disponibles.</p>  <!-- Mensaje cuando no hay productos para mostrar -->
+    <p>No hay información disponible.</p>
 }
 else
 {
     <div class="table-responsive">
-        <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
         <table class="table table-striped">
-            <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
             <thead>
-                <!-- Encabezado de la tabla -->
                 <tr>
-                    <!-- Fila del encabezado -->
-                    <th>Email</th>  <!-- Columna para el código del producto -->
-                    <th>Contraseña</th>  <!-- Columna para el nombre del producto -->
-                    <!-- <th>Stock</th>  Columna para el stock disponible -->
-                    <!-- <th>Valor Unitario</th>  Columna para el precio unitario -->
+                    <th>Email</th>
+                    <th>Contraseña</th>
+                    @if (!roles.Contains("Verificador"))
+                    {
+                        <th>Acciones</th>
+                    }
                 </tr>
             </thead>
             <tbody>
-                <!-- Cuerpo de la tabla donde se muestran los datos -->
-                <!-- Bucle foreach que itera sobre cada producto en la lista -->
                 @foreach (var tpActor in tipoActores)
                 {
                     string tempId = @ObtenerValor(tpActor, "email");
                     string tempPass = @ObtenerValor(tpActor, "contrasena");
 
                     <tr>
-                        <!-- Fila para cada producto -->
-                        <td>@tempId</td>  <!-- Celda que muestra el código usando el método auxiliar -->
-                        <td>@tempPass</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                        <td>@tempId</td>
+                        <td>@tempPass</td>
                         @if (!roles.Contains("Verificador"))
                         {
-
                             <td>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" @onclick='() => AbrirModal(tempId, tempPass, "Edit")'>Editar</button>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(tempId, tempPass)">Editar</button>
+                                @if (!roles.Contains("Validador"))
+                                {
+                                    <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(tempId)">Eliminar</button>
+                                }
                             </td>
-
-                            @if (!roles.Contains("Validador"))
-                            {
-                                <td><button id='@ObtenerValor(tpActor, "email")' class="btn btn-danger" @onclick="() => EliminarRegistro(tempId)">Eliminar</button></td>
-                            }
                         }
-
                     </tr>
                 }
             </tbody>
         </table>
     </div>
-
 }
 
-@if (mensaje != null)
+<!-- Modal para crear/editar usuario -->
+@if (mostrarModal)
 {
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="liveToast" class="toast align-items-center text-white bg-@tipoAlerta border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body">
-                    @mensaje
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(modoEdicion ? "Editar Usuario" : "Crear Usuario")</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email:</label>
+                        <input type="email" id="email" class="form-control" @bind="emailSeleccionado" @bind:event="oninput" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pass" class="form-label">Contraseña:</label>
+                        <input type="password" id="pass" class="form-control" @bind="contraSeleccionada" @bind:event="oninput" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="GuardarCambios" disabled="@guardando">
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Guardar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 }
 
-<!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-
-                <label for="email" class="form-label">Email:</label>
-                <input type="text" id="email" class="form-control" @bind="emailSeleccionado">
-                <br>
-                <label for="pass" class="form-label">Contraseña:</label>
-                <input type="text" id="pass" class="form-control" @bind="contraSeleccionada">
-
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="@GuardarCambios">Save changes</button>
+<!-- Modal de confirmación para eliminar -->
+@if (mostrarModalEliminar)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModalEliminar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea eliminar el usuario: <strong>@emailAEliminar</strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModalEliminar">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="EliminarRegistro" disabled="@eliminando">
+                        @if (eliminando)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        Eliminar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+}
 
-
+<!-- Mensajes de alerta -->
+@if (!string.IsNullOrEmpty(mensaje))
+{
+    <div class="alert alert-@tipoAlerta alert-dismissible fade show mt-3">
+        @mensaje
+        <button type="button" class="btn-close" @onclick="LimpiarMensaje"></button>
+    </div>
+}
 
 @code {
-    // Lista para almacenar los productos que se obtienen de la API
+    // Variables de datos
     private List<Dictionary<string, object>> tipoActores = new List<Dictionary<string, object>>();
-    private HttpClient? _httpClient = new HttpClient();
-
-    // Lista para almacenar los roles obtenidos del sessionStorage
     private List<string> roles = new List<string>();
-
-    // Bandera para indicar si se están cargando los datos
     private bool cargando = true;
-
-    // Variable para almacenar mensajes de error
-    private string? mensaje = null;
-
-    //Variable para almacenar el tipo de alerta
-    private string? tipoAlerta = "info";
     private const string TABLA = "usuario";
 
-    // Método que se ejecuta cuando se inicializa el componente
+    // Variables de mensajes
+    private string? mensaje = null;
+    private string? tipoAlerta = "info";
+
+    // Variables del modal principal
+    private bool mostrarModal = false;
+    private bool modoEdicion = false;
+    private bool guardando = false;
+    private string emailSeleccionado = "";
+    private string contraSeleccionada = "";
+    private string emailInicial = "";
+
+    // Variables del modal de eliminación
+    private bool mostrarModalEliminar = false;
+    private bool eliminando = false;
+    private string emailAEliminar = "";
+
     protected override async Task OnInitializedAsync()
     {
-        // Llamar al método para cargar los productos
+        await CargarRoles();
         await CargarTipoActor();
+    }
 
-        var scriptRoles = @"
+    private async Task CargarRoles()
+    {
+        try
+        {
+            var scriptRoles = @"
                 Object.keys(sessionStorage)
                     .filter(key => key.startsWith('rolUsuario'))
                     .map(key => sessionStorage.getItem(key))
             ";
 
-        // Ejecutar el script JavaScript para obtener los roles
-        roles = await JSRuntime.InvokeAsync<List<string>>(
-            "eval",
-            scriptRoles
-        );
-    }
-
-    // Método asíncrono para cargar los productos desde la API
-    private async Task CargarTipoActor()
-    {
-        // Establecer la bandera de carga en verdadero
-        cargando = true;
-        // Limpiar cualquier mensaje de error previo
-        mensaje = null;
-
-        try
-        {
-            // Obtener todos los productos usando el servicio de entidades
-            var resultado = await servicioEntidad.ObtenerTodosAsync( TABLA);
-
-            // Si la lista no es null, asignarla a la variable productos
-            if (resultado != null)
-            {
-                tipoActores = resultado;
-            }
-            else
-            {
-                // Si es null, inicializar como lista vacía para evitar errores
-                tipoActores = new List<Dictionary<string, object>>();
-            }
+            roles = await JSRuntime.InvokeAsync<List<string>>("eval", scriptRoles);
         }
         catch (Exception ex)
         {
-            //Especificar tipo de alerta
-            tipoAlerta = "danger";
+            Console.WriteLine($"Error cargando roles: {ex.Message}");
+            roles = new List<string>();
+        }
+    }
 
-            // En caso de error, guardar el mensaje y crear lista vacía
-            mensaje = $"Error al cargar tipo de actores: {ex.Message}";
+    private async Task CargarTipoActor()
+    {
+        cargando = true;
+        LimpiarMensaje();
+
+        try
+        {
+            var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            tipoActores = resultado ?? new List<Dictionary<string, object>>();
+        }
+        catch (Exception ex)
+        {
+            MostrarMensaje($"Error al cargar usuarios: {ex.Message}", "danger");
             tipoActores = new List<Dictionary<string, object>>();
         }
         finally
         {
-            // Establecer la bandera de carga en falso una vez finalizada la operación
             cargando = false;
         }
     }
 
-    // Método para obtener un valor específico de un diccionario de manera segura
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
-        // Verificar si el diccionario es null
-        if (diccionario == null)
-            return string.Empty;
-
-        // Verificar si el diccionario contiene la clave
-        if (diccionario.TryGetValue(clave, out var valor))
+        if (diccionario?.TryGetValue(clave, out var valor) == true)
         {
-            // Devolver el valor como cadena, o cadena vacía si es null
             return valor?.ToString() ?? string.Empty;
         }
-
-        // Si la clave no existe, devolver cadena vacía
         return string.Empty;
     }
 
-    // Método para formatear un valor como precio
-    private string FormatearPrecio(string valor)
+    // Métodos del modal principal
+    private void MostrarFormularioCrear()
     {
-        // Verificar si la cadena está vacía
-        if (string.IsNullOrEmpty(valor))
-            return "$0.00";
-
-        // Intentar convertir el valor a decimal
-        if (decimal.TryParse(valor, out decimal precio))
-        {
-            // Formatear como moneda con el símbolo $ y dos decimales
-            return precio.ToString("C");
-        }
-
-        // Si no se puede convertir, devolver el valor original
-        return valor;
+        emailSeleccionado = "";
+        contraSeleccionada = "";
+        emailInicial = "";
+        modoEdicion = false;
+        mostrarModal = true;
+        LimpiarMensaje();
     }
 
-    public string contraSeleccionada = "";
-    public string emailSeleccionado = "";
-    public string emailInicial = "";
-    public string peticionSeleccionada = "";
-
-    public void AbrirModal(string idEmail, string pass, string peticion)
+    private void MostrarFormularioEditar(string email, string password)
     {
-        emailSeleccionado = idEmail;
-        emailInicial = idEmail;
-        contraSeleccionada = pass;
-        peticionSeleccionada = peticion;
+        emailSeleccionado = email;
+        contraSeleccionada = password;
+        emailInicial = email;
+        modoEdicion = true;
+        mostrarModal = true;
+        LimpiarMensaje();
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+        guardando = false;
     }
 
     private async Task GuardarCambios()
     {
-
-        var body = new Dictionary<string, object>
+        // Validaciones
+        if (string.IsNullOrWhiteSpace(emailSeleccionado) || string.IsNullOrWhiteSpace(contraSeleccionada))
         {
-            { "email", emailSeleccionado },
-            { "contrasena", contraSeleccionada }
-        };
+            MostrarMensaje("Todos los campos son obligatorios", "warning");
+            return;
+        }
 
-        HttpResponseMessage tempRespuesta = new HttpResponseMessage();
-        string tipoMsg = string.Empty;
+        guardando = true;
 
         try
         {
-            if (peticionSeleccionada == "Create")
+            var body = new Dictionary<string, object>
             {
-                var respuesta = await servicioEntidad.CrearAsync(TABLA, body);
-                tipoMsg = "Creado";
-            }
-            else if (peticionSeleccionada == "Edit")
-            {
-                var respuesta = await servicioEntidad.ActualizarAsync( TABLA, "email", emailInicial, body);
-                tipoMsg = "Actualizado";
+                { "email", emailSeleccionado.Trim() },
+                { "contrasena", contraSeleccionada.Trim() }
+            };
 
+            bool resultado = false;
+            string operacion = "";
+
+            if (modoEdicion)
+            {
+                resultado = await servicioEntidad.ActualizarAsync(TABLA, "email", emailInicial, body);
+                operacion = "actualizado";
             }
             else
             {
-
-                tipoAlerta = "warning";
-                mensaje = "Acción no permitida, seleccione una acción valida";
-                resetMensaje();
+                resultado = await servicioEntidad.CrearAsync(TABLA, body);
+                operacion = "creado";
             }
 
-
-            if (tempRespuesta.IsSuccessStatusCode)
+            if (resultado)
             {
-                @* Console.WriteLine("Registro actualizado con éxito."); *@
-
-                tipoAlerta = "success";
-                mensaje = $"Registro {tipoMsg} Exitosamente!";
-                resetMensaje();
+                MostrarMensaje($"Usuario {operacion} exitosamente!", "success");
+                CerrarModal();
+                await CargarTipoActor();
             }
-
+            else
+            {
+                MostrarMensaje($"Error: No se pudo {(modoEdicion ? "actualizar" : "crear")} el usuario", "danger");
+            }
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
-            tipoAlerta = "danger";
-            mensaje = $"Error en la petición: {ex.Message}";
-            Console.WriteLine($"Error en la petición: {ex.Message}");
+            MostrarMensaje($"Error: {ex.Message}", "danger");
+            Console.WriteLine($"Error en GuardarCambios: {ex.Message}");
         }
-
+        finally
+        {
+            guardando = false;
+        }
     }
 
-
-    private async Task EliminarRegistro(string email)
+    // Métodos del modal de eliminación
+    private void ConfirmarEliminar(string email)
     {
+        emailAEliminar = email;
+        mostrarModalEliminar = true;
+        LimpiarMensaje();
+    }
+
+    private void CerrarModalEliminar()
+    {
+        mostrarModalEliminar = false;
+        eliminando = false;
+        emailAEliminar = "";
+    }
+
+    private async Task EliminarRegistro()
+    {
+        eliminando = true;
 
         try
         {
-            var respuesta = await servicioEntidad.EliminarAsync( TABLA, "email", email);
+            var resultado = await servicioEntidad.EliminarAsync(TABLA, "email", emailAEliminar);
 
-            if (respuesta)
+            if (resultado)
             {
-                tipoAlerta = "success";
-                mensaje = $"Registro Eliminado Exitosamente!";
-                resetMensaje();
+                MostrarMensaje("Usuario eliminado exitosamente!", "success");
+                CerrarModalEliminar();
+                await CargarTipoActor();
             }
-
+            else
+            {
+                MostrarMensaje("Error: No se pudo eliminar el usuario", "danger");
+            }
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
-            tipoAlerta = "danger";
-            mensaje = $"Error en la petición: {ex.Message}";
-            Console.WriteLine($"Error en la petición: {ex.Message}");
+            MostrarMensaje($"Error al eliminar: {ex.Message}", "danger");
+            Console.WriteLine($"Error en EliminarRegistro: {ex.Message}");
         }
-
+        finally
+        {
+            eliminando = false;
+        }
     }
 
-    private async void resetMensaje()
+    // Métodos de mensajes
+    private void MostrarMensaje(string msg, string tipo)
     {
+        mensaje = msg;
+        tipoAlerta = tipo;
+        StateHasChanged();
+    }
 
-        await Task.Delay(2000);
+    private void LimpiarMensaje()
+    {
         mensaje = null;
         tipoAlerta = "info";
-        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
     }
-
 }

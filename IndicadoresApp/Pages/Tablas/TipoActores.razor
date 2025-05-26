@@ -1,15 +1,37 @@
-@page "/tipoactor"  
-@using System.Collections.Generic  
-@using System.Text.Json  
-@inject ServicioEntidad ServicioEntidad  
-@inject NavigationManager NavigationManager  
+@page "/tipoactor"
+@using System.Collections.Generic
+@using System.Text.Json
+@inject ServicioEntidad ServicioEntidad
+@inject NavigationManager NavigationManager
 @inherits ValidacionAcceso
 <PageTitle>Tipos de Actores</PageTitle>
 
 <h1>Tipos de Actores</h1>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+</div>
+
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por código o nombre..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarTiposActores" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @TiposActoresFiltrados.Count de @TiposActores.Count tipos de actores
+            </small>
+        </div>
+    </div>
 </div>
 
 @if (EstamosCargando)
@@ -19,6 +41,12 @@
 else if (TiposActores == null || TiposActores.Count == 0)
 {
     <p>No hay tipos de actores disponibles.</p>
+}
+else if (TiposActoresFiltrados.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron tipos de actores que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
@@ -32,7 +60,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var tipoActor in TiposActores)
+                @foreach (var tipoActor in TiposActoresFiltrados)
                 {
                     <tr>
                         <td>@ObtenerValor(tipoActor, "id")</td>
@@ -109,11 +137,15 @@ else
 
 @code {
     private const string NOMBRE_TABLA = "tipoactor";
-    
+
     private List<Dictionary<string, object>> TiposActores { get; set; } = new();
+    private List<Dictionary<string, object>> TiposActoresFiltrados { get; set; } = new(); // New list for filtered data
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
     private string? MensajeExito { get; set; }
+
+    // Variables para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     // Variables para el formulario
     private bool MostrarFormulario { get; set; } = false;
@@ -133,17 +165,25 @@ else
     {
         EstamosCargando = true;
         MensajeError = null;
-        
+
         try
         {
             var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
-            
+
             TiposActores = resultado ?? new List<Dictionary<string, object>>();
+            TiposActoresFiltrados = new List<Dictionary<string, object>>(TiposActores); // Initialize filtered list
+
+            // Apply filter if there's existing search text
+            if (!string.IsNullOrEmpty(TextoBusqueda))
+            {
+                FiltrarTiposActores();
+            }
         }
         catch (Exception ex)
         {
             MensajeError = $"Error al cargar tipos de actores: {ex.Message}";
             TiposActores = new List<Dictionary<string, object>>();
+            TiposActoresFiltrados = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -155,13 +195,48 @@ else
     {
         if (diccionario == null)
             return string.Empty;
-            
+
         if (diccionario.TryGetValue(clave, out var valor))
         {
             return valor?.ToString() ?? string.Empty;
         }
-        
+
         return string.Empty;
+    }
+
+    private void FiltrarTiposActores(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            TiposActoresFiltrados = new List<Dictionary<string, object>>(TiposActores);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+
+            TiposActoresFiltrados = TiposActores.Where(tipoActor =>
+            {
+                var codigo = ObtenerValor(tipoActor, "id").ToLower();
+                var nombre = ObtenerValor(tipoActor, "nombre").ToLower();
+
+                return codigo.Contains(textoBusquedaLower) ||
+                       nombre.Contains(textoBusquedaLower);
+            }).ToList();
+        }
+
+        StateHasChanged(); // Notify Blazor that the state has changed and UI should re-render
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        TiposActoresFiltrados = new List<Dictionary<string, object>>(TiposActores);
+        StateHasChanged();
     }
 
     private void MostrarFormularioCrear()

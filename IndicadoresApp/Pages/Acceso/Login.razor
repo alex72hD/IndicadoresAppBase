@@ -8,64 +8,64 @@
 @inject IJSRuntime JSRuntime
 @inherits IndicadoresApp.Services.ValidacionAcceso
 
-
-<!-- Sección de diseño de la página de login -->
-<section class="vh-100">
-    <div class="container-fluid h-custom">
-        <div class="row d-flex justify-content-center align-items-center h-100">
-            <!-- Imagen ilustrativa del formulario de login -->
-            <div class="col-md-9 col-lg-6 col-xl-5">
-                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
-                     class="img-fluid" alt="Sample image">
+<section class="vh-100 d-flex align-items-center justify-content-center login-full-height">
+    <div class="container-fluid py-5">
+        <div class="row d-flex justify-content-center align-items-center">
+            <div class="col-md-9 col-lg-6 col-xl-5 d-none d-md-block">
+                <img src="https://cdni.iconscout.com/illustration/premium/thumb/login-page-4468581-3783955.png"
+                     class="img-fluid login-image" alt="Imagen de Login">
             </div>
 
-            <!-- Formulario de login con Blazor -->
             <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
-                <EditForm Model="@modeloLogin" OnValidSubmit="ManejarLogin">
-                    <!-- Inicia el formulario de login usando EditForm -->
-                    <!-- Divisor visual -->
-                    <div class="divider d-flex align-items-center my-4">
-                        <h2 class="text-center fw-bold mb-0">Iniciar Sesión</h2>
-                    </div>
+                <div class="card login-card shadow-lg rounded-3">
+                    <div class="card-body p-5">
+                        <EditForm Model="@modeloLogin" OnValidSubmit="ManejarLogin">
+                            <div class="text-center mb-5">
+                                <h2 class="fw-bold login-title">¡Bienvenido de nuevo!</h2>
+                                <p class="text-muted">Ingresa tus credenciales para continuar.</p>
+                            </div>
 
-                    <!-- Campo de entrada para el correo electrónico -->
-                    <div class="form-outline mb-4">
-                        <InputText id="form3Example3" class="form-control form-control-lg"
-                                   @bind-Value="modeloLogin.Correo" placeholder="Ingresar un correo válido" />
-                        <label class="form-label" for="form3Example3">Correo electrónico</label>
-                        <ValidationMessage For="@(() => modeloLogin.Correo)" />
-                    </div>
+                            <div class="form-floating mb-4">
+                                <InputText id="emailInput" class="form-control form-control-lg"
+                                           @bind-Value="modeloLogin.Correo" placeholder=" " />
+                                <label for="emailInput">Correo electrónico</label>
+                                <ValidationMessage For="@(() => modeloLogin.Correo)" class="text-danger small mt-1" />
+                            </div>
 
-                    <!-- Campo de entrada para la contraseña -->
-                    <div class="form-outline mb-3">
-                        <InputText id="form3Example4" type="password" class="form-control form-control-lg"
-                                   @bind-Value="modeloLogin.Contrasena" placeholder="Ingrese su contraseña" />
-                        <label class="form-label" for="form3Example4">Contraseña</label>
-                        <ValidationMessage For="@(() => modeloLogin.Contrasena)" />
-                    </div>
+                            <div class="form-floating mb-4">
+                                <InputText id="passwordInput" type="password" class="form-control form-control-lg"
+                                           @bind-Value="modeloLogin.Contrasena" placeholder=" " />
+                                <label for="passwordInput">Contraseña</label>
+                                <ValidationMessage For="@(() => modeloLogin.Contrasena)" class="text-danger small mt-1" />
+                            </div>
 
-                    <!-- Botón de envío del formulario -->
-                    <div class="text-center text-lg-start mt-4 pt-2">
-                        <button type="submit" class="btn btn-primary btn-lg"
-                                style="padding-left: 2.5rem; padding-right: 2.5rem;">
-                            Iniciar Sesión
-                        </button>
-                    </div>
+                            <div class="d-grid gap-2 mb-4">
+                                <button type="submit" class="btn btn-primary btn-lg login-button">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+                                </button>
+                            </div>
 
-                    @if (!string.IsNullOrEmpty(mensajeError))
-                    {
-                        <div class="alert alert-danger mt-3">
-                            @mensajeError
-                        </div>
-                    }
-                </EditForm>
+                            <div class="text-center">
+                                <p class="small text-muted">
+                                    ¿No tienes una cuenta? <a href="/registro" class="text-primary fw-bold login-register-link">Regístrate aquí</a>
+                                </p>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(mensajeError))
+                            {
+                                <div class="alert alert-danger mt-4 text-center login-error-message" role="alert">
+                                    @mensajeError
+                                </div>
+                            }
+                        </EditForm>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 @code {
-    // Crear el modelo de datos para almacenar el correo electrónico y la contraseña ingresados
     private ModeloLogin modeloLogin = new ModeloLogin();
     private string mensajeError = string.Empty;
 
@@ -78,7 +78,6 @@
         {
             mensajeError = string.Empty;
 
-            // Construir el diccionario con los datos necesarios para verificar usuario y contraseña
             var datosVerificar = new Dictionary<string, string>
             {
                 { "campoUsuario", "email" },
@@ -87,31 +86,26 @@
                 { "valorContrasena", modeloLogin.Contrasena }
             };
 
-            // Imprimir información útil para depuración
             Console.WriteLine($"Enviando solicitud a: {Http.BaseAddress}usuario/verificar-contrasena");
 
-            // Realizar una solicitud POST al backend para verificar credenciales
             var respuestaVerificar = await Http.PostAsJsonAsync("usuario/verificar-contrasena", datosVerificar);
 
-            // Mostrar el código de respuesta para depuración
             Console.WriteLine($"Código de respuesta: {respuestaVerificar.StatusCode}");
 
             if (respuestaVerificar.IsSuccessStatusCode)
             {
                 await JSRuntime.InvokeVoidAsync("console.log", "Login exitoso.");
 
-                // Preparar la consulta de roles
                 var jsonConsultaRoles = new
                 {
                     consulta = @"SELECT u.email AS EmailUsuario, r.nombre AS NombreRol
-                               FROM usuario u
-                               INNER JOIN rol_usuario ru ON u.email = ru.fkemail
-                               INNER JOIN rol r ON ru.fkidrol = r.id
-                               WHERE u.email = @EmailUsuario",
+                                 FROM usuario u
+                                 INNER JOIN rol_usuario ru ON u.email = ru.fkemail
+                                 INNER JOIN rol r ON ru.fkidrol = r.id
+                                 WHERE u.email = @EmailUsuario",
                     parametros = new { EmailUsuario = modeloLogin.Correo }
                 };
 
-                // Consultar los roles del usuario
                 var respuestaRoles = await Http.PostAsJsonAsync(
                     "tabla/ejecutar-consulta-parametrizada",
                     jsonConsultaRoles
@@ -123,7 +117,6 @@
 
                     if (listaRoles != null && listaRoles.Any())
                     {
-                        // Almacenar en sessionStorage el correo electrónico del usuario
                         await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "usuarioEmail", modeloLogin.Correo);
 
                         foreach (var rol in listaRoles)
@@ -134,13 +127,10 @@
 
                                 if (!string.IsNullOrEmpty(nombreRol))
                                 {
-                                    // Guardar el nombre del rol en sessionStorage
                                     await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "rolUsuario", nombreRol);
 
-                                    // Si es admin, guardar todas las rutas directamente
                                     if (RutasPermisosService.EsRolTodosAccesos(nombreRol))
                                     {
-                                        // Registrar todas las rutas admin en sessionStorage
                                         foreach (var ruta in RutasPermisosService.TodasLasRutas)
                                         {
                                             await JSRuntime.InvokeVoidAsync(
@@ -151,13 +141,11 @@
                                             Console.WriteLine($"Admin: Asignada ruta {ruta}");
                                         }
                                     }
-                                    // Si es verificador o validador, guardar todas las rutas excepto las de usuarios
                                     else if (RutasPermisosService.EsRolVerificadorOValidador(nombreRol))
                                     {
                                         var rutasPermitidas = RutasPermisosService.ObtenerRutasVerificador();
                                         var tipoRol = RutasPermisosService.EsRolVerificador(nombreRol) ? "Verificador" : "Validador";
 
-                                        // Registrar todas las rutas de verificador/validador en sessionStorage
                                         foreach (var ruta in rutasPermitidas)
                                         {
                                             await JSRuntime.InvokeVoidAsync(
@@ -170,7 +158,6 @@
                                     }
                                     else
                                     {
-                                        // Para roles no-admin, no-verificador y no-validador, consultar las rutas asociadas
                                         var jsonConsultaRutas = new
                                         {
                                             consulta = "SELECT Ruta FROM rutarol WHERE Rol = @Rol",
@@ -248,7 +235,7 @@
     }
 
     /// <summary>
-    /// Modelo de datos utilizado para capturar el correo y la contraseña ingresados por el usuario en el formulario de login.
+    /// Modelo de datos utilizado para capturar el correo electrónico y la contraseña ingresados por el usuario en el formulario de login.
     /// </summary>
     public class ModeloLogin
     {

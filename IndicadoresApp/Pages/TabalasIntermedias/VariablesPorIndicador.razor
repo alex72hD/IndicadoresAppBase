@@ -1,4 +1,4 @@
- @page "/VariablePorIndicador"
+@page "/VariablePorIndicador"
 @using System.Collections.Generic
 @using System.Text.Json
 @using IndicadoresApp.Clases.IndicadoresApp.Clases
@@ -17,6 +17,29 @@
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
     </div>
 }
+
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por ID de Variable, ID de Indicador, Dato o Email..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarVariables" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @VariablesFiltradas.Count de @Variables.Count variables
+            </small>
+        </div>
+    </div>
+</div>
+
 @if (EstamosCargando)
 {
     <p><em>Cargando...</em></p>
@@ -24,6 +47,12 @@
 else if (Variables == null || Variables.Count == 0)
 {
     <p>No hay variables registradas.</p>
+}
+else if (VariablesFiltradas.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron variables que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
@@ -43,7 +72,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var variable in Variables)
+                @foreach (var variable in VariablesFiltradas)
                 {
                     <tr>
                         <td>@ObtenerValor(variable, "fkidvariable")</td>
@@ -51,10 +80,13 @@ else
                         <td>@ObtenerValor(variable, "dato")</td>
                         <td>@ObtenerValor(variable, "fkemailusuario")</td>
                         <td>@ObtenerValor(variable, "fechadato")</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(variable)">Eliminar</button>
-                        </td>
+                        @if (!EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(variable)">Eliminar</button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>
@@ -62,7 +94,6 @@ else
     </div>
 }
 
-<!-- Modal para crear/editar variable -->
 <ModalGenerico @ref="modalFormulario"
                Id="variableFormModal"
                Title="@TituloModal"
@@ -103,7 +134,6 @@ else
     </BodyContent>
 </ModalGenerico>
 
-<!-- Modal para confirmar eliminación -->
 <ModalGenerico @ref="modalConfirmacion"
                Id="confirmModal"
                Title="Confirmar eliminación"
@@ -126,9 +156,13 @@ else
 
     // Propiedades para el listado de variables por indicador
     private List<Dictionary<string, object>> Variables { get; set; } = new();
+    private List<Dictionary<string, object>> VariablesFiltradas { get; set; } = new(); // New list for filtered data
     private bool EstamosCargando { get; set; } = true;
     private string? mensaje { get; set; }
     private string tipoAlerta { get; set; } = "info";
+
+    // Propiedades para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     // Propiedades para el formulario
     private int idSeleccionado { get; set; }
@@ -166,12 +200,20 @@ else
         try
         {
             Variables = await ServicioEntidad.ObtenerTodosAsync(TABLA) ?? new List<Dictionary<string, object>>();
+            VariablesFiltradas = new List<Dictionary<string, object>>(Variables); // Initialize filtered list
+
+            // Apply filter if there's existing search text
+            if (!string.IsNullOrEmpty(TextoBusqueda))
+            {
+                FiltrarVariables();
+            }
         }
         catch (Exception ex)
         {
             mensaje = $"Error al cargar variables: {ex.Message}";
             tipoAlerta = "danger";
             Variables = new List<Dictionary<string, object>>();
+            VariablesFiltradas = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -208,6 +250,48 @@ else
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
         return diccionario.TryGetValue(clave, out var valor) ? valor?.ToString() ?? string.Empty : string.Empty;
+    }
+
+    private void FiltrarVariables(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            VariablesFiltradas = new List<Dictionary<string, object>>(Variables);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+
+            VariablesFiltradas = Variables.Where(variable =>
+            {
+                var idVariable = ObtenerValor(variable, "fkidvariable").ToLower();
+                var idIndicador = ObtenerValor(variable, "fkidindicador").ToLower();
+                var dato = ObtenerValor(variable, "dato").ToLower();
+                var email = ObtenerValor(variable, "fkemailusuario").ToLower();
+                // If you want to search by date, you'll need to parse and format it consistently
+                var fechaDato = ObtenerValor(variable, "fechadato").ToLower();
+
+                return idVariable.Contains(textoBusquedaLower) ||
+                       idIndicador.Contains(textoBusquedaLower) ||
+                       dato.Contains(textoBusquedaLower) ||
+                       email.Contains(textoBusquedaLower) ||
+                       fechaDato.Contains(textoBusquedaLower); // Simple string contains for date
+            }).ToList();
+        }
+
+        StateHasChanged(); // Notify Blazor that the state has changed and UI should re-render
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        VariablesFiltradas = new List<Dictionary<string, object>>(Variables);
+        StateHasChanged();
     }
 
     private async Task MostrarFormularioCrear()
@@ -274,49 +358,51 @@ else
             { "fechadato", fechaFormat }
         };
 
-        HttpResponseMessage tempRespuesta = new HttpResponseMessage();
-        string tipoMsg = string.Empty;
+        // You should check the actual response from ServicioEntidad.CrearAsync/ActualizarAsync
+        // These methods should return a boolean indicating success or throw an exception on failure.
+        // The original code was using a tempRespuesta which was never assigned, leading to issues.
+        bool success = false;
+        string actionType = string.Empty;
 
         try
         {
             if (peticionSeleccionada == "Create")
             {
-                await ServicioEntidad.CrearAsync(TABLA, body);
-                tipoMsg = "Creado";
+                success = await ServicioEntidad.CrearAsync(TABLA, body);
+                actionType = "creado";
             }
             else if (peticionSeleccionada == "Edit")
             {
-                await ServicioEntidad.ActualizarAsync(TABLA, "id", idSeleccionado.ToString(), body);
-                tipoMsg = "Actualizado";
+                success = await ServicioEntidad.ActualizarAsync(TABLA, "id", idSeleccionado.ToString(), body);
+                actionType = "actualizado";
             }
             else
             {
                 tipoAlerta = "warning";
-                mensaje = "Acción no permitida, seleccione una acción válida";
+                mensaje = "Acción no permitida, seleccione una acción válida.";
                 return;
             }
 
-            var serverMessage = await tempRespuesta.Content.ReadAsStringAsync();
-
-            if (!tempRespuesta.IsSuccessStatusCode)
+            if (success)
             {
-                tipoAlerta = "danger";
-                mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : tempRespuesta.ReasonPhrase;
+                tipoAlerta = "success";
+                mensaje = $"Registro {actionType} exitosamente!";
+                await CargarVariables(); // Reload data after successful operation
+                await modalFormulario.HideModalAsync();
             }
             else
             {
-                tipoAlerta = "success";
-                mensaje = !string.IsNullOrWhiteSpace(serverMessage) ? serverMessage : $"Registro {tipoMsg} Exitosamente!";
-                await CargarVariables();
-                await modalFormulario.HideModalAsync();
+                tipoAlerta = "danger";
+                mensaje = $"No se pudo {actionType} el registro.";
             }
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
             tipoAlerta = "danger";
-            mensaje = $"Error en la petición: {ex.Message}";
-            Console.WriteLine($"Error en la petición: {ex.Message}");
+            mensaje = $"Error al guardar el registro: {ex.Message}";
+            Console.WriteLine($"Error al guardar el registro: {ex.Message}");
         }
+        resetMensaje();
     }
 
     private async Task EliminarVariable()
@@ -346,6 +432,7 @@ else
             mensaje = $"Error en la petición: {ex.Message}";
             Console.WriteLine($"Error en la petición: {ex.Message}");
         }
+        resetMensaje();
     }
 
     private void LimpiarMensaje()
@@ -364,4 +451,4 @@ else
             });
         });
     }
-} 
+}

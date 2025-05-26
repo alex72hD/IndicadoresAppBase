@@ -3,7 +3,7 @@
 @using IndicadoresApp.Clases.IndicadoresApp.Clases
 @using IndicadoresApp.ModalGenerico
 @inject IJSRuntime JSRuntime
-@inject ServicioEntidad ServicioEntidad  
+@inject ServicioEntidad ServicioEntidad
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inherits ValidacionAcceso
@@ -16,6 +16,29 @@
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
     </div>
 }
+
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por nombre o email..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarVariables" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @VariablesFiltradas.Count de @Variables.Count variables
+            </small>
+        </div>
+    </div>
+</div>
+
 @if (EstamosCargando)
 {
     <p><em>Cargando...</em></p>
@@ -23,6 +46,12 @@
 else if (Variables == null || Variables.Count == 0)
 {
     <p>No hay variables registradas.</p>
+}
+else if (VariablesFiltradas.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron variables que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
@@ -40,7 +69,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var variable in Variables)
+                @foreach (var variable in VariablesFiltradas)
                 {
                     <tr>
                         <td>@ObtenerValor(variable, "nombre")</td>
@@ -60,11 +89,10 @@ else
     </div>
 }
 
-<!-- Modal para crear/editar variable -->
-<ModalGenerico @ref="modalFormulario" 
-              Id="formModal" 
-              Title="@TituloModal" 
-              OnSave="GuardarVariable">
+<ModalGenerico @ref="modalFormulario"
+             Id="formModal"
+             Title="@TituloModal"
+             OnSave="GuardarVariable">
     <BodyContent>
         <div class="mb-3">
             <label for="nombre" class="form-label">Nombre</label>
@@ -77,11 +105,10 @@ else
     </BodyContent>
 </ModalGenerico>
 
-<!-- Modal para confirmar eliminación -->
-<ModalGenerico @ref="modalConfirmacion" 
-              Id="confirmModal" 
-              Title="Confirmar eliminación" 
-              OnSave="EliminarVariable">
+<ModalGenerico @ref="modalConfirmacion"
+             Id="confirmModal"
+             Title="Confirmar eliminación"
+             OnSave="EliminarVariable">
     <BodyContent>
         <p>¿Está seguro que desea eliminar la variable @VariableAEliminar.Nombre?</p>
     </BodyContent>
@@ -103,12 +130,16 @@ else
 
 @code {
     private const string NOMBRE_TABLA = "variable";
-    
+
     private List<Dictionary<string, object>> Variables { get; set; } = new();
+    private List<Dictionary<string, object>> VariablesFiltradas { get; set; } = new(); // New list for filtered data
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
     private string? MensajeExito { get; set; }
     private bool EsVerificador { get; set; } = false;
+
+    // Propiedad para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     private bool ModoEdicion { get; set; } = false;
     private VariableModel VariableActual { get; set; } = new();
@@ -129,15 +160,23 @@ else
     {
         EstamosCargando = true;
         MensajeError = null;
-        
+
         try
         {
             Variables = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA) ?? new List<Dictionary<string, object>>();
+            VariablesFiltradas = new List<Dictionary<string, object>>(Variables); // Initialize filtered list
+
+            // Apply filter if there's existing search text
+            if (!string.IsNullOrEmpty(TextoBusqueda))
+            {
+                FiltrarVariables();
+            }
         }
         catch (Exception ex)
         {
             MensajeError = $"Error al cargar variables: {ex.Message}";
             Variables = new List<Dictionary<string, object>>();
+            VariablesFiltradas = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -148,6 +187,45 @@ else
     private string ObtenerValor(Dictionary<string, object> diccionario, string clave)
     {
         return diccionario.TryGetValue(clave, out var valor) ? valor?.ToString() ?? string.Empty : string.Empty;
+    }
+
+    private void FiltrarVariables(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            VariablesFiltradas = new List<Dictionary<string, object>>(Variables);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+
+            VariablesFiltradas = Variables.Where(variable =>
+            {
+                var nombre = ObtenerValor(variable, "nombre").ToLower();
+                var email = ObtenerValor(variable, "fkemailusuario").ToLower();
+                // If you want to search by date, you'll need to parse and format it consistently
+                var fechaCreacion = ObtenerValor(variable, "fechacreacion").ToLower();
+
+
+                return nombre.Contains(textoBusquedaLower) ||
+                       email.Contains(textoBusquedaLower) ||
+                       fechaCreacion.Contains(textoBusquedaLower); // Simple string contains for date
+            }).ToList();
+        }
+
+        StateHasChanged(); // Notify Blazor that the state has changed and UI should re-render
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        VariablesFiltradas = new List<Dictionary<string, object>>(Variables);
+        StateHasChanged();
     }
 
     private async Task MostrarFormularioCrear()

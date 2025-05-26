@@ -1,51 +1,75 @@
-@page "/rol"  
-@using System.Collections.Generic  
-@using System.Text.Json  
-@inject ServicioEntidad servicioEntidad  
-@inject NavigationManager navegacionManager  
+@page "/rol"
+@using System.Collections.Generic
+@using System.Text.Json
+@inject ServicioEntidad servicioEntidad
+@inject NavigationManager navegacionManager
 @inherits ValidacionAcceso
 
-<PageTitle>Lista de tipos de roles</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+<PageTitle>Lista de tipos de roles</PageTitle>
 
-<h1>roles</h1>  
+<h1>roles</h1>
 
-<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
-    <button class="btn btn-primary"@onclick="MostrarFormularioCrear">Crear Nuevo</button> 
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
 </div>
 
-<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
-<!-- Si no está cargando pero no hay roles o la lista es nula, muestra un mensaje informativo -->
-<!-- Si hay roles para mostrar, muestra la tabla -->
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por código o nombre..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarRoles" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @RolesFiltrados.Count de @roles.Count roles
+            </small>
+        </div>
+    </div>
+</div>
+
 @if (cargando)
 {
-    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+    <p><em>Cargando...</em></p>
 }
 else if (roles == null || roles.Count == 0)
 {
-    <p>No hay tipos de roles disponible</p>  
+    <p>No hay tipos de roles disponibles.</p>
+}
+else if (RolesFiltrados.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron roles que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
-    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
-        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
-            <thead>  <!-- Encabezado de la tabla -->
-                <tr>  <!-- Fila del encabezado -->
-                    <th>Código</th>  <!-- Columna para el código de la rol -->
-                    <th>nombre</th>  <!-- Columna para el nombre de la rol -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>nombre</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
-                <!-- Bucle foreach que itera sobre cada rol en la lista -->
-                @foreach (var rol in roles)
+            <tbody>
+                @foreach (var rol in RolesFiltrados)
                 {
-                    <tr>  <!-- Fila para cada rol -->
-                        <td>@ObtenerValor(rol, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
-                        <td>@ObtenerValor(rol, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
-                         <td>
+                    <tr>
+                        <td>@ObtenerValor(rol, "id")</td>
+                        <td>@ObtenerValor(rol, "nombre")</td>
+                        <td>
                             <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(rol)">Editar</button>
                             <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(rol)">Eliminar</button>
-                         </td>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -113,13 +137,15 @@ else
 }
 
 @code {
-    // Lista para almacenar los roles que se obtienen de la API
     private List<Dictionary<string, object>> roles = new List<Dictionary<string, object>>();
-    
+    private List<Dictionary<string, object>> RolesFiltrados = new List<Dictionary<string, object>>(); // New list for filtered data
     private bool cargando = true;
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "rol";
+
+    // Variables para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     // Variables para el formulario
     private bool mostrarFormulario = false;
@@ -132,31 +158,32 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await Cargarunidadmedicion();
+        await CargarRoles(); // Renamed for clarity
     }
 
-    private async Task Cargarunidadmedicion()
+    private async Task CargarRoles() // Renamed method
     {
         cargando = true;
         errorMensaje = null;
-        
+
         try
         {
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
-            
-            if (resultado != null)
+
+            roles = resultado ?? new List<Dictionary<string, object>>();
+            RolesFiltrados = new List<Dictionary<string, object>>(roles); // Initialize filtered list
+
+            // Apply filter if there's existing search text
+            if (!string.IsNullOrEmpty(TextoBusqueda))
             {
-                roles = resultado;
-            }
-            else
-            {
-                roles = new List<Dictionary<string, object>>();
+                FiltrarRoles();
             }
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al cargar la rol: {ex.Message}";
+            errorMensaje = $"Error al cargar los roles: {ex.Message}";
             roles = new List<Dictionary<string, object>>();
+            RolesFiltrados = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -168,14 +195,50 @@ else
     {
         if (diccionario == null)
             return string.Empty;
-            
+
         if (diccionario.TryGetValue(clave, out var valor))
         {
             return valor?.ToString() ?? string.Empty;
         }
-        
+
         return string.Empty;
     }
+
+    private void FiltrarRoles(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            RolesFiltrados = new List<Dictionary<string, object>>(roles);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+
+            RolesFiltrados = roles.Where(rol =>
+            {
+                var codigo = ObtenerValor(rol, "id").ToLower();
+                var nombre = ObtenerValor(rol, "nombre").ToLower();
+
+                return codigo.Contains(textoBusquedaLower) ||
+                       nombre.Contains(textoBusquedaLower);
+            }).ToList();
+        }
+
+        StateHasChanged(); // Notify Blazor that the state has changed and UI should re-render
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        RolesFiltrados = new List<Dictionary<string, object>>(roles);
+        StateHasChanged();
+    }
+
     private void MostrarFormularioCrear()
     {
         rolActual = new RolModel();
@@ -224,7 +287,7 @@ else
 
                 if (resultado)
                 {
-                    exitoMensaje = "rol actualizada correctamente.";
+                    exitoMensaje = "Rol actualizado correctamente.";
                 }
             }
             else
@@ -236,18 +299,18 @@ else
 
                 if (resultado)
                 {
-                    exitoMensaje = "rol creado correctamente.";
+                    exitoMensaje = "Rol creado correctamente.";
                 }
             }
 
             if (resultado)
             {
-                await Cargarunidadmedicion();
+                await CargarRoles(); // Renamed method
                 mostrarFormulario = false;
             }
             else
             {
-                errorMensaje = "No se pudo guardar la rol.";
+                errorMensaje = "No se pudo guardar el rol.";
             }
         }
         catch (Exception ex)
@@ -255,6 +318,7 @@ else
             errorMensaje = $"Error al guardar el rol: {ex.Message}";
         }
     }
+
     private void ConfirmarEliminar(Dictionary<string, object> rol)
     {
         rolEliminar = new RolModel
@@ -285,19 +349,26 @@ else
 
             if (resultado)
             {
-                exitoMensaje = "rol eliminado correctamente.";
-                await Cargarunidadmedicion();
+                exitoMensaje = "Rol eliminado correctamente.";
+                await CargarRoles(); // Renamed method
             }
             else
             {
-                errorMensaje = "No se pudo eliminar la rol.";
+                errorMensaje = "No se pudo eliminar el rol.";
             }
 
             mostrarConfirmacion = false;
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al eliminar la rol: {ex.Message}";
+            errorMensaje = $"Error al eliminar el rol: {ex.Message}";
         }
+    }
+
+    // You might need a RolModel class if it doesn't exist. Example:
+    public class RolModel
+    {
+        public string? id { get; set; }
+        public string? nombre { get; set; }
     }
 }

@@ -7,54 +7,80 @@
 @inject NavigationManager navegacionManager  
 @inherits ValidacionAcceso
 
-<PageTitle>Lista de tipos de sentidos</PageTitle>  <!-- Define el título que se mostrará en la pestaña del navegador -->
+<PageTitle>Lista de tipos de sentidos</PageTitle>
 
-<h1>sentidos</h1>  
+<h1>Sentidos</h1>  
 @if (!EsVerificador)
 {
-<div class="mb-3">  <!-- Contenedor con margen inferior (mb-3 es una clase de Bootstrap) -->
-    <button class="btn btn-primary"@onclick="MostrarFormularioCrear">Crear Nuevo</button> 
-</div>
+    <div class="mb-3">
+        <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button> 
+    </div>
 }
-<!-- Bloque condicional que muestra un indicador de carga si los datos están cargando -->
-<!-- Si no está cargando pero no hay sentidos o la lista es nula, muestra un mensaje informativo -->
-<!-- Si hay sentidos para mostrar, muestra la tabla -->
+
+<!-- Campo de búsqueda -->
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" 
+                       class="form-control" 
+                       placeholder="Buscar por código o nombre..." 
+                       @bind="TextoBusqueda" 
+                       @oninput="FiltrarSentidos" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @SentidosFiltrados.Count de @sentidos.Count sentidos
+            </small>
+        </div>
+    </div>
+</div>
+
 @if (cargando)
 {
-    <p><em>Cargando...</em></p>  <!-- Mensaje de carga con énfasis (cursiva) -->
+    <p><em>Cargando...</em></p>
 }
 else if (sentidos == null || sentidos.Count == 0)
 {
     <p>No hay tipos de sentidos disponible</p>  
 }
+else if (SentidosFiltrados.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron sentidos que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
+}
 else
 {
-    <div class="table-responsive">  <!-- Contenedor que hace que la tabla sea responsive (se pueda desplazar horizontalmente en dispositivos pequeños) -->
-        <table class="table table-striped">  <!-- Tabla con estilos de Bootstrap (filas alternas sombreadas) -->
-            <thead>  <!-- Encabezado de la tabla -->
-                <tr>  <!-- Fila del encabezado -->
-                    <th>Código</th>  <!-- Columna para el código de la sentido -->
-                    <th>nombre</th>  <!-- Columna para el nombre de la sentido -->
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
                     @if (!EsVerificador)
                     {
                         <th>Acciones</th>
                     }
                 </tr>
             </thead>
-            <tbody>  <!-- Cuerpo de la tabla donde se muestran los datos -->
-                <!-- Bucle foreach que itera sobre cada sentido en la lista -->
-                @foreach (var sentido in sentidos)
+            <tbody>
+                @foreach (var sentido in SentidosFiltrados)
                 {
-                    <tr>  <!-- Fila para cada sentido -->
-                        <td>@ObtenerValor(sentido, "id")</td>  <!-- Celda que muestra el código usando el método auxiliar -->
-                        <td>@ObtenerValor(sentido, "nombre")</td>  <!-- Celda que muestra el nombre usando el método auxiliar -->
+                    <tr>
+                        <td>@ObtenerValor(sentido, "id")</td>
+                        <td>@ObtenerValor(sentido, "nombre")</td>
                         @if (!EsVerificador)
                         {
-                        <td>
-                            <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(sentido)">Editar</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(sentido)">Eliminar</button>
-                         </td>
-                         }
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(sentido)">Editar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(sentido)">Eliminar</button>
+                            </td>
+                        }
                     </tr>
                 }
             </tbody>
@@ -122,14 +148,18 @@ else
 }
 
 @code {
-    // Lista para almacenar los sentidoes que se obtienen de la API
+    // Lista para almacenar los sentidos que se obtienen de la API
     private List<Dictionary<string, object>> sentidos = new List<Dictionary<string, object>>();
+    private List<Dictionary<string, object>> SentidosFiltrados = new List<Dictionary<string, object>>();
     
-   private bool cargando = true;
+    private bool cargando = true;
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private const string TABLA = "sentido";
     private bool EsVerificador { get; set; } = false;
+
+    // Variables para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     // Variables para el formulario
     private bool mostrarFormulario = false;
@@ -145,10 +175,10 @@ else
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
 
-        await Cargarunidadmedicion();
+        await CargarSentidos();
     }
 
-    private async Task Cargarunidadmedicion()
+    private async Task CargarSentidos()
     {
         cargando = true;
         errorMensaje = null;
@@ -157,19 +187,20 @@ else
         {
             var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
             
-            if (resultado != null)
+            sentidos = resultado ?? new List<Dictionary<string, object>>();
+            SentidosFiltrados = new List<Dictionary<string, object>>(sentidos);
+            
+            // Aplicar filtro si hay texto de búsqueda
+            if (!string.IsNullOrEmpty(TextoBusqueda))
             {
-                sentidos = resultado;
-            }
-            else
-            {
-                sentidos = new List<Dictionary<string, object>>();
+                FiltrarSentidos();
             }
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al cargar la sentido: {ex.Message}";
+            errorMensaje = $"Error al cargar los sentidos: {ex.Message}";
             sentidos = new List<Dictionary<string, object>>();
+            SentidosFiltrados = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -189,6 +220,42 @@ else
         
         return string.Empty;
     }
+
+    private void FiltrarSentidos(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            SentidosFiltrados = new List<Dictionary<string, object>>(sentidos);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+            
+            SentidosFiltrados = sentidos.Where(sentido =>
+            {
+                var codigo = ObtenerValor(sentido, "id").ToLower();
+                var nombre = ObtenerValor(sentido, "nombre").ToLower();
+                
+                return codigo.Contains(textoBusquedaLower) || 
+                       nombre.Contains(textoBusquedaLower);
+            }).ToList();
+        }
+
+        StateHasChanged();
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        SentidosFiltrados = new List<Dictionary<string, object>>(sentidos);
+        StateHasChanged();
+    }
+
     private void MostrarFormularioCrear()
     {
         if (EsVerificador)
@@ -243,7 +310,7 @@ else
 
                 if (resultado)
                 {
-                    exitoMensaje = "sentido actualizada correctamente.";
+                    exitoMensaje = "Sentido actualizado correctamente.";
                 }
             }
             else
@@ -255,13 +322,13 @@ else
 
                 if (resultado)
                 {
-                    exitoMensaje = "sentido creado correctamente.";
+                    exitoMensaje = "Sentido creado correctamente.";
                 }
             }
 
             if (resultado)
             {
-                await Cargarunidadmedicion();
+                await CargarSentidos();
                 mostrarFormulario = false;
             }
             else
@@ -274,6 +341,7 @@ else
             errorMensaje = $"Error al guardar el sentido: {ex.Message}";
         }
     }
+
     private void ConfirmarEliminar(Dictionary<string, object> sentido)
     {
         if (EsVerificador)
@@ -306,8 +374,8 @@ else
 
             if (resultado)
             {
-                exitoMensaje = "sentido eliminado correctamente.";
-                await Cargarunidadmedicion();
+                exitoMensaje = "Sentido eliminado correctamente.";
+                await CargarSentidos();
             }
             else
             {
@@ -318,7 +386,7 @@ else
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error al eliminar la sentido: {ex.Message}";
+            errorMensaje = $"Error al eliminar el sentido: {ex.Message}";
         }
     }
 }

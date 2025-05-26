@@ -1,0 +1,343 @@
+﻿@page "/registro"
+@using System.Net.Http.Json
+@using IndicadoresApp.Clases.IndicadoresApp.Clases
+@using IndicadoresApp.Services
+@using IndicadoresApp.Clases
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject ServicioEntidad servicioEntidad
+
+<!-- Sección de diseño de la página de registro -->
+<section class="vh-100">
+    <div class="container-fluid h-custom">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <!-- Imagen ilustrativa del formulario de registro -->
+            <div class="col-md-9 col-lg-6 col-xl-5">
+                <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
+                     class="img-fluid" alt="Sample image">
+            </div>
+
+            <!-- Formulario de registro con Blazor -->
+            <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
+                <EditForm Model="@modeloRegistro" OnValidSubmit="ManejarRegistro">
+                    <!-- Inicia el formulario de registro usando EditForm -->
+                    <!-- Divisor visual -->
+                    <div class="divider d-flex align-items-center my-4">
+                        <h2 class="text-center fw-bold mb-0">Crear Nueva Cuenta</h2>
+                    </div>
+
+                    <!-- Campo de entrada para el correo electrónico -->
+                    <div class="form-outline mb-4">
+                        <InputText id="correoRegistro" class="form-control form-control-lg"
+                                   @bind-Value="modeloRegistro.Email" placeholder="Ingresar un correo válido" />
+                        <label class="form-label" for="correoRegistro">Correo electrónico</label>
+                        <ValidationMessage For="@(() => modeloRegistro.Email)" />
+                    </div>
+
+                    <!-- Campo de entrada para la contraseña -->
+                    <div class="form-outline mb-3">
+                        <InputText id="contrasenaRegistro" type="password" class="form-control form-control-lg"
+                                   @bind-Value="modeloRegistro.Contrasena" placeholder="Ingrese su contraseña" />
+                        <label class="form-label" for="contrasenaRegistro">Contraseña</label>
+                        <ValidationMessage For="@(() => modeloRegistro.Contrasena)" />
+                    </div>
+
+                    <!-- Campo de confirmación de contraseña -->
+                    <div class="form-outline mb-3">
+                        <InputText id="confirmarContrasena" type="password" class="form-control form-control-lg"
+                                   @bind-Value="modeloRegistro.ConfirmarContrasena" placeholder="Confirme su contraseña" />
+                        <label class="form-label" for="confirmarContrasena">Confirmar Contraseña</label>
+                        <ValidationMessage For="@(() => modeloRegistro.ConfirmarContrasena)" />
+                    </div>
+
+                    <!-- Selector de rol (opcional, dependiendo de los permisos) -->
+                    <div class="form-outline mb-4">
+                        <select id="rolRegistro" class="form-select form-control-lg" @bind="modeloRegistro.RolSeleccionado">
+                            <option value="">Seleccionar rol...</option>
+                            @foreach (var rol in rolesDisponibles)
+                            {
+                                <option value="@rol.Key">@rol.Value</option>
+                            }
+                        </select>
+                        <label class="form-label" for="rolRegistro">Rol del Usuario</label>
+                    </div>
+
+                    <!-- Botón de envío del formulario -->
+                    <div class="text-center text-lg-start mt-4 pt-2">
+                        <button type="submit" class="btn btn-success btn-lg" disabled="@registrando"
+                                style="padding-left: 2.5rem; padding-right: 2.5rem;">
+                            @if (registrando)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            else
+                            {
+                                <text>Crear Cuenta</text>
+                            }
+                        </button>
+                    </div>
+
+                    <!-- Enlace para volver al login -->
+                    <div class="text-center text-lg-start mt-3">
+                        <p class="small fw-bold">
+                            ¿Ya tienes una cuenta? 
+                            <a href="/login" class="link-primary">Iniciar Sesión</a>
+                        </p>
+                    </div>
+
+                    <!-- Mostrar mensajes de error o éxito -->
+                    @if (!string.IsNullOrEmpty(mensajeError))
+                    {
+                        <div class="alert alert-danger mt-3">
+                            @mensajeError
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(mensajeExito))
+                    {
+                        <div class="alert alert-success mt-3">
+                            @mensajeExito
+                        </div>
+                    }
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</section>
+
+@code {
+    // Modelo de datos para el registro
+    private ModeloRegistro modeloRegistro = new ModeloRegistro();
+    private string mensajeError = string.Empty;
+    private string mensajeExito = string.Empty;
+    private bool registrando = false;
+    private const string TABLA = "usuario";
+
+    // Roles disponibles para asignar
+    private Dictionary<int, string> rolesDisponibles = new Dictionary<int, string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarRolesDisponibles();
+    }
+
+    /// <summary>
+    /// Carga los roles disponibles desde la base de datos
+    /// </summary>
+    private async Task CargarRolesDisponibles()
+    {
+        try
+        {
+            var jsonConsultaRoles = new
+            {
+                consulta = "SELECT id, nombre FROM rol ORDER BY nombre",
+                parametros = new { }
+            };
+
+            var respuestaRoles = await Http.PostAsJsonAsync("tabla/ejecutar-consulta-parametrizada", jsonConsultaRoles);
+
+            if (respuestaRoles.IsSuccessStatusCode)
+            {
+                var listaRoles = await respuestaRoles.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>();
+
+                if (listaRoles != null)
+                {
+                    rolesDisponibles.Clear();
+                    foreach (var rol in listaRoles)
+                    {
+                        if (rol.TryGetValue("id", out var idObj) && rol.TryGetValue("nombre", out var nombreObj))
+                        {
+                            if (int.TryParse(idObj.ToString(), out int id))
+                            {
+                                rolesDisponibles[id] = nombreObj.ToString() ?? string.Empty;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cargando roles: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Manejar el proceso de registro cuando el formulario se envía de manera válida
+    /// </summary>
+    private async Task ManejarRegistro()
+    {
+        try
+        {
+            mensajeError = string.Empty;
+            mensajeExito = string.Empty;
+
+            // Validaciones
+            if (string.IsNullOrWhiteSpace(modeloRegistro.Email) || 
+                string.IsNullOrWhiteSpace(modeloRegistro.Contrasena) ||
+                string.IsNullOrWhiteSpace(modeloRegistro.ConfirmarContrasena))
+            {
+                mensajeError = "Todos los campos son obligatorios.";
+                return;
+            }
+
+            if (modeloRegistro.Contrasena != modeloRegistro.ConfirmarContrasena)
+            {
+                mensajeError = "Las contraseñas no coinciden.";
+                return;
+            }
+
+            if (modeloRegistro.Contrasena.Length < 6)
+            {
+                mensajeError = "La contraseña debe tener al menos 6 caracteres.";
+                return;
+            }
+
+            if (!IsValidEmail(modeloRegistro.Email))
+            {
+                mensajeError = "Por favor ingrese un correo electrónico válido.";
+                return;
+            }
+
+            registrando = true;
+
+            // Verificar si el usuario ya existe
+            var usuarioExistente = await VerificarUsuarioExistente(modeloRegistro.Email);
+            if (usuarioExistente)
+            {
+                mensajeError = "Ya existe un usuario con este correo electrónico.";
+                return;
+            }
+
+            // Crear el usuario en la tabla usuario
+            var bodyUsuario = new Dictionary<string, object>
+            {
+                { "email", modeloRegistro.Email.Trim().ToLower() },
+                { "contrasena", modeloRegistro.Contrasena.Trim() }
+            };
+
+            var resultadoUsuario = await servicioEntidad.CrearAsync(TABLA, bodyUsuario);
+
+            if (resultadoUsuario)
+            {
+                // Si se seleccionó un rol, asignarlo al usuario
+                if (!string.IsNullOrEmpty(modeloRegistro.RolSeleccionado) && 
+                    int.TryParse(modeloRegistro.RolSeleccionado, out int rolId))
+                {
+                    await AsignarRolAlUsuario(modeloRegistro.Email.Trim().ToLower(), rolId);
+                }
+
+                mensajeExito = "¡Usuario creado exitosamente! Puede iniciar sesión ahora.";
+                
+                // Limpiar formulario
+                modeloRegistro = new ModeloRegistro();
+                
+                // Opcional: Redirigir al login después de unos segundos
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                mensajeError = "Error al crear el usuario. Por favor intente de nuevo.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error en el proceso de registro: {ex.Message}");
+            Console.WriteLine($"StackTrace: {ex.StackTrace}");
+            mensajeError = $"Error inesperado: {ex.Message}";
+        }
+        finally
+        {
+            registrando = false;
+        }
+    }
+
+    /// <summary>
+    /// Verificar si ya existe un usuario con el email proporcionado
+    /// </summary>
+    private async Task<bool> VerificarUsuarioExistente(string email)
+    {
+        try
+        {
+            var jsonConsulta = new
+            {
+                consulta = "SELECT COUNT(*) as total FROM usuario WHERE email = @Email",
+                parametros = new { Email = email.Trim().ToLower() }
+            };
+
+            var respuesta = await Http.PostAsJsonAsync("tabla/ejecutar-consulta-parametrizada", jsonConsulta);
+
+            if (respuesta.IsSuccessStatusCode)
+            {
+                var resultado = await respuesta.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>();
+                
+                if (resultado != null && resultado.Any())
+                {
+                    if (resultado[0].TryGetValue("total", out var totalObj) && 
+                        int.TryParse(totalObj.ToString(), out int total))
+                    {
+                        return total > 0;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error verificando usuario existente: {ex.Message}");
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Asignar rol al usuario recién creado
+    /// </summary>
+    private async Task AsignarRolAlUsuario(string email, int rolId)
+    {
+        try
+        {
+            var bodyRolUsuario = new Dictionary<string, object>
+            {
+                { "fkemail", email },
+                { "fkidrol", rolId }
+            };
+
+            await servicioEntidad.CrearAsync("rol_usuario", bodyRolUsuario);
+            Console.WriteLine($"Rol {rolId} asignado al usuario {email}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error asignando rol al usuario: {ex.Message}");
+            // No mostramos error al usuario porque el usuario ya fue creado
+        }
+    }
+
+    /// <summary>
+    /// Validar formato de email
+    /// </summary>
+    private bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Modelo de datos utilizado para capturar los datos del registro
+    /// </summary>
+    public class ModeloRegistro
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Contrasena { get; set; } = string.Empty;
+        public string ConfirmarContrasena { get; set; } = string.Empty;
+        public string RolSeleccionado { get; set; } = string.Empty;
+    }
+}

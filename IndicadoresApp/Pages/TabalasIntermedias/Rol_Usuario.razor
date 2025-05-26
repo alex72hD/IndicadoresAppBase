@@ -1,8 +1,8 @@
-@page "/rolUsuario"  
-@using System.Collections.Generic  
-@using System.Text.Json   
+@page "/rolUsuario"
+@using System.Collections.Generic
+@using System.Text.Json
 @using IndicadoresApp.ModalGenerico
-@inject ServicioEntidad ServicioEntidad  
+@inject ServicioEntidad ServicioEntidad
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inherits ValidacionAcceso
@@ -11,7 +11,29 @@
 <h1>Roles de Usuario</h1>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>  
+    <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
+</div>
+
+<div class="mb-3">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text"
+                       class="form-control"
+                       placeholder="Buscar por email o rol..."
+                       @bind="TextoBusqueda"
+                       @oninput="FiltrarRoles" />
+                <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted">
+                Mostrando @RolesUsuarioFiltrados.Count de @RolesUsuario.Count roles
+            </small>
+        </div>
+    </div>
 </div>
 
 @if (EstamosCargando)
@@ -21,6 +43,12 @@
 else if (RolesUsuario == null || RolesUsuario.Count == 0)
 {
     <p>No hay roles de usuario registrados.</p>
+}
+else if (RolesUsuarioFiltrados.Count == 0 && !string.IsNullOrEmpty(TextoBusqueda))
+{
+    <div class="alert alert-info">
+        <i class="fas fa-search"></i> No se encontraron roles que coincidan con "<strong>@TextoBusqueda</strong>"
+    </div>
 }
 else
 {
@@ -34,7 +62,7 @@ else
                 </tr>
             </thead>
             <tbody>
-                @foreach (var rol in RolesUsuario)
+                @foreach (var rol in RolesUsuarioFiltrados)
                 {
                     <tr>
                         <td>@ObtenerValor(rol, "fkemail")</td>
@@ -50,11 +78,10 @@ else
     </div>
 }
 
-<!-- Modal para crear/editar rol de usuario -->
-<ModalGenerico @ref="modalFormulario" 
-              Id="formModal" 
-              Title="@TituloModal" 
-              OnSave="GuardarRol">
+<ModalGenerico @ref="modalFormulario"
+             Id="formModal"
+             Title="@TituloModal"
+             OnSave="GuardarRol">
     <BodyContent>
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
@@ -67,11 +94,10 @@ else
     </BodyContent>
 </ModalGenerico>
 
-<!-- Modal para confirmar eliminación -->
-<ModalGenerico @ref="modalConfirmacion" 
-              Id="confirmModal" 
-              Title="Confirmar eliminación" 
-              OnSave="EliminarRol">
+<ModalGenerico @ref="modalConfirmacion"
+             Id="confirmModal"
+             Title="Confirmar eliminación"
+             OnSave="EliminarRol">
     <BodyContent>
         <p>¿Está seguro que desea eliminar el rol de usuario con email: @RolAEliminar.FkEmail?</p>
     </BodyContent>
@@ -93,11 +119,15 @@ else
 
 @code {
     private const string NOMBRE_TABLA = "rol_usuario";
-    
+
     private List<Dictionary<string, object>> RolesUsuario { get; set; } = new();
+    private List<Dictionary<string, object>> RolesUsuarioFiltrados { get; set; } = new(); // New list for filtered data
     private bool EstamosCargando { get; set; } = true;
     private string? MensajeError { get; set; }
     private string? MensajeExito { get; set; }
+
+    // Propiedad para la búsqueda
+    private string TextoBusqueda { get; set; } = string.Empty;
 
     // Variables para el formulario
     private bool ModoEdicion { get; set; } = false;
@@ -118,17 +148,25 @@ else
     {
         EstamosCargando = true;
         MensajeError = null;
-        
+
         try
         {
             var resultado = await ServicioEntidad.ObtenerTodosAsync(NOMBRE_TABLA);
-            
+
             RolesUsuario = resultado ?? new List<Dictionary<string, object>>();
+            RolesUsuarioFiltrados = new List<Dictionary<string, object>>(RolesUsuario); // Initialize filtered list
+
+            // Apply filter if there's existing search text
+            if (!string.IsNullOrEmpty(TextoBusqueda))
+            {
+                FiltrarRoles();
+            }
         }
         catch (Exception ex)
         {
             MensajeError = $"Error al cargar roles de usuario: {ex.Message}";
             RolesUsuario = new List<Dictionary<string, object>>();
+            RolesUsuarioFiltrados = new List<Dictionary<string, object>>();
         }
         finally
         {
@@ -140,13 +178,48 @@ else
     {
         if (diccionario == null)
             return string.Empty;
-            
+
         if (diccionario.TryGetValue(clave, out var valor))
         {
             return valor?.ToString() ?? string.Empty;
         }
-        
+
         return string.Empty;
+    }
+
+    private void FiltrarRoles(ChangeEventArgs? e = null)
+    {
+        if (e != null)
+        {
+            TextoBusqueda = e.Value?.ToString() ?? string.Empty;
+        }
+
+        if (string.IsNullOrEmpty(TextoBusqueda))
+        {
+            RolesUsuarioFiltrados = new List<Dictionary<string, object>>(RolesUsuario);
+        }
+        else
+        {
+            var textoBusquedaLower = TextoBusqueda.ToLower().Trim();
+
+            RolesUsuarioFiltrados = RolesUsuario.Where(rol =>
+            {
+                var email = ObtenerValor(rol, "fkemail").ToLower();
+                var idRol = ObtenerValor(rol, "fkidrol").ToLower();
+
+                return email.Contains(textoBusquedaLower) ||
+                       idRol.Contains(textoBusquedaLower);
+            }).ToList();
+        }
+
+        StateHasChanged(); // Notify Blazor that the state has changed and UI should re-render
+    }
+
+    private void LimpiarBusqueda()
+    {
+        TextoBusqueda = string.Empty;
+        RolesUsuarioFiltrados = new List<Dictionary<string, object>>(RolesUsuario);
+        StateHasChanged();
     }
 
     private async Task MostrarFormularioCrear()
@@ -179,13 +252,112 @@ else
         await InvokeAsync(StateHasChanged);
         await modalConfirmacion.ShowModalAsync();
     }
+
     private async Task GuardarRol()
     {
+        MensajeError = null;
+        MensajeExito = null;
 
+        try
+        {
+            if (string.IsNullOrWhiteSpace(RolActual.FkEmail) || string.IsNullOrWhiteSpace(RolActual.FkIdRol))
+            {
+                MensajeError = "El email y el ID de rol son obligatorios.";
+                return;
+            }
+
+            var rolData = new Dictionary<string, object>
+            {
+                ["fkemail"] = RolActual.FkEmail,
+                ["fkidrol"] = RolActual.FkIdRol
+            };
+
+            bool resultado;
+
+            if (ModoEdicion)
+            {
+                // For updating, you need to provide the keys for the specific record.
+                // Assuming 'fkemail' and 'fkidrol' together form a composite primary key.
+                // If there's a single 'id' column, use that instead.
+                resultado = await ServicioEntidad.ActualizarAsync(
+                    NOMBRE_TABLA,
+                    "fkemail", // Key field for identifying the record
+                    RolActual.FkEmail, // Value of the key field
+                    rolData
+                );
+
+                if (resultado)
+                {
+                    MensajeExito = "Rol de usuario actualizado correctamente.";
+                }
+            }
+            else
+            {
+                resultado = await ServicioEntidad.CrearAsync(
+                    NOMBRE_TABLA,
+                    rolData
+                );
+
+                if (resultado)
+                {
+                    MensajeExito = "Rol de usuario creado correctamente.";
+                }
+            }
+
+            if (resultado)
+            {
+                await CargarRolesUsuario();
+                await modalFormulario.HideModalAsync();
+            }
+            else
+            {
+                MensajeError = "Error al guardar el rol de usuario.";
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error: {ex.Message}";
+        }
+        await Task.Delay(5000); // Clear message after 5 seconds
+        MensajeError = null;
+        MensajeExito = null;
+        await InvokeAsync(StateHasChanged);
     }
+
     private async Task EliminarRol()
     {
+        MensajeError = null;
+        MensajeExito = null;
 
+        try
+        {
+            // For deleting, you need to provide the keys for the specific record.
+            // Assuming 'fkemail' and 'fkidrol' together form a composite primary key.
+            // If there's a single 'id' column, use that instead.
+            var resultado = await ServicioEntidad.EliminarAsync(
+                NOMBRE_TABLA,
+                "fkemail", // Key field for identifying the record
+                RolAEliminar.FkEmail
+            );
+
+            if (resultado)
+            {
+                MensajeExito = "Rol de usuario eliminado correctamente.";
+                await CargarRolesUsuario();
+                await modalConfirmacion.HideModalAsync();
+            }
+            else
+            {
+                MensajeError = "Error al eliminar el rol de usuario.";
+            }
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error: {ex.Message}";
+        }
+        await Task.Delay(5000); // Clear message after 5 seconds
+        MensajeError = null;
+        MensajeExito = null;
+        await InvokeAsync(StateHasChanged);
     }
-
 }
