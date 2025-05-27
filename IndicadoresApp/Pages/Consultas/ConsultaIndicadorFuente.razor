@@ -1,0 +1,215 @@
+﻿@page "/consulta-indicador-fuente"
+@using System.Collections.Generic
+@using System.Text.Json
+@inject ServicioEntidad servicioEntidad
+@inject IJSRuntime JSRuntime
+
+
+<h3>Consulta de Indicadores y Fuentes</h3>
+
+@if (!datosCargados)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <span class="ms-2">Cargando información...</span>
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Error:</strong> @errorMensaje
+    </div>
+    <button class="btn btn-primary" @onclick="EjecutarConsulta">
+        <i class="fas fa-sync-alt"></i> Reintentar
+    </button>
+}
+else
+{
+    <!-- Botón para refrescar los datos -->
+    <div class="mb-3">
+        <button class="btn btn-success" @onclick="EjecutarConsulta">
+            <i class="fas fa-search"></i> Actualizar Consulta
+        </button>
+        <span class="ms-3 text-muted">
+            Total de registros: <strong>@resultadosConsulta.Count</strong>
+        </span>
+    </div>
+
+    @if (resultadosConsulta.Count == 0)
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> No hay datos disponibles para mostrar.
+        </div>
+    }
+    else
+    {
+        <!-- Tabla con los resultados -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">ID Indicador</th>
+                        <th scope="col">Código</th>
+                        <th scope="col">Nombre Indicador</th>
+                        <th scope="col">Objetivo</th>
+                        <th scope="col">Fórmula</th>
+                        <th scope="col">Meta</th>
+                        <th scope="col">Fuente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var resultado in resultadosConsulta)
+                    {
+                        <tr>
+                            <td>@resultado["ID_Indicador"]</td>
+                            <td>
+                                <span class="badge bg-secondary">@resultado["Código_Indicador"]</span>
+                            </td>
+                            <td>
+                                <strong>@resultado["Nombre_Indicador"]</strong>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 200px;" title="@resultado["Objetivo_Indicador"]">
+                                    @(string.IsNullOrEmpty(resultado["Objetivo_Indicador"]?.ToString()) ? "Sin objetivo" : resultado["Objetivo_Indicador"])
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 150px;" title="@resultado["Fórmula_Indicador"]">
+                                    @(string.IsNullOrEmpty(resultado["Fórmula_Indicador"]?.ToString()) ? "Sin fórmula" : resultado["Fórmula_Indicador"])
+                                </div>
+                            </td>
+                            <td>@resultado["Meta_Indicador"]</td>
+                            <td>
+                                @if (string.IsNullOrEmpty(resultado["Nombre_Fuente"]?.ToString()))
+                                {
+                                    <span class="badge bg-warning text-dark">Sin fuente</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-primary">@resultado["Nombre_Fuente"]</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Estadísticas adicionales -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5>Total Indicadores</h5>
+                        <h3 class="text-primary">@indicadoresUnicos</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5>Con Fuente</h5>
+                        <h3 class="text-success">@indicadoresConFuente</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5>Sin Fuente</h5>
+                        <h3 class="text-warning">@indicadoresSinFuente</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<Dictionary<string, object>> resultadosConsulta = new();
+    private string? errorMensaje;
+    private bool datosCargados = false;
+
+    // Estadísticas
+    private int indicadoresUnicos = 0;
+    private int indicadoresConFuente = 0;
+    private int indicadoresSinFuente = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await EjecutarConsulta();
+    }
+
+    private async Task EjecutarConsulta()
+    {
+        try
+        {
+            datosCargados = false;
+            errorMensaje = null;
+
+            // Ejecutar el procedimiento almacenado
+            var parametros = new Dictionary<string, object>
+            {
+                { "nombreSP", "Sp_ConsultaIndicadorFuente" }
+            };
+
+            var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+                "consulta", // Tabla ficticia para el contexto
+                "Sp_ConsultaIndicadorFuente",
+                parametros
+            );
+
+            if (resultado != null)
+            {
+                resultadosConsulta = resultado;
+                CalcularEstadisticas();
+                await JSRuntime.InvokeVoidAsync("console.log",
+                    "Resultados de consulta:", JsonSerializer.Serialize(resultado));
+            }
+            else
+            {
+                resultadosConsulta = new();
+                errorMensaje = "No se obtuvieron resultados del procedimiento almacenado.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al ejecutar la consulta: {ex.Message}";
+            resultadosConsulta = new();
+            await JSRuntime.InvokeVoidAsync("console.error", "Error en consulta:", ex.Message);
+        }
+        finally
+        {
+            datosCargados = true;
+        }
+    }
+
+    private void CalcularEstadisticas()
+    {
+        if (resultadosConsulta.Count == 0)
+        {
+            indicadoresUnicos = indicadoresConFuente = indicadoresSinFuente = 0;
+            return;
+        }
+
+        // Obtener indicadores únicos
+        var idsUnicos = resultadosConsulta
+            .Select(r => r["ID_Indicador"]?.ToString())
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Distinct()
+            .ToList();
+
+        indicadoresUnicos = idsUnicos.Count;
+
+        // Contar indicadores con y sin fuente
+        indicadoresConFuente = resultadosConsulta
+            .Where(r => !string.IsNullOrEmpty(r["Nombre_Fuente"]?.ToString()))
+            .Select(r => r["ID_Indicador"]?.ToString())
+            .Distinct()
+            .Count();
+
+        indicadoresSinFuente = indicadoresUnicos - indicadoresConFuente;
+    }
+}

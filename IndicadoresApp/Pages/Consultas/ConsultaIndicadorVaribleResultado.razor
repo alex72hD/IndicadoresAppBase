@@ -1,0 +1,489 @@
+﻿@page "/consulta-indicador-variable-resultado"
+@using System.Collections.Generic
+@using System.Text.Json
+@using System.Globalization
+@inject ServicioEntidad servicioEntidad
+@inject IJSRuntime JSRuntime
+
+<h3>Consulta de Indicadores, Variables y Resultados</h3>
+
+@if (!datosCargados)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <span class="ms-2">Cargando información...</span>
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Error:</strong> @errorMensaje
+    </div>
+    <button class="btn btn-primary" @onclick="EjecutarConsulta">
+        <i class="fas fa-sync-alt"></i> Reintentar
+    </button>
+}
+else
+{
+    <!-- Controles superiores -->
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <button class="btn btn-success" @onclick="EjecutarConsulta">
+                <i class="fas fa-search"></i> Actualizar Consulta
+            </button>
+            <button class="btn btn-info ms-2" @onclick="ExportarDatos">
+                <i class="fas fa-download"></i> Exportar Datos
+            </button>
+        </div>
+        <div class="col-md-4 text-end">
+            <span class="text-muted">
+                Total de registros: <strong>@resultadosConsulta.Count</strong>
+            </span>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <button class="btn btn-link" type="button" @onclick="ToggleFiltros">
+                    <i class="fas @(mostrarFiltros ? "fa-chevron-up" : "fa-chevron-down")"></i>
+                    Filtros de Búsqueda
+                </button>
+            </h5>
+        </div>
+        @if (mostrarFiltros)
+        {
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <input @bind="filtroIndicador" @bind:event="oninput" @onkeyup="FiltrarDatos" 
+                               class="form-control" placeholder="Buscar indicador..." />
+                    </div>
+                    <div class="col-md-3">
+                        <input @bind="filtroVariable" @bind:event="oninput" @onkeyup="FiltrarDatos" 
+                               class="form-control" placeholder="Buscar variable..." />
+                    </div>
+              @*       <div class="col-md-2">
+                        <input type="date" @bind="filtroFechaDesde" @onchange="FiltrarDatos" 
+                               class="form-control" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" @bind="filtroFechaHasta" @onchange="FiltrarDatos" 
+                               class="form-control" />
+                    </div> *@
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-secondary w-100" @onclick="LimpiarFiltros">
+                            <i class="fas fa-times"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (datosFiltrados.Count == 0)
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> 
+            @if (resultadosConsulta.Count == 0)
+            {
+                @:No hay datos disponibles para mostrar.
+            }
+            else
+            {
+                @:No hay datos que coincidan con los filtros aplicados.
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Tabla con los resultados -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Código</th>
+                        <th scope="col">Indicador</th>
+                        <th scope="col">Objetivo</th>
+                        <th scope="col">Fórmula</th>
+                        <th scope="col">Meta</th>
+                        <th scope="col">Variable</th>
+                        <th scope="col">Dato</th>
+                        <th scope="col">Fecha Dato</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var resultado in datosFiltrados)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge bg-dark">@resultado["ID_Indicador"]</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">@resultado["Codigo_Indicador"]</span>
+                            </td>
+                            <td>
+                                <strong>@resultado["Nombre_Indicador"]</strong>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 200px;" 
+                                     title="@resultado["Objetivo_Indicador"]">
+                                    @(string.IsNullOrEmpty(resultado["Objetivo_Indicador"]?.ToString()) ? 
+                                      "Sin objetivo" : resultado["Objetivo_Indicador"])
+                                </div>
+                            </td>
+                            <td>
+                                <div class="text-truncate" style="max-width: 150px;" 
+                                     title="@resultado["Formula_Indicador"]">
+                                    @(string.IsNullOrEmpty(resultado["Formula_Indicador"]?.ToString()) ? 
+                                      "Sin fórmula" : resultado["Formula_Indicador"])
+                                </div>
+                            </td>
+                            <td>
+                                @if (string.IsNullOrEmpty(resultado["Meta_Indicador"]?.ToString()))
+                                {
+                                    <span class="text-muted">Sin meta</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info">@resultado["Meta_Indicador"]</span>
+                                }
+                            </td>
+                            <td>
+                                @if (string.IsNullOrEmpty(resultado["Nombre_Variable"]?.ToString()))
+                                {
+                                    <span class="badge bg-warning text-dark">Sin variable</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">@resultado["Nombre_Variable"]</span>
+                                }
+                            </td>
+                            <td>
+                                @if (string.IsNullOrEmpty(resultado["Dato_Variable"]?.ToString()))
+                                {
+                                    <span class="text-muted">Sin dato</span>
+                                }
+                                else
+                                {
+                                    <strong class="text-primary">@FormatearDato(resultado["Dato_Variable"])</strong>
+                                }
+                            </td>
+                            <td>
+                                @if (string.IsNullOrEmpty(resultado["Fecha_Dato"]?.ToString()))
+                                {
+                                    <span class="text-muted">Sin fecha</span>
+                                }
+                                else
+                                {
+                                    <small class="text-secondary">@FormatearFecha(resultado["Fecha_Dato"])</small>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5>Total Indicadores</h5>
+                        <h3 class="text-primary">@indicadoresUnicos</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5>Con Variables</h5>
+                        <h3 class="text-success">@indicadoresConVariables</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5>Con Datos</h5>
+                        <h3 class="text-info">@registrosConDatos</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-light">
+                    <div class="card-body text-center">
+                        <h5>Variables Únicas</h5>
+                        <h3 class="text-warning">@variablesUnicas</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen por indicador (opcional) -->
+        @if (mostrarResumen)
+        {
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Resumen por Indicador</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var resumen in resumenIndicadores)
+                        {
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-left-primary">
+                                    <div class="card-body">
+                                        <h6 class="card-title">@resumen.Key</h6>
+                                        <p class="card-text">
+                                            <small>Variables: @resumen.Value.Variables</small><br>
+                                            <small>Datos: @resumen.Value.Datos</small>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="mt-3">
+            <button class="btn btn-outline-info" @onclick="ToggleResumen">
+                <i class="fas @(mostrarResumen ? "fa-eye-slash" : "fa-eye")"></i>
+                @(mostrarResumen ? "Ocultar" : "Mostrar") Resumen
+            </button>
+        </div>
+    }
+}
+
+@code {
+    private List<Dictionary<string, object>> resultadosConsulta = new();
+    private List<Dictionary<string, object>> datosFiltrados = new();
+    private string? errorMensaje;
+    private bool datosCargados = false;
+    
+    // Filtros
+    private bool mostrarFiltros = false;
+    private string filtroIndicador = "";
+    private string filtroVariable = "";
+    private DateTime? filtroFechaDesde;
+    private DateTime? filtroFechaHasta;
+    
+    // Estadísticas
+    private int indicadoresUnicos = 0;
+    private int indicadoresConVariables = 0;
+    private int registrosConDatos = 0;
+    private int variablesUnicas = 0;
+    
+    // Resumen
+    private bool mostrarResumen = false;
+    private Dictionary<string, (int Variables, int Datos)> resumenIndicadores = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await EjecutarConsulta();
+    }
+
+    private async Task EjecutarConsulta()
+    {
+        try
+        {
+            datosCargados = false;
+            errorMensaje = null;
+            
+            // Ejecutar el procedimiento almacenado
+            var parametros = new Dictionary<string, object>
+            {
+                { "nombreSP", "Sp_IncadorVaribleRestultado" }
+            };
+
+            var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+                "consulta", 
+                "Sp_IncadorVaribleRestultado", 
+                parametros
+            );
+
+            if (resultado != null)
+            {
+                resultadosConsulta = resultado;
+                datosFiltrados = new List<Dictionary<string, object>>(resultado);
+                CalcularEstadisticas();
+                CalcularResumen();
+                await JSRuntime.InvokeVoidAsync("console.log", 
+                    "Resultados de consulta:", JsonSerializer.Serialize(resultado));
+            }
+            else
+            {
+                resultadosConsulta = new();
+                datosFiltrados = new();
+                errorMensaje = "No se obtuvieron resultados del procedimiento almacenado.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al ejecutar la consulta: {ex.Message}";
+            resultadosConsulta = new();
+            datosFiltrados = new();
+            await JSRuntime.InvokeVoidAsync("console.error", "Error en consulta:", ex.Message);
+        }
+        finally
+        {
+            datosCargados = true;
+        }
+    }
+
+    private void FiltrarDatos()
+    {
+        datosFiltrados = resultadosConsulta.Where(r =>
+        {
+            // Filtro por indicador
+            bool cumpleIndicador = string.IsNullOrEmpty(filtroIndicador) ||
+                r["Nombre_Indicador"]?.ToString()?.Contains(filtroIndicador, StringComparison.OrdinalIgnoreCase) == true ||
+                r["Codigo_Indicador"]?.ToString()?.Contains(filtroIndicador, StringComparison.OrdinalIgnoreCase) == true;
+
+            // Filtro por variable
+            bool cumpleVariable = string.IsNullOrEmpty(filtroVariable) ||
+                r["Nombre_Variable"]?.ToString()?.Contains(filtroVariable, StringComparison.OrdinalIgnoreCase) == true;
+
+            // Filtro por fecha
+            bool cumpleFecha = true;
+            if (filtroFechaDesde.HasValue || filtroFechaHasta.HasValue)
+            {
+                if (DateTime.TryParse(r["Fecha_Dato"]?.ToString(), out var fechaDato))
+                {
+                    if (filtroFechaDesde.HasValue && fechaDato < filtroFechaDesde.Value)
+                        cumpleFecha = false;
+                    if (filtroFechaHasta.HasValue && fechaDato > filtroFechaHasta.Value)
+                        cumpleFecha = false;
+                }
+                else if (filtroFechaDesde.HasValue || filtroFechaHasta.HasValue)
+                {
+                    cumpleFecha = false;
+                }
+            }
+
+            return cumpleIndicador && cumpleVariable && cumpleFecha;
+        }).ToList();
+
+        StateHasChanged();
+    }
+
+    private void LimpiarFiltros()
+    {
+        filtroIndicador = "";
+        filtroVariable = "";
+        filtroFechaDesde = null;
+        filtroFechaHasta = null;
+        datosFiltrados = new List<Dictionary<string, object>>(resultadosConsulta);
+        StateHasChanged();
+    }
+
+    private void ToggleFiltros()
+    {
+        mostrarFiltros = !mostrarFiltros;
+    }
+
+    private void ToggleResumen()
+    {
+        mostrarResumen = !mostrarResumen;
+    }
+
+    private void CalcularEstadisticas()
+    {
+        if (resultadosConsulta.Count == 0)
+        {
+            indicadoresUnicos = indicadoresConVariables = registrosConDatos = variablesUnicas = 0;
+            return;
+        }
+
+        // Indicadores únicos
+        indicadoresUnicos = resultadosConsulta
+            .Select(r => r["ID_Indicador"]?.ToString())
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Distinct()
+            .Count();
+
+        // Indicadores con variables
+        indicadoresConVariables = resultadosConsulta
+            .Where(r => !string.IsNullOrEmpty(r["Nombre_Variable"]?.ToString()))
+            .Select(r => r["ID_Indicador"]?.ToString())
+            .Distinct()
+            .Count();
+
+        // Registros con datos
+        registrosConDatos = resultadosConsulta
+            .Count(r => !string.IsNullOrEmpty(r["Dato_Variable"]?.ToString()));
+
+        // Variables únicas
+        variablesUnicas = resultadosConsulta
+            .Select(r => r["Nombre_Variable"]?.ToString())
+            .Where(v => !string.IsNullOrEmpty(v))
+            .Distinct()
+            .Count();
+    }
+
+    private void CalcularResumen()
+    {
+        resumenIndicadores = resultadosConsulta
+            .Where(r => !string.IsNullOrEmpty(r["Nombre_Indicador"]?.ToString()))
+            .GroupBy(r => r["Nombre_Indicador"]?.ToString())
+            .ToDictionary(
+                g => g.Key!,
+                g => (
+                    Variables: g.Count(x => !string.IsNullOrEmpty(x["Nombre_Variable"]?.ToString())),
+                    Datos: g.Count(x => !string.IsNullOrEmpty(x["Dato_Variable"]?.ToString()))
+                )
+            );
+    }
+
+    private string FormatearDato(object? dato)
+    {
+        if (dato == null) return "N/A";
+        
+        var datoStr = dato.ToString();
+        if (double.TryParse(datoStr, out var numero))
+        {
+            return numero.ToString("N2", CultureInfo.CurrentCulture);
+        }
+        
+        return datoStr ?? "N/A";
+    }
+
+    private string FormatearFecha(object? fecha)
+    {
+        if (fecha == null) return "N/A";
+        
+        if (DateTime.TryParse(fecha.ToString(), out var fechaValida))
+        {
+            return fechaValida.ToString("yyyy-MM-dd");
+        }
+        
+        return fecha.ToString() ?? "N/A";
+    }
+
+    private async Task ExportarDatos()
+    {
+        try
+        {
+            var datos = JsonSerializer.Serialize(datosFiltrados, new JsonSerializerOptions 
+            { 
+                WriteIndented = true 
+            });
+            
+            await JSRuntime.InvokeVoidAsync("descargarArchivo", 
+                "indicadores-variables-resultados.json", 
+                datos, 
+                "application/json");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error al exportar: {ex.Message}");
+        }
+    }
+}

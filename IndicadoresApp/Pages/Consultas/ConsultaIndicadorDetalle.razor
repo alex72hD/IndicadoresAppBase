@@ -1,0 +1,388 @@
+﻿@page "/indicador-detalle-resultado"
+@using System.Collections.Generic
+@using System.Text.Json
+@inject ServicioEntidad servicioEntidad
+@inject NavigationManager navegacionManager
+@inject IJSRuntime JSRuntime
+
+<h3>Indicadores con Detalle de Resultados</h3>
+
+@if (!datosCargados)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <span class="ms-2 text-muted">Cargando información de indicadores...</span>
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>Error:</strong> @errorMensaje
+    </div>
+}
+else
+{
+    <!-- Controles de filtrado y búsqueda -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input @bind="filtroTexto" @bind:event="oninput" @onkeyup="FiltrarDatos" 
+                       class="form-control" placeholder="Buscar por código, nombre o resultado..." />
+            </div>
+        </div>
+       @*  <div class="col-md-3">
+            <select @bind="filtroTieneResultado" @onchange="FiltrarDatos" class="form-select">
+                <option value="">Todos los indicadores</option>
+                <option value="true">Con resultados</option>
+                <option value="false">Sin resultados</option>
+            </select>
+        </div> *@
+        <div class="col-md-3">
+            <button class="btn btn-outline-secondary" @onclick="LimpiarFiltros">
+                <i class="bi bi-arrow-clockwise"></i> Limpiar Filtros
+            </button>
+        </div>
+    </div>
+
+    <!-- Resumen estadístico -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Indicadores</h6>
+                    <h4>@indicadoresCompletos.Count</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Con Resultados</h6>
+                    <h4>@indicadoresCompletos.Count(i => !string.IsNullOrEmpty(i["ID_Resultado"]?.ToString()))</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Sin Resultados</h6>
+                    <h4>@indicadoresCompletos.Count(i => string.IsNullOrEmpty(i["ID_Resultado"]?.ToString()))</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Filtrados</h6>
+                    <h4>@indicadoresFiltrados.Count</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (indicadoresFiltrados.Count == 0)
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle"></i>
+            No se encontraron indicadores que coincidan con los filtros aplicados.
+        </div>
+    }
+    else
+    {
+        <!-- Tabla de resultados -->
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Meta</th>
+                        <th>Objetivo</th>
+                        <th>Fórmula</th>
+                        <th>Estado</th>
+                        <th>ID Resultado</th>
+                        <th>Resultado</th>
+                        <th>Fecha Cálculo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var indicador in indicadoresFiltrados)
+                    {
+                        <tr class="@(string.IsNullOrEmpty(indicador["ID_Resultado"]?.ToString()) ? "table-warning" : "")">
+                            <td>
+                                <strong>@indicador["codigo"]</strong>
+                            </td>
+                            <td>
+                                <div class="fw-bold">@indicador["nombre"]</div>
+                                @if (!string.IsNullOrEmpty(indicador["alcance"]?.ToString()))
+                                {
+                                    <small class="text-muted">Alcance: @indicador["alcance"]</small>
+                                }
+                            </td>
+                            <td>@indicador["meta"]</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(indicador["objetivo"]?.ToString()))
+                                {
+                                    <small>@((indicador["objetivo"]?.ToString()?.Length > 50) ? indicador["objetivo"]?.ToString()?.Substring(0, 50) + "..." : indicador["objetivo"])</small>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(indicador["formula"]?.ToString()))
+                                {
+                                    <code class="small">@indicador["formula"]</code>
+                                }
+                            </td>
+                            <td>
+                                @if (string.IsNullOrEmpty(indicador["ID_Resultado"]?.ToString()))
+                                {
+                                    <span class="badge bg-warning">Sin Resultado</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Con Resultado</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(indicador["ID_Resultado"]?.ToString()))
+                                {
+                                    <span class="badge bg-primary">#@indicador["ID_Resultado"]</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(indicador["Resultado"]?.ToString()))
+                                {
+                                    <strong class="text-primary">@indicador["Resultado"]</strong>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Sin datos</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(indicador["Fecha_Cálculo"]?.ToString()))
+                                {
+                                    @FormatearFecha(indicador["Fecha_Cálculo"])
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-info" @onclick="() => VerDetalle(indicador)" 
+                                            title="Ver detalle completo">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    @if (!string.IsNullOrEmpty(indicador["ID_Resultado"]?.ToString()))
+                                    {
+                                        <button class="btn btn-outline-success" @onclick="() => VerHistorialResultados(indicador)" 
+                                                title="Ver historial de resultados">
+                                            <i class="bi bi-clock-history"></i>
+                                        </button>
+                                    }
+                                    <button class="btn btn-outline-primary" @onclick="() => ExportarIndicador(indicador)" 
+                                            title="Exportar datos">
+                                        <i class="bi bi-download"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación si es necesaria -->
+        @if (indicadoresFiltrados.Count > 10)
+        {
+            <nav aria-label="Paginación de indicadores">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                        <span class="page-link">Página 1 de 1</span>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+}
+
+@code {
+    private const string STORED_PROCEDURE = "Sp_IndicadorDetalleResultado";
+    
+    private List<Dictionary<string, object>> indicadoresCompletos = new();
+    private List<Dictionary<string, object>> indicadoresFiltrados = new();
+    
+    private string filtroTexto = "";
+    private string filtroTieneResultado = "";
+    private string? errorMensaje;
+    private bool datosCargados = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatosIndicadores();
+    }
+
+    private async Task CargarDatosIndicadores()
+    {
+        try
+        {
+            datosCargados = false;
+            errorMensaje = null;
+
+            // Usar la lógica del stored procedure similar a tu código existente
+            var parametros = new Dictionary<string, object>
+            {
+                { "nombreSP", STORED_PROCEDURE }
+            };
+
+            var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+                "indicador", // tabla base
+                STORED_PROCEDURE,
+                parametros
+            );
+
+            if (resultado != null)
+            {
+                indicadoresCompletos = resultado.ToList();
+                indicadoresFiltrados = new List<Dictionary<string, object>>(indicadoresCompletos);
+                
+                await JSRuntime.InvokeVoidAsync("console.log", 
+                    "Datos cargados:", JsonSerializer.Serialize(indicadoresCompletos));
+            }
+            else
+            {
+                errorMensaje = "No se pudieron cargar los datos del stored procedure.";
+                indicadoresCompletos = new();
+                indicadoresFiltrados = new();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al cargar datos: {ex.Message}";
+            await JSRuntime.InvokeVoidAsync("console.error", "Error:", ex.Message);
+        }
+        finally
+        {
+            datosCargados = true;
+        }
+    }
+
+    private async Task FiltrarDatos()
+    {
+        await Task.Run(() =>
+        {
+            var query = indicadoresCompletos.AsEnumerable();
+
+            // Filtro por texto
+            if (!string.IsNullOrWhiteSpace(filtroTexto))
+            {
+                var texto = filtroTexto.ToLower();
+                query = query.Where(i =>
+                    i["codigo"]?.ToString()?.ToLower().Contains(texto) == true ||
+                    i["nombre"]?.ToString()?.ToLower().Contains(texto) == true ||
+                    i["Resultado"]?.ToString()?.ToLower().Contains(texto) == true ||
+                    i["objetivo"]?.ToString()?.ToLower().Contains(texto) == true
+                );
+            }
+
+            // Filtro por presencia de resultado
+            if (!string.IsNullOrEmpty(filtroTieneResultado))
+            {
+                if (filtroTieneResultado == "true")
+                {
+                    query = query.Where(i => !string.IsNullOrEmpty(i["ID_Resultado"]?.ToString()));
+                }
+                else if (filtroTieneResultado == "false")
+                {
+                    query = query.Where(i => string.IsNullOrEmpty(i["ID_Resultado"]?.ToString()));
+                }
+            }
+
+            indicadoresFiltrados = query.ToList();
+        });
+
+        StateHasChanged();
+    }
+
+    private void LimpiarFiltros()
+    {
+        filtroTexto = "";
+        filtroTieneResultado = "";
+        indicadoresFiltrados = new List<Dictionary<string, object>>(indicadoresCompletos);
+        StateHasChanged();
+    }
+
+    private string FormatearFecha(object? fecha)
+    {
+        if (fecha == null) return "-";
+
+        if (DateTime.TryParse(fecha.ToString(), out var fechaParsed))
+        {
+            return fechaParsed.ToString("dd/MM/yyyy HH:mm");
+        }
+
+        return fecha.ToString() ?? "-";
+    }
+
+    private async Task VerDetalle(Dictionary<string, object> indicador)
+    {
+        var detalles = new List<string>();
+
+        foreach (var kvp in indicador)
+        {
+            if (kvp.Value != null && !string.IsNullOrEmpty(kvp.Value.ToString()))
+            {
+                detalles.Add($"{kvp.Key}: {kvp.Value}");
+            }
+        }
+
+        var mensaje = string.Join("\n", detalles);
+        await JSRuntime.InvokeVoidAsync("alert", $"Detalle del Indicador:\n\n{mensaje}");
+    }
+
+    private async Task VerHistorialResultados(Dictionary<string, object> indicador)
+    {
+        // Aquí podrías implementar una consulta para obtener el historial completo
+        var mensaje = $"Historial de resultados para el indicador:\n" +
+                     $"Código: {indicador["codigo"]}\n" +
+                     $"Nombre: {indicador["nombre"]}\n" +
+                     $"Último resultado: {indicador["Resultado"]}\n" +
+                     $"Fecha: {FormatearFecha(indicador["Fecha_Cálculo"])}";
+
+        await JSRuntime.InvokeVoidAsync("alert", mensaje);
+    }
+
+    private async Task ExportarIndicador(Dictionary<string, object> indicador)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(indicador, new JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", json);
+            await JSRuntime.InvokeVoidAsync("alert", "Datos del indicador copiados al portapapeles");
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error al exportar: {ex.Message}");
+        }
+    }
+
+    private async Task ActualizarDatos()
+    {
+        await CargarDatosIndicadores();
+    }
+}
