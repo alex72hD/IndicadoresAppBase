@@ -1,0 +1,425 @@
+﻿@page "/consulta-indicador-responsable-actor"
+@using System.Collections.Generic
+@using System.Text.Json
+@inject ServicioEntidad servicioEntidad2
+@inject IJSRuntime JSRuntime
+
+<h3>Consulta de Indicadores por Responsable y Tipo de Actor</h3>
+
+@if (!datosCargados)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <span class="ms-2">Cargando información...</span>
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        @errorMensaje
+    </div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Buscar por Indicador:</label>
+                    <input @bind="filtroIndicador" @bind:event="oninput"
+                    class="form-control"
+                    placeholder="Nombre o código del indicador..." />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Buscar por Responsable:</label>
+                    <input @bind="filtroResponsable" @bind:event="oninput"
+                    class="form-control"
+                    placeholder="Nombre del responsable..." />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Buscar por Tipo de Actor:</label>
+                    <input @bind="filtroTipoActor" @bind:event="oninput"
+                    class="form-control"
+                    placeholder="Tipo de actor..." />
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button class="btn btn-outline-secondary" @onclick="LimpiarFiltros">
+                        <i class="fas fa-eraser me-1"></i>Limpiar Filtros
+                    </button>
+                    <button class="btn btn-primary ms-2" @onclick="CargarDatos">
+                        <i class="fas fa-sync-alt me-1"></i>Actualizar Datos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">@totalIndicadores</h5>
+                    <p class="card-text">Total Indicadores Únicos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <h5 class="card-title text-success">@totalResponsables</h5>
+                    <p class="card-text">Total Responsables Únicos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <h5 class="card-title text-info">@datosFiltrados.Count</h5>
+                    <p class="card-text">Registros Mostrados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (datosFiltrados.Count == 0)
+    {
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            No se encontraron registros que coincidan con los filtros aplicados.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>Detalle de Indicadores, Responsables y Tipos de Actor
+                </h5>
+                <button class="btn btn-outline-success btn-sm" @onclick="ExportarDatos">
+                    <i class="fas fa-download me-1"></i>Exportar
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col"><i class="fas fa-hashtag me-1"></i>ID Indicador</th>
+                                <th scope="col"><i class="fas fa-code me-1"></i>Código Indicador</th>
+                                <th scope="col"><i class="fas fa-tag me-1"></i>Nombre Indicador</th>
+                                <th scope="col"><i class="fas fa-bullseye me-1"></i>Objetivo</th>
+                                <th scope="col"><i class="fas fa-calculator me-1"></i>Fórmula</th>
+                                <th scope="col"><i class="fas fa-target me-1"></i>Meta</th>
+                                <th scope="col"><i class="fas fa-user-tie me-1"></i>Nombre Responsable</th>
+                                <th scope="col"><i class="fas fa-users me-1"></i>Tipo de Actor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var registro in datosFiltrados)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@GetValue(registro, "ID_Indicador")</span></td>
+                                    <td><code>@GetValue(registro, "Codigo_Indicador")</code></td>
+                                    <td><strong>@GetValue(registro, "Nombre_Indicador")</strong></td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 200px;"
+                                        title="@GetValue(registro, "Objetivo_Indicador")">
+                                            @(string.IsNullOrEmpty(GetValue(registro, "Objetivo_Indicador")) ?
+                                                        "Sin objetivo definido" : GetValue(registro, "Objetivo_Indicador"))
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 150px;"
+                                        title="@GetValue(registro, "Formula_Indicador")">
+                                            @(string.IsNullOrEmpty(GetValue(registro, "Formula_Indicador")) ?
+                                                        "Sin fórmula" : GetValue(registro, "Formula_Indicador"))
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @(string.IsNullOrEmpty(GetValue(registro, "Meta_Indicador")) ?
+                                                    "Sin meta" : GetValue(registro, "Meta_Indicador"))
+                                    </td>
+                                    <td>
+                                        @if (string.IsNullOrEmpty(GetValue(registro, "Nombre_Responsable")))
+                                        {
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-minus me-1"></i>No asignado
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-user-check me-1"></i>@GetValue(registro, "Nombre_Responsable")
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (string.IsNullOrEmpty(GetValue(registro, "Nombre_Tipo_Actor")))
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-question me-1"></i>Desconocido
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-briefcase me-1"></i>@GetValue(registro, "Nombre_Tipo_Actor")
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    Mostrando @datosFiltrados.Count de @datosOriginales.Count registros totales
+                </small>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<Dictionary<string, object>> datosOriginales = new();
+    private List<Dictionary<string, object>> datosFiltrados = new();
+
+    private string filtroIndicador = "";
+    private string filtroResponsable = "";
+    private string filtroTipoActor = "";
+
+    private int totalIndicadores = 0;
+    private int totalResponsables = 0;
+
+    private string? errorMensaje;
+    private bool datosCargados = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    // Método auxiliar para obtener valores del Dictionary de forma segura
+    private string GetValue(Dictionary<string, object> registro, string key)
+    {
+        if (registro.ContainsKey(key) && registro[key] != null)
+        {
+            return registro[key].ToString() ?? "";
+        }
+        return "";
+    }
+
+    private async Task CargarDatos()
+    {
+        try
+        {
+            datosCargados = false;
+            errorMensaje = null;
+
+            // Ejecutar el stored procedure
+            var parametros = new Dictionary<string, object>();
+            ServicioEntidad servicioEntidad;
+            // NOTA: Ajusta el nombre del método según tu implementación de ServicioEntidad
+            var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+                "Sp_IndicadorResponsableActor", // Nombre del SP
+                parametros
+            );
+
+            if (resultado != null && resultado is List<Dictionary<string, object>> listado)
+            {
+                datosOriginales = listado;
+                datosFiltrados = new List<Dictionary<string, object>>(datosOriginales);
+                CalcularEstadisticas();
+
+                await JSRuntime.InvokeVoidAsync("console.log",
+                    "Datos cargados del SP:", JsonSerializer.Serialize(datosOriginales));
+            }
+            else
+            {
+                datosOriginales = new();
+                datosFiltrados = new();
+                errorMensaje = "No se pudieron cargar los datos del procedimiento almacenado.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al cargar datos: {ex.Message}";
+            await JSRuntime.InvokeVoidAsync("console.error", "Error:", ex.Message);
+        }
+        finally
+        {
+            datosCargados = true;
+        }
+    }
+
+    private void CalcularEstadisticas()
+    {
+        totalIndicadores = datosOriginales
+            .Where(d => d.ContainsKey("ID_Indicador") && d["ID_Indicador"] != null)
+            .Select(d => d["ID_Indicador"])
+            .Distinct()
+            .Count();
+
+        totalResponsables = datosOriginales
+            .Where(d => d.ContainsKey("Nombre_Responsable") &&
+                       !string.IsNullOrEmpty(d["Nombre_Responsable"]?.ToString()))
+            .Select(d => d["Nombre_Responsable"])
+            .Distinct()
+            .Count();
+    }
+
+    private void FiltrarDatos()
+    {
+        datosFiltrados = datosOriginales.Where(registro =>
+        {
+            bool cumpleFiltroIndicador = string.IsNullOrEmpty(filtroIndicador) ||
+                (!string.IsNullOrEmpty(GetValue(registro, "Nombre_Indicador")) &&
+                 GetValue(registro, "Nombre_Indicador").Contains(filtroIndicador, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrEmpty(GetValue(registro, "Codigo_Indicador")) &&
+                 GetValue(registro, "Codigo_Indicador").Contains(filtroIndicador, StringComparison.OrdinalIgnoreCase));
+
+            bool cumpleFiltroResponsable = string.IsNullOrEmpty(filtroResponsable) ||
+                (!string.IsNullOrEmpty(GetValue(registro, "Nombre_Responsable")) &&
+                 GetValue(registro, "Nombre_Responsable").Contains(filtroResponsable, StringComparison.OrdinalIgnoreCase));
+
+            bool cumpleFiltroTipoActor = string.IsNullOrEmpty(filtroTipoActor) ||
+                (!string.IsNullOrEmpty(GetValue(registro, "Nombre_Tipo_Actor")) &&
+                 GetValue(registro, "Nombre_Tipo_Actor").Contains(filtroTipoActor, StringComparison.OrdinalIgnoreCase));
+
+            return cumpleFiltroIndicador && cumpleFiltroResponsable && cumpleFiltroTipoActor;
+        }).ToList();
+
+        StateHasChanged();
+    }
+
+    private void LimpiarFiltros()
+    {
+        filtroIndicador = "";
+        filtroResponsable = "";
+        filtroTipoActor = "";
+        datosFiltrados = new List<Dictionary<string, object>>(datosOriginales);
+        StateHasChanged();
+    }
+
+    private async Task ExportarDatos()
+    {
+        try
+        {
+            var csv = GenerarCSV();
+            await JSRuntime.InvokeVoidAsync("descargarArchivo",
+                "indicadores-responsables-actores.csv",
+                "text/csv",
+                csv);
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("console.error", "Error al exportar:", ex.Message);
+        }
+    }
+
+    private string GenerarCSV()
+    {
+        var csv = new System.Text.StringBuilder();
+
+        // Encabezados
+        csv.AppendLine("ID_Indicador,Nombre_Indicador,Codigo_Indicador,Objetivo_Indicador,Formula_Indicador,Meta_Indicador,Nombre_Responsable,Nombre_Tipo_Actor");
+
+        // Datos
+        foreach (var registro in datosFiltrados)
+        {
+            var idIndicador = EscapeCsvField(GetValue(registro, "ID_Indicador"));
+            var nombreIndicador = EscapeCsvField(GetValue(registro, "Nombre_Indicador"));
+            var codigoIndicador = EscapeCsvField(GetValue(registro, "Codigo_Indicador"));
+            var objetivoIndicador = EscapeCsvField(GetValue(registro, "Objetivo_Indicador"));
+            var formulaIndicador = EscapeCsvField(GetValue(registro, "Formula_Indicador"));
+            var metaIndicador = EscapeCsvField(GetValue(registro, "Meta_Indicador"));
+            var nombreResponsable = EscapeCsvField(GetValue(registro, "Nombre_Responsable"));
+            var nombreTipoActor = EscapeCsvField(GetValue(registro, "Nombre_Tipo_Actor"));
+
+            csv.AppendLine($"{idIndicador},{nombreIndicador},{codigoIndicador},{objetivoIndicador},{formulaIndicador},{metaIndicador},{nombreResponsable},{nombreTipoActor}");
+        }
+
+        return csv.ToString();
+    }
+
+    private string EscapeCsvField(string? field)
+    {
+        if (field == null) return "";
+        if (field.Contains(",") || field.Contains("\"") || field.Contains("\n") || field.Contains("\r"))
+        {
+            return $"\"{field.Replace("\"", "\"\"")}\"";
+        }
+        return field;
+}
+
+    // Event handlers for filtering
+    private void OnFiltroIndicadorChanged(ChangeEventArgs e)
+    {
+        filtroIndicador = e.Value?.ToString() ?? "";
+        FiltrarDatos();
+    }
+
+    private void OnFiltroResponsableChanged(ChangeEventArgs e)
+    {
+        filtroResponsable = e.Value?.ToString() ?? "";
+        FiltrarDatos();
+    }
+
+    private void OnFiltroTipoActorChanged(ChangeEventArgs e)
+    {
+        filtroTipoActor = e.Value?.ToString() ?? "";
+        FiltrarDatos();
+    }
+}
+
+<script>
+    window.descargarArchivo = (nombreArchivo, tipoMime, contenido) => {
+        const blob = new Blob([contenido], { type: tipoMime });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = nombreArchivo;
+        link.click();
+        window.URL.revokeObjectURL(url);
+    };
+</script>
+
+<style>
+    .text-truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .table th {
+        font-weight: 600;
+        font-size: 0.875rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+    .badge {
+        font-size: 0.75rem;
+    }
+</style>

@@ -1,0 +1,408 @@
+﻿@page "/consulta-representacion-visual"
+@using System.Collections.Generic
+@using System.Text.Json
+@inject ServicioEntidad servicioEntidad
+@inject IJSRuntime JSRuntime
+
+<h3>Consulta de Representaciones Visuales por Indicador</h3>
+
+@if (!datosCargados)
+{
+    <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <span class="ms-2">Cargando información...</span>
+    </div>
+}
+else if (!string.IsNullOrEmpty(errorMensaje))
+{
+    <div class="alert alert-danger" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        @errorMensaje
+    </div>
+}
+else
+{
+    <!-- Filtros de búsqueda -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Buscar por Indicador:</label>
+                    <input @bind="filtroIndicador" @oninput="FiltrarDatos"
+                           class="form-control"
+                           placeholder="Nombre o código del indicador..." />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Buscar por Representación Visual:</label>
+                    <input @bind="filtroRepresentacion" @oninput="FiltrarDatos"
+                           class="form-control"
+                           placeholder="Nombre de representación visual..." />
+                </div>
+              @*   <div class="col-md-4">
+                    <label class="form-label">Estado:</label>
+                    <select @bind="filtroEstado" @onchange="FiltrarDatos" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="con_representacion">Con Representación Visual</option>
+                        <option value="sin_representacion">Sin Representación Visual</option>
+                    </select>
+                </div> *@
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button class="btn btn-outline-secondary" @onclick="LimpiarFiltros">
+                        <i class="fas fa-eraser me-1"></i>Limpiar Filtros
+                    </button>
+                    <button class="btn btn-primary ms-2" @onclick="CargarDatos">
+                        <i class="fas fa-sync-alt me-1"></i>Actualizar Datos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">@totalIndicadores</h5>
+                    <p class="card-text">Total Indicadores</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <h5 class="card-title text-success">@indicadoresConRepresentacion</h5>
+                    <p class="card-text">Con Representación</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <h5 class="card-title text-warning">@indicadoresSinRepresentacion</h5>
+                    <p class="card-text">Sin Representación</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <h5 class="card-title text-info">@datosFiltrados.Count</h5>
+                    <p class="card-text">Registros Mostrados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de resultados -->
+    @if (datosFiltrados.Count == 0)
+    {
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            No se encontraron registros que coincidan con los filtros aplicados.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>Indicadores y Representaciones Visuales
+                </h5>
+                <button class="btn btn-outline-success btn-sm" @onclick="ExportarDatos">
+                    <i class="fas fa-download me-1"></i>Exportar
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">
+                                    <i class="fas fa-hashtag me-1"></i>ID
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-code me-1"></i>Código
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-tag me-1"></i>Nombre Indicador
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-bullseye me-1"></i>Objetivo
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-calculator me-1"></i>Fórmula
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-target me-1"></i>Meta
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-chart-bar me-1"></i>Representación Visual
+                                </th>
+                                <th scope="col">
+                                    <i class="fas fa-info-circle me-1"></i>Estado
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var registro in datosFiltrados)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">@registro["ID_Indicador"]</span>
+                                    </td>
+                                    <td>
+                                        <code>@registro["Código_Indicador"]</code>
+                                    </td>
+                                    <td>
+                                        <strong>@registro["Nombre_Indicador"]</strong>
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 200px;"
+                                             title="@registro["Objetivo_Indicador"]">
+                                            @(string.IsNullOrEmpty(registro["Objetivo_Indicador"]?.ToString()) ?
+                                                "Sin objetivo definido" : registro["Objetivo_Indicador"])
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 150px;"
+                                             title="@registro["Formula_Indicador"]">
+                                            @(string.IsNullOrEmpty(registro["Formula_Indicador"]?.ToString()) ?
+                                                "Sin fórmula" : registro["Formula_Indicador"])
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @(string.IsNullOrEmpty(registro["Meta_Indicador"]?.ToString()) ?
+                                            "Sin meta" : registro["Meta_Indicador"])
+                                    </td>
+                                    <td>
+                                        @if (string.IsNullOrEmpty(registro["Nombre_RepresentacionVisual"]?.ToString()))
+                                        {
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-minus me-1"></i>Sin asignar
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-chart-pie me-1"></i>@registro["Nombre_RepresentacionVisual"]
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (string.IsNullOrEmpty(registro["Nombre_RepresentacionVisual"]?.ToString()))
+                                        {
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>Incompleto
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Completo
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    Mostrando @datosFiltrados.Count de @datosOriginales.Count registros totales
+                </small>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private List<Dictionary<string, object>> datosOriginales = new();
+    private List<Dictionary<string, object>> datosFiltrados = new();
+
+    private string filtroIndicador = "";
+    private string filtroRepresentacion = "";
+    private string filtroEstado = "";
+
+    private int totalIndicadores = 0;
+    private int indicadoresConRepresentacion = 0;
+    private int indicadoresSinRepresentacion = 0;
+
+    private string? errorMensaje;
+    private bool datosCargados = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        try
+        {
+            datosCargados = false;
+            errorMensaje = null;
+
+            // Ejecutar el stored procedure
+            var parametros = new Dictionary<string, object>();
+
+            var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+                "indicador", // Tabla base (puedes ajustar esto según tu implementación)
+                "Sp_ConsultaRepresentantevisula", // Nombre del SP
+                parametros
+            );
+
+            if (resultado != null && resultado is List<Dictionary<string, object>> listado)
+            {
+                datosOriginales = listado;
+                datosFiltrados = new List<Dictionary<string, object>>(datosOriginales);
+                CalcularEstadisticas();
+
+                await JSRuntime.InvokeVoidAsync("console.log",
+                    "Datos cargados del SP:", JsonSerializer.Serialize(datosOriginales));
+            }
+            else
+            {
+                datosOriginales = new();
+                datosFiltrados = new();
+                errorMensaje = "No se pudieron cargar los datos del procedimiento almacenado.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al cargar datos: {ex.Message}";
+            await JSRuntime.InvokeVoidAsync("console.error", "Error:", ex.Message);
+        }
+        finally
+        {
+            datosCargados = true;
+        }
+    }
+
+    private void CalcularEstadisticas()
+    {
+        totalIndicadores = datosOriginales
+            .GroupBy(d => d["ID_Indicador"])
+            .Count();
+
+        indicadoresConRepresentacion = datosOriginales
+            .Where(d => !string.IsNullOrEmpty(d["Nombre_RepresentacionVisual"]?.ToString()))
+            .GroupBy(d => d["ID_Indicador"])
+            .Count();
+
+        indicadoresSinRepresentacion = totalIndicadores - indicadoresConRepresentacion;
+    }
+
+    private void FiltrarDatos()
+    {
+        datosFiltrados = datosOriginales.Where(registro =>
+        {
+            bool cumpleFiltroIndicador = string.IsNullOrEmpty(filtroIndicador) ||
+                registro["Nombre_Indicador"]?.ToString()?.Contains(filtroIndicador, StringComparison.OrdinalIgnoreCase) == true ||
+                registro["Código_Indicador"]?.ToString()?.Contains(filtroIndicador, StringComparison.OrdinalIgnoreCase) == true;
+
+            bool cumpleFiltroRepresentacion = string.IsNullOrEmpty(filtroRepresentacion) ||
+                registro["Nombre_RepresentacionVisual"]?.ToString()?.Contains(filtroRepresentacion, StringComparison.OrdinalIgnoreCase) == true;
+
+            bool cumpleFiltroEstado = string.IsNullOrEmpty(filtroEstado) ||
+                (filtroEstado == "con_representacion" && !string.IsNullOrEmpty(registro["Nombre_RepresentacionVisual"]?.ToString())) ||
+                (filtroEstado == "sin_representacion" && string.IsNullOrEmpty(registro["Nombre_RepresentacionVisual"]?.ToString()));
+
+            return cumpleFiltroIndicador && cumpleFiltroRepresentacion && cumpleFiltroEstado;
+        }).ToList();
+
+        StateHasChanged();
+    }
+
+    private void LimpiarFiltros()
+    {
+        filtroIndicador = "";
+        filtroRepresentacion = "";
+        filtroEstado = "";
+        datosFiltrados = new List<Dictionary<string, object>>(datosOriginales);
+        StateHasChanged();
+    }
+
+    private async Task ExportarDatos()
+    {
+        try
+        {
+            var csv = GenerarCSV();
+            await JSRuntime.InvokeVoidAsync("descargarArchivo",
+                "representaciones-visuales.csv",
+                "text/csv",
+                csv);
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("console.error", "Error al exportar:", ex.Message);
+        }
+    }
+
+    private string GenerarCSV()
+    {
+        var csv = new System.Text.StringBuilder();
+
+        // Encabezados
+        csv.AppendLine("ID_Indicador,Código_Indicador,Nombre_Indicador,Objetivo_Indicador,Formula_Indicador,Meta_Indicador,Nombre_RepresentacionVisual");
+
+        // Datos
+        foreach (var registro in datosFiltrados)
+        {
+            csv.AppendLine($"\"{registro["ID_Indicador"]}\",\"{registro["Código_Indicador"]}\",\"{registro["Nombre_Indicador"]}\",\"{registro["Objetivo_Indicador"]}\",\"{registro["Formula_Indicador"]}\",\"{registro["Meta_Indicador"]}\",\"{registro["Nombre_RepresentacionVisual"]}\"");
+        }
+
+        return csv.ToString();
+    }
+}
+
+<script>
+    window.descargarArchivo = (nombreArchivo, tipoMime, contenido) => {
+        const blob = new Blob([contenido], { type: tipoMime });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = nombreArchivo;
+        link.click();
+        window.URL.revokeObjectURL(url);
+    };
+</script>
+
+<style>
+    .text-truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .table th {
+        font-weight: 600;
+        font-size: 0.875rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+    .badge {
+        font-size: 0.75rem;
+    }
+</style>
