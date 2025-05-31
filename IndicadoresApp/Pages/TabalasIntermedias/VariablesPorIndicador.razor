@@ -11,7 +11,8 @@
 <PageTitle>Variables por indicador</PageTitle>
 
 <h1>Variables por Indicador</h1>
-@if (!EsVerificador)
+@* Solo los verificadores y validadores no pueden crear *@
+@if (!EsVerificador && !EsValidador)
 {
     <div class="mb-3">
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
@@ -65,7 +66,13 @@ else
                     <th>Dato</th>
                     <th>Email</th>
                     <th>FechaDato</th>
-                    @if (!EsVerificador)
+                    @* Solo los verificadores y validadores no ven las acciones de crear/editar/eliminar *@
+                    @if (!EsVerificador && !EsValidador)
+                    {
+                        <th>Acciones</th>
+                    }
+                    @* Los validadores solo pueden editar, así que necesitan ver la columna de acciones si solo son validadores y no verificadores *@
+                    @if (EsValidador && !EsVerificador)
                     {
                         <th>Acciones</th>
                     }
@@ -80,11 +87,19 @@ else
                         <td>@ObtenerValor(variable, "dato")</td>
                         <td>@ObtenerValor(variable, "fkemailusuario")</td>
                         <td>@ObtenerValor(variable, "fechadato")</td>
-                        @if (!EsVerificador)
+                        @* Administradores pueden hacer todo *@
+                        @if (!EsVerificador && !EsValidador)
                         {
                             <td>
                                 <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
                                 <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(variable)">Eliminar</button>
+                            </td>
+                        }
+                        @* Los validadores solo pueden editar *@
+                        @if (EsValidador && !EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
                             </td>
                         }
                     </tr>
@@ -125,7 +140,8 @@ else
         </div>
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" @bind="emailSeleccionado" />
+            <input type="email" class="form-control" id="email" @bind="emailSeleccionado" readonly />
+            <small class="form-text text-muted">El email se asigna automáticamente basado en tu sesión actual.</small>
         </div>
         <div class="mb-3">
             <label for="fecha" class="form-label">Fecha del Dato</label>
@@ -179,15 +195,24 @@ else
     private ModalGenerico? modalConfirmacion;
     private string TituloModal => $"{(peticionSeleccionada == "Edit" ? "Editar" : "Crear")} Variable por Indicador";
     private bool EsVerificador { get; set; } = false;
+    private bool EsValidador { get; set; } = false; // Added: Declaration of EsValidador
 
     // Listas para dropdowns
     private List<VariableModel> ListaVariables { get; set; } = new();
     private List<IndicadorModel> ListaIndicadores { get; set; } = new();
 
+    // Nueva propiedad para almacenar el email del usuario logueado
+    private string EmailUsuarioLogueado { get; set; } = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+        EsValidador = RutasPermisosService.EsRolValidador(rol); // Added: Initialization of EsValidador
+        
+        // Obtener el email del usuario logueado desde sessionStorage
+        EmailUsuarioLogueado = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "usuarioEmail") ?? string.Empty;
+        
         await CargarVariables();
         await CargarCatalogos();
     }
@@ -225,8 +250,8 @@ else
     {
         try
         {
-            var variablesData = await ServicioEntidad.ObtenerTodosAsync("variables");
-            var indicadoresData = await ServicioEntidad.ObtenerTodosAsync("indicadores");
+            var variablesData = await ServicioEntidad.ObtenerTodosAsync("variable");
+            var indicadoresData = await ServicioEntidad.ObtenerTodosAsync("indicador");
 
             ListaVariables = variablesData?.Select(v => new VariableModel
                 {
@@ -296,15 +321,21 @@ else
 
     private async Task MostrarFormularioCrear()
     {
-        if (EsVerificador)
+        // Modified: Verifiers and Validators cannot create
+        if (EsVerificador || EsValidador)
             return;
         LimpiarFormulario();
+        
+        // Asignar automáticamente el email del usuario logueado
+        emailSeleccionado = EmailUsuarioLogueado;
+        
         peticionSeleccionada = "Create";
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> variable)
     {
+        // Modified: Only verifiers cannot edit (validators can edit)
         if (EsVerificador)
             return;
         LimpiarFormulario();
@@ -313,6 +344,8 @@ else
         variableSeleccionada = Convert.ToInt32(ObtenerValor(variable, "fkidvariable"));
         indicadorSeleccionado = Convert.ToInt32(ObtenerValor(variable, "fkidindicador"));
         datoSeleccionado = ObtenerValor(variable, "dato");
+        
+        // En modo edición, mantener el email original del registro
         emailSeleccionado = ObtenerValor(variable, "fkemailusuario");
 
         if (DateTime.TryParse(ObtenerValor(variable, "fechadato"), out DateTime fecha))
@@ -326,6 +359,9 @@ else
 
     private async Task ConfirmarEliminar(Dictionary<string, object> variable)
     {
+        // Modified: Verifiers and Validators cannot delete
+        if (EsVerificador || EsValidador)
+            return;
         idSeleccionado = Convert.ToInt32(ObtenerValor(variable, "id"));
         await modalConfirmacion.ShowModalAsync();
     }
@@ -342,10 +378,25 @@ else
 
     private async Task GuardarVariable()
     {
-        if (variableSeleccionada == 0 || indicadorSeleccionado == 0 || string.IsNullOrEmpty(datoSeleccionado) || string.IsNullOrEmpty(emailSeleccionado))
+        // Modified: Verifiers and Validators cannot save (validators can only edit)
+        if (EsVerificador)
+            return;
+
+        if (EsValidador && peticionSeleccionada == "Create") // Validators cannot create
+            return;
+
+        if (variableSeleccionada == 0 || indicadorSeleccionado == 0 || string.IsNullOrEmpty(datoSeleccionado))
         {
-            mensaje = "Todos los campos son obligatorios";
+            mensaje = "Variable, Indicador y Dato son campos obligatorios";
             tipoAlerta = "warning";
+            return;
+        }
+
+        // Validar que tengamos un email del usuario logueado
+        if (string.IsNullOrEmpty(EmailUsuarioLogueado))
+        {
+            mensaje = "No se pudo obtener el email del usuario logueado. Por favor, inicie sesión nuevamente.";
+            tipoAlerta = "danger";
             return;
         }
 
@@ -354,7 +405,7 @@ else
             { "fkidvariable", variableSeleccionada },
             { "fkidindicador", indicadorSeleccionado },
             { "dato", datoSeleccionado },
-            { "fkemailusuario", emailSeleccionado },
+            { "fkemailusuario", peticionSeleccionada == "Create" ? EmailUsuarioLogueado : emailSeleccionado },
             { "fechadato", fechaFormat }
         };
 
@@ -407,7 +458,8 @@ else
 
     private async Task EliminarVariable()
     {
-        if (EsVerificador)
+        // Modified: Verifiers and Validators cannot delete
+        if (EsVerificador || EsValidador)
             return;
         try
         {

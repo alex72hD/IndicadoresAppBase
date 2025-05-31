@@ -10,7 +10,8 @@
 <PageTitle>Variables</PageTitle>
 
 <h1>Variables</h1>
-@if (!EsVerificador)
+@* Solo los verificadores y validadores no pueden crear *@
+@if (!EsVerificador && !EsValidador)
 {
     <div class="mb-3">
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
@@ -62,7 +63,13 @@ else
                     <th>Nombre</th>
                     <th>Fecha</th>
                     <th>Email</th>
-                    @if (!EsVerificador)
+                    @* Solo los verificadores y validadores no ven las acciones de crear/eliminar *@
+                    @if (!EsVerificador && !EsValidador)
+                    {
+                        <th>Acciones</th>
+                    }
+                    @* Los validadores solo pueden editar, así que necesitan ver la columna de acciones si solo son validadores y no verificadores *@
+                    @if (EsValidador && !EsVerificador)
                     {
                         <th>Acciones</th>
                     }
@@ -75,11 +82,19 @@ else
                         <td>@ObtenerValor(variable, "nombre")</td>
                         <td>@ObtenerValor(variable, "fechacreacion")</td>
                         <td>@ObtenerValor(variable, "fkemailusuario")</td>
-                        @if (!EsVerificador)
+                        @* Administradores pueden hacer todo *@
+                        @if (!EsVerificador && !EsValidador)
                         {
                             <td>
                                 <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
                                 <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(variable)">Eliminar</button>
+                            </td>
+                        }
+                        @* Los validadores solo pueden editar *@
+                        @if (EsValidador && !EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(variable)">Editar</button>
                             </td>
                         }
                     </tr>
@@ -90,25 +105,37 @@ else
 }
 
 <ModalGenerico @ref="modalFormulario"
-             Id="formModal"
-             Title="@TituloModal"
-             OnSave="GuardarVariable">
+               Id="formModal"
+               Title="@TituloModal"
+               OnSave="GuardarVariable">
     <BodyContent>
         <div class="mb-3">
             <label for="nombre" class="form-label">Nombre</label>
             <input type="text" class="form-control" id="nombre" @bind="VariableActual.Nombre" />
         </div>
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" @bind="VariableActual.FkEmail" />
-        </div>
+        @* Solo mostrar el campo de email en modo edición *@
+        @if (ModoEdicion)
+        {
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" @bind="VariableActual.FkEmail" />
+            </div>
+        }
+        else
+        {
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <p class="form-control-plaintext">@EmailUsuarioLogueado</p>
+                <small class="text-muted">Se usará tu email actual para crear la variable</small>
+            </div>
+        }
     </BodyContent>
 </ModalGenerico>
 
 <ModalGenerico @ref="modalConfirmacion"
-             Id="confirmModal"
-             Title="Confirmar eliminación"
-             OnSave="EliminarVariable">
+               Id="confirmModal"
+               Title="Confirmar eliminación"
+               OnSave="EliminarVariable">
     <BodyContent>
         <p>¿Está seguro que desea eliminar la variable @VariableAEliminar.Nombre?</p>
     </BodyContent>
@@ -137,6 +164,8 @@ else
     private string? MensajeError { get; set; }
     private string? MensajeExito { get; set; }
     private bool EsVerificador { get; set; } = false;
+    private bool EsValidador { get; set; } = false; // Added: Declaration of EsValidador
+    private string EmailUsuarioLogueado { get; set; } = string.Empty; // Nuevo: Email del usuario logueado
 
     // Propiedad para la búsqueda
     private string TextoBusqueda { get; set; } = string.Empty;
@@ -152,7 +181,9 @@ else
     protected override async Task OnInitializedAsync()
     {
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
+        EmailUsuarioLogueado = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "usuarioEmail") ?? string.Empty; // Nuevo: Obtener email del usuario
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+        EsValidador = RutasPermisosService.EsRolValidador(rol); // Added: Initialization of EsValidador
         await CargarVariables();
     }
 
@@ -230,7 +261,8 @@ else
 
     private async Task MostrarFormularioCrear()
     {
-        if (EsVerificador)
+        // Modified: Verifiers and Validators cannot create
+        if (EsVerificador || EsValidador)
             return;
         VariableActual = new VariableModel();
         ModoEdicion = false;
@@ -239,32 +271,42 @@ else
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> variable)
     {
+        // Modified: Only verifiers cannot edit (validators can edit)
         if (EsVerificador)
             return;
         VariableActual = new VariableModel
-        {
-            Id = Convert.ToInt32(ObtenerValor(variable, "id")),
-            Nombre = ObtenerValor(variable, "nombre"),
-            FkEmail = ObtenerValor(variable, "fkemailusuario")
-        };
+            {
+                Id = Convert.ToInt32(ObtenerValor(variable, "id")),
+                Nombre = ObtenerValor(variable, "nombre"),
+                FkEmail = ObtenerValor(variable, "fkemailusuario")
+            };
         ModoEdicion = true;
         await modalFormulario.ShowModalAsync();
     }
 
     private async Task ConfirmarEliminar(Dictionary<string, object> variable)
     {
-        if (EsVerificador)
+        // Modified: Verifiers and Validators cannot delete
+        if (EsVerificador || EsValidador)
             return;
         VariableAEliminar = new VariableModel
-        {
-            Id = Convert.ToInt32(ObtenerValor(variable, "id")),
-            Nombre = ObtenerValor(variable, "nombre")
-        };
+            {
+                Id = Convert.ToInt32(ObtenerValor(variable, "id")),
+                Nombre = ObtenerValor(variable, "nombre")
+            };
         await modalConfirmacion.ShowModalAsync();
     }
 
     private async Task GuardarVariable()
     {
+        // Modified: Verifiers cannot save (create or edit)
+        if (EsVerificador)
+            return;
+
+        // Added: Validators cannot create, only edit
+        if (EsValidador && !ModoEdicion)
+            return;
+
         MensajeError = null;
         MensajeExito = null;
 
@@ -276,12 +318,15 @@ else
                 return;
             }
 
+            // Modificado: Usar el email del usuario logueado al crear, y permitir editar el email en modo edición
+            var emailAUsar = ModoEdicion ? VariableActual.FkEmail : EmailUsuarioLogueado;
+
             var variableData = new Dictionary<string, object>
-            {
-                ["nombre"] = VariableActual.Nombre,
-                ["fkemailusuario"] = VariableActual.FkEmail,
-                ["fechacreacion"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-            };
+                {
+                    ["nombre"] = VariableActual.Nombre,
+                    ["fkemailusuario"] = emailAUsar,
+                    ["fechacreacion"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                };
 
             bool resultado;
 
@@ -330,6 +375,10 @@ else
 
     private async Task EliminarVariable()
     {
+        // Modified: Verifiers and Validators cannot delete
+        if (EsVerificador || EsValidador)
+            return;
+
         MensajeError = null;
         MensajeExito = null;
 

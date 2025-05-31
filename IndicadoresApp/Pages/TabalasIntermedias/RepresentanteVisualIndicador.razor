@@ -10,7 +10,8 @@
 <PageTitle>RepresentanteVisuales</PageTitle>
 
 <h1>RepresentanteVisuales</h1>
-@if (!EsVerificador)
+@* Only administrators can create new visual representatives *@
+@if (!EsVerificador && !EsValidador)
 {
     <div class="mb-3">
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
@@ -64,7 +65,13 @@ else
                     <th>Indicador</th>
                     <th>ID Representante Visual</th>
                     <th>Representante Visual</th>
-                    @if (!EsVerificador)
+                    @* Show actions only if not a verifier or validator *@
+                    @if (!EsVerificador && !EsValidador)
+                    {
+                        <th>Acciones</th>
+                    }
+                    @* Validators can only edit, so they need to see the actions column if they are only validators and not verifiers *@
+                    @if (EsValidador && !EsVerificador)
                     {
                         <th>Acciones</th>
                     }
@@ -78,11 +85,19 @@ else
                         <td>@ObtenerNombreIndicador(ObtenerValor(relacion, "fkidindicador"))</td>
                         <td>@ObtenerValor(relacion, "fkidrepresenvisual")</td>
                         <td>@ObtenerNombreRepresentante(ObtenerValor(relacion, "fkidrepresenvisual"))</td>
-                        @if (!EsVerificador)
+                        @* Administrators can do everything *@
+                        @if (!EsVerificador && !EsValidador)
                         {
                             <td>
                                 <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(relacion)">Editar</button>
                                 <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(relacion)">Eliminar</button>
+                            </td>
+                        }
+                        @* Validators can only edit *@
+                        @if (EsValidador && !EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(relacion)">Editar</button>
                             </td>
                         }
                     </tr>
@@ -96,7 +111,8 @@ else
                Id="formModal"
                Title="@TituloModal"
                OnSave="GuardarRelacion"
-               ShowSaveButton="true"> @* Changed to true for save button *@
+               ShowSaveButton="true">
+    @* Changed to true for save button *@
     <BodyContent>
         <div class="mb-3">
             <label for="idIndicador" class="form-label">Indicador</label>
@@ -125,7 +141,8 @@ else
                Id="confirmModal"
                Title="Confirmar eliminación"
                OnSave="EliminarRelacion"
-               ShowSaveButton="true"> @* Changed to true for save button *@
+               ShowSaveButton="true">
+    @* Changed to true for save button *@
     <BodyContent>
         <p>¿Está seguro que desea eliminar esta relación?</p>
         <ul>
@@ -137,7 +154,8 @@ else
 
 @if (!string.IsNullOrEmpty(MensajeError))
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert"> @* Added dismissible for closer button *@
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @* Added dismissible for closer button *@
         @MensajeError
         <button type="button" class="btn-close" @onclick="LimpiarMensajes" aria-label="Close"></button> @* Removed float-end as btn-close handles it *@
     </div>
@@ -145,7 +163,8 @@ else
 
 @if (!string.IsNullOrEmpty(MensajeExito))
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert"> @* Added dismissible for closer button *@
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @* Added dismissible for closer button *@
         @MensajeExito
         <button type="button" class="btn-close" @onclick="LimpiarMensajes" aria-label="Close"></button> @* Removed float-end as btn-close handles it *@
     </div>
@@ -158,6 +177,7 @@ else
     private const string PROCEDIMIENTO_ACCIONES = "accion_reprevisual_por_indicador"; // Define the stored procedure name
 
     private bool EsVerificador { get; set; } = false;
+    private bool EsValidador { get; set; } = false; // Added: Declaration of EsValidador
     private List<Dictionary<string, object>> Representantes { get; set; } = new();
     private List<Dictionary<string, object>> RepresentantesFiltrados { get; set; } = new(); // New list for filtered data
     private bool EstamosCargando { get; set; } = true;
@@ -183,6 +203,7 @@ else
     {
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+        EsValidador = RutasPermisosService.EsRolValidador(rol); // Added: Initialization of EsValidador
         await CargarDatosIniciales();
     }
 
@@ -318,7 +339,8 @@ else
 
     private async Task MostrarFormularioCrear()
     {
-        if (EsVerificador)
+        // Modified: Verifiers and Validators cannot create
+        if (EsVerificador || EsValidador)
             return;
         ModoEdicion = false;
         RelacionActual = new();
@@ -327,6 +349,7 @@ else
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> relacion)
     {
+        // Modified: Only verifiers cannot edit (validators can edit)
         if (EsVerificador)
             return;
         ModoEdicion = true;
@@ -345,6 +368,9 @@ else
 
     private async Task ConfirmarEliminar(Dictionary<string, object> relacion)
     {
+        // Modified: Verifiers and Validators cannot delete
+        if (EsVerificador || EsValidador)
+            return;
         RelacionAEliminar = new()
             {
                 IdIndicador = Convert.ToInt32(ObtenerValor(relacion, "fkidindicador")),
@@ -355,6 +381,14 @@ else
 
     private async Task GuardarRelacion()
     {
+        // Modified: Verifiers cannot save (create or edit)
+        if (EsVerificador)
+            return;
+
+        // Added: Validators cannot create, only edit
+        if (EsValidador && !ModoEdicion)
+            return;
+
         try
         {
             if (!ValidarRelacion()) return;
@@ -484,7 +518,8 @@ else
 
     private async Task EliminarRelacion()
     {
-        if (EsVerificador)
+        // Modified: Verifiers and Validators cannot delete
+        if (EsVerificador || EsValidador)
             return;
         try
         {

@@ -8,7 +8,8 @@
 <PageTitle>Resultados de Indicadores</PageTitle>
 
 <h1>Resultados de Indicadores</h1>
-@if (!EsVerificador)
+@* Solo los administradores pueden crear resultados de indicadores *@
+@if (!EsVerificador && !EsValidador)
 {
     <div class="mb-3">
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
@@ -60,7 +61,13 @@ else
                     <th>Resultado</th>
                     <th>Fecha de Cálculo</th>
                     <th>Indicador</th>
-                    @if (!EsVerificador)
+                    @* Mostrar acciones solo si no es verificador o validador *@
+                    @if (!EsVerificador && !EsValidador)
+                    {
+                        <th>Acciones</th>
+                    }
+                    @* Los validadores solo pueden editar, así que necesitan ver la columna de acciones si solo son validadores y no verificadores *@
+                    @if (EsValidador && !EsVerificador)
                     {
                         <th>Acciones</th>
                     }
@@ -73,11 +80,19 @@ else
                         <td>@ObtenerValor(resultado, "resultado")</td>
                         <td>@ObtenerValor(resultado, "fechacalculo")</td>
                         <td>@ObtenerNombreIndicador(ObtenerValor(resultado, "fkidindicador"))</td>
-                        @if (!EsVerificador)
+                        @* Administradores pueden hacer todo *@
+                        @if (!EsVerificador && !EsValidador)
                         {
                             <td>
                                 <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(resultado)">Editar</button>
                                 <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(resultado)">Eliminar</button>
+                            </td>
+                        }
+                        @* Los validadores solo pueden editar *@
+                        @if (EsValidador && !EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(resultado)">Editar</button>
                             </td>
                         }
                     </tr>
@@ -186,6 +201,7 @@ else
     private string? errorMensaje = null;
     private string? exitoMensaje = null;
     private bool EsVerificador { get; set; } = false;
+    private bool EsValidador { get; set; } = false; // Added: Declaration of EsValidador
 
     // Propiedad para la búsqueda
     private string TextoBusqueda { get; set; } = string.Empty;
@@ -206,6 +222,7 @@ else
     {
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+        EsValidador = RutasPermisosService.EsRolValidador(rol); // Added: Initialization of EsValidador
         await CargarIndicadores();
         await CargarResultados();
     }
@@ -260,10 +277,10 @@ else
             if (indicadores != null)
             {
                 indicadoresDisponibles = indicadores.Select(i => new IndicadorModel
-                {
-                    Id = ObtenerValor(i, "id"),
-                    Nombre = ObtenerValor(i, "nombre")
-                }).ToList();
+                    {
+                        Id = ObtenerValor(i, "id"),
+                        Nombre = ObtenerValor(i, "nombre")
+                    }).ToList();
             }
             else
             {
@@ -342,7 +359,8 @@ else
 
     private void MostrarFormularioCrear()
     {
-        if (EsVerificador)
+        // Modified: Verifiers and Validators cannot create
+        if (EsVerificador || EsValidador)
             return;
         resultadoActual = new ResultadoModel();
         modoEdicion = false;
@@ -351,6 +369,7 @@ else
 
     private void MostrarFormularioEditar(Dictionary<string, object> resultado)
     {
+        // Modified: Only verifiers cannot edit (validators can edit)
         if (EsVerificador)
             return;
         // Extracción de los valores del diccionario
@@ -367,12 +386,12 @@ else
 
         // Crear el modelo para edición
         resultadoActual = new ResultadoModel
-        {
-            Id = id,
-            Valor = valor,
-            FechaCalculo = fechaCalculo,
-            IndicadorId = indicadorId
-        };
+            {
+                Id = id,
+                Valor = valor,
+                FechaCalculo = fechaCalculo,
+                IndicadorId = indicadorId
+            };
 
         modoEdicion = true;
         mostrarFormulario = true;
@@ -385,6 +404,14 @@ else
 
     private async Task GuardarResultado()
     {
+        // Modified: Verifiers cannot save (create or edit)
+        if (EsVerificador)
+            return;
+
+        // Added: Validators cannot create, only edit
+        if (EsValidador && !modoEdicion)
+            return;
+
         errorMensaje = null;
         exitoMensaje = null;
 
@@ -405,11 +432,11 @@ else
 
             // Preparar los datos para guardar
             var resultadoDict = new Dictionary<string, object>
-            {
-                ["resultado"] = resultadoActual.Valor,
-                ["fechacalculo"] = resultadoActual.FechaCalculo.ToString("yyyy-MM-dd"),
-                ["fkidindicador"] = resultadoActual.IndicadorId
-            };
+                {
+                    ["resultado"] = resultadoActual.Valor,
+                    ["fechacalculo"] = resultadoActual.FechaCalculo.ToString("yyyy-MM-dd"),
+                    ["fkidindicador"] = resultadoActual.IndicadorId
+                };
 
             bool resultado;
 
@@ -462,11 +489,14 @@ else
 
     private void ConfirmarEliminar(Dictionary<string, object> resultado)
     {
+        // Modified: Verifiers and Validators cannot delete
+        if (EsVerificador || EsValidador)
+            return;
         resultadoEliminar = new ResultadoModel
-        {
-            Id = ObtenerValor(resultado, "id"),
-            Valor = ObtenerValor(resultado, "resultado")
-        };
+            {
+                Id = ObtenerValor(resultado, "id"),
+                Valor = ObtenerValor(resultado, "resultado")
+            };
         mostrarConfirmacion = true;
     }
 
@@ -477,7 +507,8 @@ else
 
     private async Task EliminarResultado()
     {
-        if (EsVerificador)
+        // Modified: Verifiers and Validators cannot delete
+        if (EsVerificador || EsValidador)
             return;
         errorMensaje = null;
         exitoMensaje = null;

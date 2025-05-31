@@ -11,7 +11,8 @@
 <PageTitle>Responsables por indicadores</PageTitle>
 
 <h1>Responsables por indicadores</h1>
-@if (!EsVerificador)
+@* Solo los administradores pueden crear responsables por indicador *@
+@if (!EsVerificador && !EsValidador)
 {
     <div class="mb-3">
         <button class="btn btn-primary" @onclick="MostrarFormularioCrear">Crear Nuevo</button>
@@ -23,10 +24,10 @@
         <div class="col-md-6">
             <div class="input-group">
                 <input type="text"
-                       class="form-control"
-                       placeholder="Buscar por responsable, indicador o fecha..."
-                       @bind="TextoBusqueda"
-                       @oninput="FiltrarResponsables" />
+                class="form-control"
+                placeholder="Buscar por responsable, indicador o fecha..."
+                @bind="TextoBusqueda"
+                @oninput="FiltrarResponsables" />
                 <button class="btn btn-outline-secondary" type="button" @onclick="LimpiarBusqueda">
                     <i class="fas fa-times"></i> Limpiar
                 </button>
@@ -65,7 +66,13 @@ else
                     <th>ID Indicador</th>
                     <th>Indicador</th>
                     <th>Fecha de Asignación</th>
-                    @if (!EsVerificador)
+                    @* Mostrar acciones solo si no es verificador o validador *@
+                    @if (!EsVerificador && !EsValidador)
+                    {
+                        <th>Acciones</th>
+                    }
+                    @* Los validadores solo pueden editar, así que necesitan ver la columna de acciones si solo son validadores y no verificadores *@
+                    @if (EsValidador && !EsVerificador)
                     {
                         <th>Acciones</th>
                     }
@@ -80,11 +87,19 @@ else
                         <td>@ObtenerValor(responsable, "fkidindicador")</td>
                         <td>@ObtenerNombreIndicador(ObtenerValor(responsable, "fkidindicador"))</td>
                         <td>@ObtenerValor(responsable, "fechaasignacion")</td>
-                        @if (!EsVerificador)
+                        @* Administradores pueden hacer todo *@
+                        @if (!EsVerificador && !EsValidador)
                         {
                             <td>
                                 <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(responsable)">Editar</button>
                                 <button class="btn btn-danger btn-sm" @onclick="() => ConfirmarEliminar(responsable)">Eliminar</button>
+                            </td>
+                        }
+                        @* Los validadores solo pueden editar *@
+                        @if (EsValidador && !EsVerificador)
+                        {
+                            <td>
+                                <button class="btn btn-warning btn-sm" @onclick="() => MostrarFormularioEditar(responsable)">Editar</button>
                             </td>
                         }
                     </tr>
@@ -95,9 +110,9 @@ else
 }
 
 <ModalGenerico @ref="modalFormulario"
-               Id="formModal"
-               Title="@TituloModal"
-               OnSave="GuardarResponsable">
+Id="formModal"
+Title="@TituloModal"
+OnSave="GuardarResponsable">
     <BodyContent>
         <div class="mb-3">
             <label for="idResponsable" class="form-label">Responsable</label>
@@ -128,8 +143,8 @@ else
         <div class="mb-3">
             <label for="fechaAsignacion" class="form-label">Fecha de Asignación</label>
             <input type="date" class="form-control" id="fechaAsignacion"
-                   @bind="ResponsableActual.FechaAsignacion"
-                   @bind:format="yyyy-MM-dd" />
+            @bind="ResponsableActual.FechaAsignacion"
+            @bind:format="yyyy-MM-dd" />
         </div>
         @if (ModoEdicion)
         {
@@ -140,9 +155,9 @@ else
 </ModalGenerico>
 
 <ModalGenerico @ref="modalConfirmacion"
-               Id="confirmModal"
-               Title="Confirmar eliminación"
-               OnSave="EliminarResponsable">
+Id="confirmModal"
+Title="Confirmar eliminación"
+OnSave="EliminarResponsable">
     <BodyContent>
         <p>
             ¿Está seguro que desea eliminar la asignación del responsable
@@ -174,6 +189,7 @@ else
     private const string TABLA_RESPONSABLES = "actor";
     private const string PROCEDIMIENTO_ACCIONES = "accion_responsable_por_indicador";
     private bool EsVerificador { get; set; } = false;
+    private bool EsValidador { get; set; } = false; // Added: Declaration of EsValidador
     private List<Dictionary<string, object>> Responsables { get; set; } = new();
     private List<Dictionary<string, object>> ResponsablesFiltrados { get; set; } = new(); // New list for filtered data
     private bool EstamosCargando { get; set; } = true;
@@ -203,6 +219,7 @@ else
     {
         var rol = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", "rolUsuario");
         EsVerificador = RutasPermisosService.EsRolVerificador(rol);
+        EsValidador = RutasPermisosService.EsRolValidador(rol); // Added: Initialization of EsValidador
         await CargarDatosIniciales();
     }
 
@@ -372,7 +389,8 @@ else
 
     private async Task MostrarFormularioCrear()
     {
-        if (EsVerificador)
+        // Modified: Verifiers and Validators cannot create
+        if (EsVerificador || EsValidador)
             return;
         ResponsableActual = new ResponsableModel
             {
@@ -385,6 +403,7 @@ else
 
     private async Task MostrarFormularioEditar(Dictionary<string, object> responsable)
     {
+        // Modified: Only verifiers cannot edit (validators can edit)
         if (EsVerificador)
             return;
         try
@@ -429,6 +448,9 @@ else
 
     private async Task ConfirmarEliminar(Dictionary<string, object> responsable)
     {
+        // Modified: Verifiers and Validators cannot delete
+        if (EsVerificador || EsValidador)
+            return;
         try
         {
             ResponsableAEliminar = new ResponsableModel
@@ -456,6 +478,14 @@ else
 
     private async Task GuardarResponsable()
     {
+        // Modified: Verifiers cannot save (create or edit)
+        if (EsVerificador)
+            return;
+
+        // Added: Validators cannot create, only edit
+        if (EsValidador && !ModoEdicion)
+            return;
+
         MensajeError = null;
         MensajeExito = null;
 
@@ -482,7 +512,7 @@ else
                     ["fechaasignacion"] = ResponsableActual.FechaAsignacion.ToString("yyyy-MM-dd")
                 };
 
-            bool resultado = false;
+            bool resultado = false; // Initialize to false
 
             if (ModoEdicion)
             {
@@ -490,27 +520,63 @@ else
                 responsableData["indicadorInicial"] = ResponsableOriginal.IdIndicador;
                 responsableData["responsableInicial"] = ResponsableOriginal.IdResponsable;
 
+                // Assuming ServicioEntidad.EjecutarProcedimientoAsync returns a boolean or has an out parameter for success
                 var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
                     "tbl",
                     PROCEDIMIENTO_ACCIONES,
                     responsableData
                 );
+                try
+                {
+                    resultado = Convert.ToBoolean(respuesta);
+                }
+                catch
+                {
+                    resultado = false; // valor por defecto si la conversión falla
+                }
+                if (resultado)
+                {
+                    MensajeExito = "Asignación de responsable actualizada correctamente.";
+                }
+                else
+                {
+                    MensajeError = "No se pudo actualizar la asignación de responsable.";
+                    return;
+                }
             }
             else
             {
                 // Para la creación
                 responsableData["accion"] = "create";
-                responsableData["indicadorInicial"] = 0;
-                responsableData["responsableInicial"] = 0;
+                responsableData["indicadorInicial"] = 0; // Not used for creation, but procedure might expect it
+                responsableData["responsableInicial"] = 0; // Not used for creation, but procedure might expect it
 
                 var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
                     "tbl",
                     PROCEDIMIENTO_ACCIONES,
                     responsableData
                 );
+                try
+                {
+                    resultado = Convert.ToBoolean(respuesta);
+                }
+                catch
+                {
+                    resultado = false; 
+                }
+
+                if (resultado)
+                {
+                    MensajeExito = "Asignación de responsable creada correctamente.";
+                }
+                else
+                {
+                    MensajeError = "No se pudo crear la asignación de responsable.";
+                    return;
+                }
             }
 
-            if (resultado) // The variable 'resultado' is not being set by the `EjecutarProcedimientoAsync` calls. You might need to adjust your ServicioEntidad or the way you handle the response. For now, assuming it returns a boolean.
+            if (resultado)
             {
                 await CargarAsignaciones();
                 await modalFormulario.HideModalAsync();
@@ -525,7 +591,8 @@ else
 
     private async Task EliminarResponsable()
     {
-        if (EsVerificador)
+        // Modified: Verifiers and Validators cannot delete
+        if (EsVerificador || EsValidador)
             return;
         MensajeError = null;
         MensajeExito = null;
@@ -537,8 +604,8 @@ else
                     { "fkidindicador", ResponsableAEliminar.IdIndicador },
                     { "fkidresponsable", ResponsableAEliminar.IdResponsable },
                     { "accion", "delete" },
-                    { "indicadorInicial", 0 },
-                    { "responsableInicial", 0 }
+                    { "indicadorInicial", 0 }, // Not directly used for delete by PK, but procedure might expect it
+                    { "responsableInicial", 0 } // Not directly used for delete by PK, but procedure might expect it
                 };
 
             var respuesta = await ServicioEntidad.EjecutarProcedimientoAsync(
@@ -546,6 +613,28 @@ else
                 PROCEDIMIENTO_ACCIONES,
                 body
             );
+            // Assuming 'respuesta' indicates success or failure
+            var resultado = false;
+            try
+            {
+               resultado = Convert.ToBoolean(respuesta);
+            }
+            catch
+            {
+              resultado = false; // valor por defecto si la conversión falla
+            }; // Cast based on actual return type
+
+            if (resultado)
+            {
+                MensajeExito = "Asignación eliminada correctamente.";
+                await CargarAsignaciones();
+            }
+            else
+            {
+                MensajeError = "No se pudo eliminar la asignación.";
+            }
+
+            await modalConfirmacion.HideModalAsync();
         }
         catch (Exception ex)
         {
