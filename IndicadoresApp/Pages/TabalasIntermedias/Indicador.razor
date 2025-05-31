@@ -10,7 +10,7 @@
 <h3>Gestión de Indicadores</h3>
 <div style="text-align: center;">
     <a href="/Consultas"
-       style="display: inline-block; width: 100%; padding: 0.75rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 600; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); background-color: #2563eb; text-decoration: none;">
+           style="display: inline-block; width: 100%; padding: 0.75rem 1.5rem; border-radius: 0.5rem; color: white; font-weight: 600; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); background-color: #2563eb; text-decoration: none;">
         Consultas de indicadores personalizadas
     </a>
 </div>
@@ -247,6 +247,7 @@ else
                                     <button class="btn btn-sm btn-info" @onclick="() => AbrirModalResponsables(indicador)">Asignar Responsables</button>
                                     <button class="btn btn-sm btn-secondary" @onclick="() => AbrirModalRepresenVisualPorIndicador(indicador)">Asignar Rep. Visuales</button>
                                     <button class="btn btn-sm btn-info" @onclick="() => AbrirModalFuentesPorIndicador(indicador)">Asignar Fuentes</button>
+                                    <button class="btn btn-sm btn-warning" @onclick="() => AbrirModalVariablesPorIndicador(indicador)">Asignar Variables</button>
                                 </div>
                             </td>
                         }
@@ -257,12 +258,11 @@ else
     }
 }
 
-<!-- Modal para gestionar responsables por indicador -->
 <ModalGenerico @ref="modalResponsables"
-               Id="modalResponsables"
-               Title="Gestión de Responsables"
-               OnSave="CrearRelacion"
-               ShowSaveButton="false">
+                       Id="modalResponsables"
+                       Title="Gestión de Responsables"
+                       OnSave="CrearRelacion"
+                       ShowSaveButton="false">
     <BodyContent>
         @if (indicadorSeleccionado != null)
         {
@@ -316,10 +316,10 @@ else
 </ModalGenerico>
 
 <ModalGenerico @ref="modalRepresenVisual"
-               Id="modalRepresenVisual"
-               Title="Representaciones Visuales"
-               OnSave="AsignarRepresenVisualPorIndicador"
-               ShowSaveButton="false">
+                       Id="modalRepresenVisual"
+                       Title="Representaciones Visuales"
+                       OnSave="AsignarRepresenVisualPorIndicador"
+                       ShowSaveButton="false">
     <BodyContent>
         @if (indicadorSeleccionado != null)
         {
@@ -367,10 +367,10 @@ else
 </ModalGenerico>
 
 <ModalGenerico @ref="modalFuentes"
-               Id="modalFuentes"
-               Title="Gestión de Fuentes"
-               OnSave="AsignarFuentePorIndicador"
-               ShowSaveButton="false">
+                       Id="modalFuentes"
+                       Title="Gestión de Fuentes"
+                       OnSave="AsignarFuentePorIndicador"
+                       ShowSaveButton="false">
     <BodyContent>
         @if (indicadorSeleccionado != null)
         {
@@ -408,6 +408,60 @@ else
                                     @fuentes.FirstOrDefault(f => f["id"].ToString() == relacion["fkidfuente"].ToString())?["nombre"]
                                 </span>
                                 <button class="btn btn-danger btn-sm" @onclick="() => EliminarFuentePorIndicador(relacion)">Eliminar</button>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        }
+    </BodyContent>
+</ModalGenerico>
+
+<ModalGenerico @ref="modalVariables"
+               Id="modalVariables"
+               Title="Gestión de Variables"
+               OnSave="AsignarVariablePorIndicador"
+               ShowSaveButton="false">
+    <BodyContent>
+        @if (indicadorSeleccionado != null)
+        {
+            <div class="modal-body">
+                @if (!string.IsNullOrEmpty(mensajeModalVariablesPorIndicador))
+                {
+                    <div class="alert alert-info">@mensajeModalVariablesPorIndicador</div>
+                }
+                <div class="mb-3">
+                    <label>Variable:</label>
+                    <select class="form-select mb-2" @bind="nuevoIdVariable">
+                        <option value="">Seleccione una variable</option>
+                        @foreach (var variable in variables)
+                        {
+                            <option value="@variable["id"]">@variable["nombre"] - @variable["dato"]</option>
+                        }
+                    </select>
+                    <button class="btn btn-success" @onclick="AsignarVariablePorIndicador">Asignar</button>
+                </div>
+                <h4 class="mt-4">Variables asignadas</h4>
+                @if (relacionesVariables.Count == 0)
+                {
+                    <p>No hay variables asignadas a este indicador.</p>
+                }
+                else
+                {
+                    <ul class="list-group">
+                        @foreach (var relacion in relacionesVariables)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@variables.FirstOrDefault(v => v["id"].ToString() == relacion["fkidvariable"].ToString())?["nombre"]</strong>
+                                    <br />
+                                    <small class="text-muted">Dato: @variables.FirstOrDefault(v => v["id"].ToString() == relacion["fkidvariable"].ToString())?["dato"]</small>
+                                    <br />
+                                    <small class="text-muted">Usuario: @relacion["fkemailusuario"]</small>
+                                    <br />
+                                    <small class="text-muted">Fecha: @FormatFecha(relacion["fechadato"])</small>
+                                </div>
+                                <button class="btn btn-danger btn-sm" @onclick="() => EliminarVariablePorIndicador(relacion)">Eliminar</button>
                             </li>
                         }
                     </ul>
@@ -495,6 +549,14 @@ else
     private string nuevoIdFuente = string.Empty;
     private string mensajeModalFuentesPorIndicador = string.Empty;
 
+    // Variables for Variables modal
+    private const string TABLA_VARIABLES_INDICADOR = "variablesporindicador";
+    private ModalGenerico? modalVariables;
+    private bool mostrarModalVariablesPorIndicador = false;
+    private List<Dictionary<string, object>> variables = new();
+    private List<Dictionary<string, object>> relacionesVariables = new();
+    private string nuevoIdVariable = string.Empty;
+    private string mensajeModalVariablesPorIndicador = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -514,10 +576,9 @@ else
             await CargarTabla("numeral", numerales);
             await CargarTabla("paragrafo", parrafos);
             await CargarTabla("actor", actores);
-
-            // *** AGREGAR ESTAS DOS LÍNEAS ***
             await CargarTabla("represenvisual", represenvisuales);  // O el nombre correcto de tu tabla
             await CargarTabla("fuente", fuentes);  // O el nombre correcto de tu tabla
+            await CargarTabla("variable", variables); // Agregar esta línea junto a las otras
 
             await ObtenerIndicadores();
         }
@@ -533,144 +594,83 @@ else
     {
         try
         {
-            var resultado = await servicioEntidad.ObtenerTodosAsync( nombreTabla);
+            var resultado = await servicioEntidad.ObtenerTodosAsync(nombreTabla);
             if (resultado != null)
             {
                 lista.Clear();
                 lista.AddRange(resultado);
-                await JSRuntime.InvokeVoidAsync("console.log", $"{nombreTabla} desde API:", JsonSerializer.Serialize(resultado));
             }
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error en tabla {nombreTabla}: {ex.Message}";
+            Console.WriteLine($"Error al cargar la tabla '{nombreTabla}': {ex.Message}");
+            // Considera agregar un mensaje de error más visible para el usuario
         }
     }
 
+
     private async Task ObtenerIndicadores()
     {
-        var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
-        indicadores = resultado ?? new();
-        await JSRuntime.InvokeVoidAsync("console.log", "Indicadores cargados:", JsonSerializer.Serialize(indicadores));
-    }
-
-    private string BuscarNombre(List<Dictionary<string, object>> lista, object? id)
-    {
-        var sid = id?.ToString();
-        return lista.FirstOrDefault(e => e["id"]?.ToString() == sid)?["nombre"]?.ToString() ?? "N/A";
-    }
-
-    private string BuscarDescripcion(List<Dictionary<string, object>> lista, object? id)
-    {
-        return lista.FirstOrDefault(e => e["id"].ToString() == id?.ToString())?["descripcion"]?.ToString() ?? "N/A";
+        try
+        {
+            var resultado = await servicioEntidad.ObtenerTodosAsync(TABLA);
+            if (resultado != null)
+            {
+                indicadores = resultado;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMensaje = $"Error al obtener indicadores: {ex.Message}";
+        }
     }
 
     private async Task CrearIndicador()
     {
-        var nuevo = new Dictionary<string, object>
+        if (string.IsNullOrWhiteSpace(nuevoCodigo) || string.IsNullOrWhiteSpace(nuevoNombre))
         {
-            { "codigo", nuevoCodigo },
-            { "nombre", nuevoNombre },
-            { "meta", nuevoMeta },
-            { "objetivo", nuevoObjetivo },
-            { "alcance", nuevoAlcance },
-            { "formula", nuevoFormula },
-            { "fkidtipoindicador", nuevoTipoIndicador },
-            { "fkidunidadmedicion", nuevaUnidadMedicion },
-            { "fkidsentido", nuevoSentido },
-            { "fkidfrecuencia", nuevaFrecuencia },
-            { "fkidarticulo", nuevoArticulo },
-            { "fkidliteral", nuevoLiteral },
-            { "fkidnumeral", nuevoNumeral },
-            { "fkidparagrafo", nuevoParagrafo }
-        };
+            mensaje = "Código y nombre son obligatorios.";
+            return;
+        }
 
-        var creado = await servicioEntidad.CrearAsync(TABLA, nuevo);
-        if (creado)
+        var parametros = new Dictionary<string, object>
+    {
+      { "nombreSP", "insertar_indicador" },
+      { "codigo", nuevoCodigo },
+      { "nombre", nuevoNombre },
+      { "meta", nuevoMeta },
+      { "objetivo", nuevoObjetivo },
+      { "alcance", nuevoAlcance },
+      { "formula", nuevoFormula },
+      { "fkidtipoindicador", int.Parse(nuevoTipoIndicador) },
+      { "fkidunidadmedicion", int.Parse(nuevaUnidadMedicion) },
+      { "fkidsentido", int.Parse(nuevoSentido) },
+      { "fkidfrecuencia", int.Parse(nuevaFrecuencia) },
+      { "fkidarticulo", int.Parse(nuevoArticulo) },
+      { "fkidliteral", int.Parse(nuevoLiteral) },
+      { "fkidnumeral", int.Parse(nuevoNumeral) },
+      { "fkidparagrafo", int.Parse(nuevoParagrafo) }
+    };
+
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+          TABLA,
+          "insertar_indicador",
+          parametros
+        );
+
+        if (resultado != null)
         {
+            mensaje = "Indicador creado correctamente.";
             await ObtenerIndicadores();
-            LimpiarFormulario();
+            LimpiarCampos();
         }
         else
         {
-            errorMensaje = "Error al crear el indicador.";
+            mensaje = "Error al crear el indicador.";
         }
     }
 
-    private void IniciarEdicion(Dictionary<string, object> indicador)
-    {
-        indicadorEditarId = indicador["id"].ToString();
-        indicadorEditarCodigo = indicador["codigo"]?.ToString() ?? "";
-        indicadorEditarNombre = indicador["nombre"]?.ToString() ?? "";
-        indicadorEditarMeta = indicador["meta"]?.ToString() ?? "";
-        indicadorEditarObjetivo = indicador["objetivo"]?.ToString() ?? "";
-        indicadorEditarAlcance = indicador["alcance"]?.ToString() ?? "";
-        indicadorEditarFormula = indicador["formula"]?.ToString() ?? "";
-        indicadorEditarTipo = indicador["fkidtipoindicador"]?.ToString() ?? "";
-        indicadorEditarUnidad = indicador["fkidunidadmedicion"]?.ToString() ?? "";
-        indicadorEditarSentido = indicador["fkidsentido"]?.ToString() ?? "";
-        indicadorEditarFrecuencia = indicador["fkidfrecuencia"]?.ToString() ?? "";
-        indicadorEditarArticulo = indicador["fkidarticulo"]?.ToString() ?? "";
-        indicadorEditarLiteral = indicador["fkidliteral"]?.ToString() ?? "";
-        indicadorEditarNumeral = indicador["fkidnumeral"]?.ToString() ?? "";
-        indicadorEditarParagrafo = indicador["fkidparagrafo"]?.ToString() ?? "";
-    }
-
-    private void CancelarEdicion()
-    {
-        indicadorEditarId = "";
-    }
-
-    private async Task GuardarEdicion()
-    {
-        if (string.IsNullOrEmpty(indicadorEditarId)) return;
-
-        var datosActualizados = new Dictionary<string, object>
-        {
-            { "codigo", indicadorEditarCodigo },
-            { "nombre", indicadorEditarNombre },
-            { "meta", indicadorEditarMeta },
-            { "objetivo", indicadorEditarObjetivo },
-            { "alcance", indicadorEditarAlcance },
-            { "formula", indicadorEditarFormula },
-            { "fkidtipoindicador", indicadorEditarTipo },
-            { "fkidunidadmedicion", indicadorEditarUnidad },
-            { "fkidsentido", indicadorEditarSentido },
-            { "fkidfrecuencia", indicadorEditarFrecuencia },
-            { "fkidarticulo", indicadorEditarArticulo },
-            { "fkidliteral", indicadorEditarLiteral },
-            { "fkidnumeral", indicadorEditarNumeral },
-            { "fkidparagrafo", indicadorEditarParagrafo }
-        };
-
-        try
-        {
-            await JSRuntime.InvokeVoidAsync("console.log", "Actualizando:", JsonSerializer.Serialize(datosActualizados));
-
-            var resultado = await servicioEntidad.ActualizarAsync(
-                TABLA,
-                "id",
-                indicadorEditarId,
-                datosActualizados
-            );
-
-            if (resultado)
-            {
-                indicadorEditarId = "";
-                await ObtenerIndicadores();
-            }
-            else
-            {
-                errorMensaje = "Error al actualizar el indicador.";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMensaje = $"Error crítico al guardar: {ex.Message}";
-        }
-    }
-
-    private void LimpiarFormulario()
+    private void LimpiarCampos()
     {
         nuevoCodigo = "";
         nuevoNombre = "";
@@ -688,166 +688,241 @@ else
         nuevoParagrafo = "";
     }
 
+    private void IniciarEdicion(Dictionary<string, object> indicador)
+    {
+        indicadorEditarId = indicador["id"].ToString();
+        indicadorEditarCodigo = indicador["codigo"].ToString();
+        indicadorEditarNombre = indicador["nombre"].ToString();
+        indicadorEditarMeta = indicador["meta"].ToString();
+        indicadorEditarObjetivo = indicador["objetivo"].ToString();
+        indicadorEditarAlcance = indicador["alcance"].ToString();
+        indicadorEditarFormula = indicador["formula"].ToString();
+        indicadorEditarTipo = indicador["fkidtipoindicador"].ToString();
+        indicadorEditarUnidad = indicador["fkidunidadmedicion"].ToString();
+        indicadorEditarSentido = indicador["fkidsentido"].ToString();
+        indicadorEditarFrecuencia = indicador["fkidfrecuencia"].ToString();
+        indicadorEditarArticulo = indicador["fkidarticulo"]?.ToString() ?? string.Empty;
+        indicadorEditarLiteral = indicador["fkidliteral"]?.ToString() ?? string.Empty;
+        indicadorEditarNumeral = indicador["fkidnumeral"]?.ToString() ?? string.Empty;
+        indicadorEditarParagrafo = indicador["fkidparagrafo"]?.ToString() ?? string.Empty;
+    }
+
+    private async Task GuardarEdicion()
+    {
+        if (string.IsNullOrWhiteSpace(indicadorEditarCodigo) || string.IsNullOrWhiteSpace(indicadorEditarNombre))
+        {
+            mensaje = "Código y nombre son obligatorios.";
+            return;
+        }
+
+        var parametros = new Dictionary<string, object>
+    {
+      { "nombreSP", "actualizar_indicador" },
+      { "id", int.Parse(indicadorEditarId) },
+      { "codigo", indicadorEditarCodigo },
+      { "nombre", indicadorEditarNombre },
+      { "meta", indicadorEditarMeta },
+      { "objetivo", indicadorEditarObjetivo },
+      { "alcance", indicadorEditarAlcance },
+      { "formula", indicadorEditarFormula },
+      { "fkidtipoindicador", int.Parse(indicadorEditarTipo) },
+      { "fkidunidadmedicion", int.Parse(indicadorEditarUnidad) },
+      { "fkidsentido", int.Parse(indicadorEditarSentido) },
+      { "fkidfrecuencia", int.Parse(indicadorEditarFrecuencia) },
+      { "fkidarticulo", int.Parse(indicadorEditarArticulo) },
+      { "fkidliteral", int.Parse(indicadorEditarLiteral) },
+      { "fkidnumeral", int.Parse(indicadorEditarNumeral) },
+      { "fkidparagrafo", int.Parse(indicadorEditarParagrafo) }
+    };
+
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+          TABLA,
+          "actualizar_indicador",
+          parametros
+        );
+
+        if (resultado != null)
+        {
+            mensaje = "Indicador actualizado correctamente.";
+            await ObtenerIndicadores();
+            CancelarEdicion();
+        }
+        else
+        {
+            mensaje = "Error al actualizar el indicador.";
+        }
+    }
+
+    private void CancelarEdicion()
+    {
+        indicadorEditarId = "";
+        mensaje = string.Empty;
+    }
+
     private async Task EliminarIndicador(Dictionary<string, object> indicador)
     {
-        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm", $"¿Está seguro de eliminar el indicador '{indicador["nombre"]}'?");
+        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm", $"¿Desea eliminar el indicador {indicador["nombre"]}?");
         if (!confirmar) return;
 
-        bool resultado = await servicioEntidad.EliminarAsync(TABLA, "id", indicador["id"].ToString());
+        var parametros = new Dictionary<string, object>
+    {
+      { "nombreSP", "eliminar_indicador" },
+      { "id", int.Parse(indicador["id"].ToString()) }
+    };
 
-        if (resultado)
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+          TABLA,
+          "eliminar_indicador",
+          parametros
+        );
+
+        if (resultado != null)
         {
+            mensaje = "Indicador eliminado correctamente.";
             await ObtenerIndicadores();
         }
         else
         {
-            errorMensaje = "Error al eliminar el indicador.";
+            mensaje = "Error al eliminar el indicador.";
         }
+    }
+
+    private string BuscarNombre(List<Dictionary<string, object>> lista, object id)
+    {
+        return lista.FirstOrDefault(item => item["id"].ToString() == id.ToString())?["nombre"]?.ToString() ?? "N/A";
+    }
+
+    private string BuscarDescripcion(List<Dictionary<string, object>> lista, object id)
+    {
+        return lista.FirstOrDefault(item => item["id"].ToString() == id.ToString())?["descripcion"]?.ToString() ?? "N/A";
     }
 
     private async Task AbrirModalResponsables(Dictionary<string, object> indicador)
     {
         indicadorSeleccionado = indicador;
+        mensajeModal = string.Empty;
+        nuevoResponsable = string.Empty;
+        nuevaFechaAsignacion = DateTime.Today;
+        await ObtenerRelacionesResponsables(indicador["id"].ToString());
         await modalResponsables.ShowModalAsync();
-        await ObtenerRelacionesPorIndicador(indicador["id"].ToString());
-    }
-    private async Task CerrarModalResponsables()
-    {
-        await modalResponsables.HideModalAsync();
-        indicadorSeleccionado = null;
-        relaciones.Clear();
     }
 
-    private async Task ObtenerRelacionesPorIndicador(string indicadorId)
+    private async Task ObtenerRelacionesResponsables(string indicadorId)
     {
         try
         {
             var todasLasRelaciones = await servicioEntidad.ObtenerTodosAsync(TABLA_RESPONSABLES) ?? new();
             relaciones = todasLasRelaciones
-                .Where(r => r["fkidindicador"].ToString() == indicadorId)
-                .ToList();
+              .Where(r => r["fkidindicador"].ToString() == indicadorId)
+              .ToList();
         }
         catch (Exception ex)
         {
-            mensajeModal = $"Error al cargar responsables: {ex.Message}";
+            mensajeModal = $"Error al cargar relaciones: {ex.Message}";
         }
-    }
-
-    private string FormatFecha(object? fecha)
-    {
-        if (fecha is DateTime dt)
-            return dt.ToString("yyyy-MM-dd");
-
-        if (DateTime.TryParse(fecha?.ToString(), out var parsed))
-            return parsed.ToString("yyyy-MM-dd");
-
-        return "Fecha inválida";
     }
 
     private async Task CrearRelacion()
     {
         mensajeModal = string.Empty;
-
-        if (string.IsNullOrWhiteSpace(nuevoResponsable) || indicadorSeleccionado == null)
+        if (indicadorSeleccionado == null || string.IsNullOrWhiteSpace(nuevoResponsable))
         {
-            mensajeModal = "Debe seleccionar un actor.";
+            mensajeModal = "Debe seleccionar un responsable.";
             return;
         }
 
-        string indicadorId = indicadorSeleccionado["id"].ToString();
-
         if (relaciones.Any(r =>
-            r["fkidresponsable"].ToString() == nuevoResponsable &&
-            r["fkidindicador"].ToString() == indicadorId))
+          r["fkidresponsable"].ToString() == nuevoResponsable &&
+          r["fkidindicador"].ToString() == indicadorSeleccionado["id"].ToString()))
         {
             mensajeModal = "La relación ya existe.";
             return;
         }
 
-        try
-        {
-            var nuevaRelacion = new Dictionary<string, object>
-        {
-            { "fkidresponsable", nuevoResponsable },
-            { "fkidindicador", indicadorId },
-            { "fechaasignacion", nuevaFechaAsignacion.ToString("yyyy-MM-dd") }
-        };
+        var parametros = new Dictionary<string, object>
+    {
+      { "nombreSP", "insertar_responsablesporindicador" },
+      { "fkidresponsable", int.Parse(nuevoResponsable) },
+      { "fkidindicador", int.Parse(indicadorSeleccionado["id"].ToString()) },
+      { "fechaasignacion", nuevaFechaAsignacion.ToString("yyyy-MM-dd") }
+    };
 
-            var resultado = await servicioEntidad.CrearAsync(TABLA_RESPONSABLES, nuevaRelacion);
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+          TABLA_RESPONSABLES,
+          "insertar_responsablesporindicador",
+          parametros
+        );
 
-            if (resultado)
-            {
-                mensajeModal = "Responsable asignado correctamente.";
-                nuevoResponsable = string.Empty;
-                nuevaFechaAsignacion = DateTime.Today;
-                await ObtenerRelacionesPorIndicador(indicadorId);
-            }
-            else
-            {
-                mensajeModal = "Error al crear la relación.";
-            }
+        if (resultado != null)
+        {
+            mensajeModal = "Responsable asignado correctamente.";
+            nuevoResponsable = string.Empty;
+            await ObtenerRelacionesResponsables(indicadorSeleccionado["id"].ToString());
         }
-        catch (Exception ex)
+        else
         {
-            mensajeModal = $"Error crítico: {ex.Message}";
+            mensajeModal = "Error al asignar responsable.";
         }
     }
 
     private async Task EliminarRelacion(Dictionary<string, object> relacion)
     {
         bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-            $"¿Deseas eliminar la relación de {relacion["fkidresponsable"]} con indicador {relacion["fkidindicador"]}?");
-
+          $"¿Desea eliminar este responsable del indicador?");
         if (!confirmar) return;
 
-        try
-        {
-            var parametros = new Dictionary<string, object>
-        {
-            { "fkidresponsable", relacion["fkidresponsable"] },
-            { "fkidindicador", relacion["fkidindicador"] }
-        };
+        var parametros = new Dictionary<string, object>
+    {
+      { "nombreSP", "eliminar_responsablesporindicador" },
+      { "fkidresponsable", int.Parse(relacion["fkidresponsable"].ToString()) },
+      { "fkidindicador", int.Parse(relacion["fkidindicador"].ToString()) }
+    };
 
-            // Cambiado: Usar TABLA_RESPONSABLES en lugar de TABLA
-            var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
-                TABLA_RESPONSABLES,
-                "eliminar_responsablesporindicador",
-                parametros
-            );
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+          TABLA_RESPONSABLES,
+          "eliminar_responsablesporindicador",
+          parametros
+        );
 
-            if (resultado != null)
-            {
-                mensajeModal = "Relación eliminada correctamente.";
-                await ObtenerRelacionesPorIndicador(relacion["fkidindicador"].ToString());
-            }
-            else
-            {
-                mensajeModal = "Error al eliminar la relación.";
-            }
+        if (resultado != null)
+        {
+            mensajeModal = "Responsable eliminado correctamente.";
+            await ObtenerRelacionesResponsables(indicadorSeleccionado["id"].ToString());
         }
-        catch (Exception ex)
+        else
         {
-            mensajeModal = $"Error al eliminar la relación: {ex.Message}";
-            await JSRuntime.InvokeVoidAsync("console.error", "Error al eliminar relación:", ex.Message);
+            mensajeModal = "Error al eliminar el responsable.";
         }
     }
 
-    //metodos para la representación visual
+    private string FormatFecha(object fechaObj)
+    {
+        if (fechaObj == null) return string.Empty;
+        if (DateTime.TryParse(fechaObj.ToString(), out DateTime fecha))
+        {
+            return fecha.ToShortDateString();
+        }
+        return string.Empty;
+    }
+
+    // Métodos para Representación Visual
     private async Task AbrirModalRepresenVisualPorIndicador(Dictionary<string, object> indicador)
     {
         indicadorSeleccionado = indicador;
-        await modalRepresenVisual.ShowModalAsync();
+        mensajeModalRepresenVisualPorIndicador = string.Empty;
+        nuevoIdRepresenVisualPorIndicador = string.Empty;
         await ObtenerRelacionesRepresenVisual(indicador["id"].ToString());
+        await modalRepresenVisual.ShowModalAsync();
     }
 
     private async Task ObtenerRelacionesRepresenVisual(string indicadorId)
     {
         try
         {
-            var todasLasRelaciones = await servicioEntidad.ObtenerTodosAsync( TABLA_REPRESENVISUAL_INDICADOR) ?? new();
+            var todasLasRelaciones = await servicioEntidad.ObtenerTodosAsync(TABLA_REPRESENVISUAL_INDICADOR) ?? new();
             relacionesRepresenVisual = todasLasRelaciones
-                .Where(r => r["fkidindicador"].ToString() == indicadorId)
-                .ToList();
+              .Where(r => r["fkidindicador"].ToString() == indicadorId)
+              .ToList();
         }
         catch (Exception ex)
         {
@@ -858,15 +933,15 @@ else
     private async Task AsignarRepresenVisualPorIndicador()
     {
         mensajeModalRepresenVisualPorIndicador = string.Empty;
-
-        if (string.IsNullOrWhiteSpace(nuevoIdRepresenVisualPorIndicador))
+        if (indicadorSeleccionado == null || string.IsNullOrWhiteSpace(nuevoIdRepresenVisualPorIndicador))
         {
             mensajeModalRepresenVisualPorIndicador = "Debe seleccionar una representación visual.";
             return;
         }
 
         if (relacionesRepresenVisual.Any(r =>
-            r["fkidrepresenvisual"].ToString() == nuevoIdRepresenVisualPorIndicador))
+          r["fkidrepresenvisual"].ToString() == nuevoIdRepresenVisualPorIndicador &&
+          r["fkidindicador"].ToString() == indicadorSeleccionado["id"].ToString()))
         {
             mensajeModalRepresenVisualPorIndicador = "La relación ya existe.";
             return;
@@ -874,82 +949,77 @@ else
 
         var parametros = new Dictionary<string, object>
     {
-        { "nombreSP", "insertar_represenvisualporindicador" },
-        { "fkidindicador", int.Parse(indicadorSeleccionado["id"].ToString()) },
-        { "fkidrepresenvisual", int.Parse(nuevoIdRepresenVisualPorIndicador) }
+      { "nombreSP", "insertar_represenvisualporindicador" },
+      { "fkidrepresenvisual", int.Parse(nuevoIdRepresenVisualPorIndicador) },
+      { "fkidindicador", int.Parse(indicadorSeleccionado["id"].ToString()) }
     };
 
         var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
-            TABLA_REPRESENVISUAL_INDICADOR,
-            "insertar_represenvisualporindicador",
-            parametros
+          TABLA_REPRESENVISUAL_INDICADOR,
+          "insertar_represenvisualporindicador",
+          parametros
         );
 
         if (resultado != null)
         {
-            mensajeModalRepresenVisualPorIndicador = "Relación creada correctamente.";
+            mensajeModalRepresenVisualPorIndicador = "Representación visual asignada correctamente.";
             nuevoIdRepresenVisualPorIndicador = string.Empty;
             await ObtenerRelacionesRepresenVisual(indicadorSeleccionado["id"].ToString());
         }
         else
         {
-            mensajeModalRepresenVisualPorIndicador = "Error al crear la relación.";
+            mensajeModalRepresenVisualPorIndicador = "Error al asignar la representación visual.";
         }
     }
 
     private async Task EliminarRepresenVisualPorIndicador(Dictionary<string, object> relacion)
     {
         bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-            $"¿Desea eliminar esta representación visual del indicador?");
-
+          $"¿Desea eliminar esta representación visual del indicador?");
         if (!confirmar) return;
 
         var parametros = new Dictionary<string, object>
     {
-        { "nombreSP", "eliminar_represenvisualporindicador" },
-        { "fkidindicador", int.Parse(relacion["fkidindicador"].ToString()) },
-        { "fkidrepresenvisual", int.Parse(relacion["fkidrepresenvisual"].ToString()) }
+      { "nombreSP", "eliminar_represenvisualporindicador" },
+      { "fkidrepresenvisual", int.Parse(relacion["fkidrepresenvisual"].ToString()) },
+      { "fkidindicador", int.Parse(relacion["fkidindicador"].ToString()) }
     };
 
         var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
-            TABLA_REPRESENVISUAL_INDICADOR,
-            "eliminar_represenvisualporindicador",
-            parametros
+          TABLA_REPRESENVISUAL_INDICADOR,
+          "eliminar_represenvisualporindicador",
+          parametros
         );
 
         if (resultado != null)
         {
-            mensajeModalRepresenVisualPorIndicador = "Relación eliminada correctamente.";
+            mensajeModalRepresenVisualPorIndicador = "Representación visual eliminada correctamente.";
             await ObtenerRelacionesRepresenVisual(indicadorSeleccionado["id"].ToString());
         }
         else
         {
-            mensajeModalRepresenVisualPorIndicador = "Error al eliminar la relación.";
+            mensajeModalRepresenVisualPorIndicador = "Error al eliminar la representación visual.";
         }
     }
 
-    private async Task CerrarModalRepresenVisualPorIndicador()
-    {
-        await modalRepresenVisual.HideModalAsync();
-        indicadorSeleccionado = null;
-        relacionesRepresenVisual.Clear();
-    }
-
-    //metodos para fuentes por indicador
+    // Métodos para Fuentes
     private async Task AbrirModalFuentesPorIndicador(Dictionary<string, object> indicador)
     {
         indicadorSeleccionado = indicador;
-        await modalFuentes.ShowModalAsync();
+        mensajeModalFuentesPorIndicador = string.Empty;
+        nuevoIdFuente = string.Empty;
         await ObtenerRelacionesFuentes(indicador["id"].ToString());
+        await modalFuentes.ShowModalAsync();
     }
+
     private async Task ObtenerRelacionesFuentes(string indicadorId)
     {
         try
         {
             var todasLasRelaciones = await servicioEntidad.ObtenerTodosAsync(TABLA_FUENTES_INDICADOR) ?? new();
             relacionesFuentes = todasLasRelaciones
-                .Where(r => r["fkidindicador"].ToString() == indicadorId)
-                .ToList();
+              .Where(r => r["fkidindicador"].ToString() == indicadorId)
+              .ToList();
         }
         catch (Exception ex)
         {
@@ -960,15 +1030,15 @@ else
     private async Task AsignarFuentePorIndicador()
     {
         mensajeModalFuentesPorIndicador = string.Empty;
-
-        if (string.IsNullOrWhiteSpace(nuevoIdFuente))
+        if (indicadorSeleccionado == null || string.IsNullOrWhiteSpace(nuevoIdFuente))
         {
             mensajeModalFuentesPorIndicador = "Debe seleccionar una fuente.";
             return;
         }
 
         if (relacionesFuentes.Any(r =>
-            r["fkidfuente"].ToString() == nuevoIdFuente))
+          r["fkidfuente"].ToString() == nuevoIdFuente &&
+          r["fkidindicador"].ToString() == indicadorSeleccionado["id"].ToString()))
         {
             mensajeModalFuentesPorIndicador = "La relación ya existe.";
             return;
@@ -976,15 +1046,15 @@ else
 
         var parametros = new Dictionary<string, object>
     {
-        { "nombreSP", "insertar_fuentesporindicador" },
-        { "fkidfuente", int.Parse(nuevoIdFuente) },
-        { "fkidindicador", int.Parse(indicadorSeleccionado["id"].ToString()) }
+      { "nombreSP", "insertar_fuentesporindicador" },
+      { "fkidfuente", int.Parse(nuevoIdFuente) },
+      { "fkidindicador", int.Parse(indicadorSeleccionado["id"].ToString()) }
     };
 
         var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
-            TABLA_FUENTES_INDICADOR,
-            "insertar_fuentesporindicador",
-            parametros
+          TABLA_FUENTES_INDICADOR,
+          "insertar_fuentesporindicador",
+          parametros
         );
 
         if (resultado != null)
@@ -1002,21 +1072,20 @@ else
     private async Task EliminarFuentePorIndicador(Dictionary<string, object> relacion)
     {
         bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-            $"¿Desea eliminar esta fuente del indicador?");
-
+          $"¿Desea eliminar esta fuente del indicador?");
         if (!confirmar) return;
 
         var parametros = new Dictionary<string, object>
     {
-        { "nombreSP", "eliminar_fuentesporindicador" },
-        { "fkidfuente", int.Parse(relacion["fkidfuente"].ToString()) },
-        { "fkidindicador", int.Parse(relacion["fkidindicador"].ToString()) }
+      { "nombreSP", "eliminar_fuentesporindicador" },
+      { "fkidfuente", int.Parse(relacion["fkidfuente"].ToString()) },
+      { "fkidindicador", int.Parse(relacion["fkidindicador"].ToString()) }
     };
 
         var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
-            TABLA_FUENTES_INDICADOR,
-            "eliminar_fuentesporindicador",
-            parametros
+          TABLA_FUENTES_INDICADOR,
+          "eliminar_fuentesporindicador",
+          parametros
         );
 
         if (resultado != null)
@@ -1030,10 +1099,97 @@ else
         }
     }
 
-    private async Task CerrarModalFuentesPorIndicador()
+    // Métodos para Variables
+    private async Task AbrirModalVariablesPorIndicador(Dictionary<string, object> indicador)
     {
-        await modalFuentes.HideModalAsync();
+        indicadorSeleccionado = indicador;
+        await modalVariables.ShowModalAsync();
+        await ObtenerRelacionesVariables(indicador["id"].ToString());
+    }
+
+    private async Task ObtenerRelacionesVariables(string indicadorId)
+    {
+        try
+        {
+            var todasLasRelaciones = await servicioEntidad.ObtenerTodosAsync(TABLA_VARIABLES_INDICADOR) ?? new();
+            relacionesVariables = todasLasRelaciones
+                .Where(r => r["fkidindicador"].ToString() == indicadorId)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            mensajeModalVariablesPorIndicador = $"Error al cargar relaciones: {ex.Message}";
+        }
+    }
+
+    private async Task AsignarVariablePorIndicador()
+    {
+        mensajeModalVariablesPorIndicador = string.Empty;
+        if (string.IsNullOrWhiteSpace(nuevoIdVariable))
+        {
+            mensajeModalVariablesPorIndicador = "Debe seleccionar una variable.";
+            return;
+        }
+        if (relacionesVariables.Any(r =>
+            r["fkidvariable"].ToString() == nuevoIdVariable))
+        {
+            mensajeModalVariablesPorIndicador = "La relación ya existe.";
+            return;
+        }
+        var parametros = new Dictionary<string, object>
+        {
+            { "nombreSP", "insertar_variablesporindicador" },
+            { "fkidvariable", int.Parse(nuevoIdVariable) },
+            { "fkidindicador", int.Parse(indicadorSeleccionado["id"].ToString()) }
+        };
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+            TABLA_VARIABLES_INDICADOR,
+            "insertar_variablesporindicador",
+            parametros
+        );
+        if (resultado != null)
+        {
+            mensajeModalVariablesPorIndicador = "Variable asignada correctamente.";
+            nuevoIdVariable = string.Empty;
+            await ObtenerRelacionesVariables(indicadorSeleccionado["id"].ToString());
+        }
+        else
+        {
+            mensajeModalVariablesPorIndicador = "Error al asignar la variable.";
+        }
+    }
+
+    private async Task EliminarVariablePorIndicador(Dictionary<string, object> relacion)
+    {
+        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+            $"¿Desea eliminar esta variable del indicador?");
+        if (!confirmar) return;
+        var parametros = new Dictionary<string, object>
+        {
+            { "nombreSP", "eliminar_variablesporindicador" },
+            { "fkidvariable", int.Parse(relacion["fkidvariable"].ToString()) },
+            { "fkidindicador", int.Parse(relacion["fkidindicador"].ToString()) }
+        };
+        var resultado = await servicioEntidad.EjecutarProcedimientoAsync(
+            TABLA_VARIABLES_INDICADOR,
+            "eliminar_variablesporindicador",
+            parametros
+        );
+        if (resultado != null)
+        {
+            mensajeModalVariablesPorIndicador = "Variable eliminada correctamente.";
+            await ObtenerRelacionesVariables(indicadorSeleccionado["id"].ToString());
+        }
+        else
+        {
+            mensajeModalVariablesPorIndicador = "Error al eliminar la variable.";
+        }
+    }
+
+    private async Task CerrarModalVariablesPorIndicador()
+    {
+        await modalVariables.HideModalAsync();
         indicadorSeleccionado = null;
-        relacionesFuentes.Clear();
+        relacionesVariables.Clear();
     }
 }
